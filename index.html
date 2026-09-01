@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>le GUIDELINE — Planning Desk</title>
+<style>
+  :root{
+    --white:#FFFFFF;
+    --ink:#000000;
+    --ink-soft:#767676;
+    --ink-faint:#A8A8A8;
+    --line:#F0F0F0;
+    --line-soft:#F5F5F5;
+    --line-btn:#000000;
+    --red:#E15241;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 1px rgba(0,0,0,0.03);
+    --shadow-btn: 0 3px 10px rgba(0,0,0,0.16);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--white);
+    color:var(--ink);
+    font-family:Helvetica, Arial, sans-serif;
+    font-size:13.5px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .upper{ text-transform:uppercase; letter-spacing:.07em; }
+  .app{ display:flex; min-height:640px; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:212px;
+    flex-shrink:0;
+    background:var(--white);
+    border-right:1px solid var(--line);
+    padding:26px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:30px;
+  }
+  .wordmark-img{ display:block; height:34px; width:auto; image-rendering:auto; }
+  .brand-block{ display:flex; flex-direction:column; }
+
+  .nav{ display:flex; flex-direction:column; gap:1px; }
+  .nav button{
+    all:unset; display:flex; align-items:center; gap:10px;
+    padding:9px 8px 9px 10px; cursor:pointer; border-left:2px solid transparent;
+    font-size:12.5px; color:var(--ink-soft); transition:color .12s ease, border-color .12s ease;
+  }
+  .nav button svg{ width:15px; height:15px; flex-shrink:0; }
+  .nav button:hover{ color:var(--ink); }
+  .nav button.active{ color:var(--ink); font-weight:700; border-left-color:var(--ink); }
+  .nav button .count{ margin-left:auto; font-size:10.5px; color:var(--ink-faint); }
+  .nav button.active .count{ color:var(--ink-soft); }
+  .sidebar-foot{ margin-top:auto; font-size:10.5px; color:var(--ink-faint); line-height:1.5; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; padding:30px 36px 60px; min-width:0; }
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:20px; gap:20px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line); padding-bottom:16px;
+  }
+  .topbar h1{ font-weight:700; font-size:21px; margin:0 0 4px; }
+  .topbar .date{ color:var(--ink-soft); font-size:12px; }
+  .stream-tagline{ color:var(--ink-soft); font-size:12px; max-width:380px; text-align:right; line-height:1.45; }
+
+  .subtabs{ display:flex; gap:2px; margin-bottom:22px; border-bottom:1px solid var(--line); }
+  .subtabs button{
+    all:unset; cursor:pointer; padding:9px 4px; margin-right:22px; font-size:12.5px;
+    color:var(--ink-soft); border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .subtabs button:hover{ color:var(--ink); }
+  .subtabs button.active{ color:var(--ink); font-weight:700; border-bottom-color:var(--ink); }
+
+  .card{ background:var(--white); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-card); }
+
+  /* ---------- Rituals (overview) ---------- */
+  .rituals-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:30px; }
+  @media (max-width:900px){ .rituals-grid{ grid-template-columns:1fr; } }
+  .ritual-card{ padding:18px 18px; position:relative; }
+  .ritual-card .corner-tag{ position:absolute; top:19px; right:18px; font-size:10px; color:var(--ink-faint); }
+  .ritual-card h2{ font-weight:700; font-size:14.5px; margin:0 0 3px; padding-right:70px; }
+  .ritual-card .window{ font-size:11px; color:var(--ink-soft); margin-bottom:12px; }
+  .ritual-list{ display:flex; flex-direction:column; gap:1px; }
+  .ritual-item{ display:flex; align-items:flex-start; gap:9px; padding:7px 3px; }
+  .ritual-item input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; width:14px; height:14px; margin-top:2px;
+    border:1.5px solid var(--ink); border-radius:2px; cursor:pointer; flex-shrink:0; position:relative;
+  }
+  .ritual-item input[type=checkbox]:checked{ background:var(--ink); }
+  .ritual-item input[type=checkbox]:checked::after{
+    content:''; position:absolute; left:3.5px; top:0.5px; width:3.5px; height:7px;
+    border:solid var(--white); border-width:0 1.5px 1.5px 0; transform:rotate(40deg);
+  }
+  .ritual-item .txt{ flex:1; line-height:1.4; font-size:12.5px; }
+  .ritual-item .txt small{ display:block; color:var(--ink-faint); font-size:10.5px; margin-top:1px; }
+  .ritual-item.done .txt{ text-decoration:line-through; color:var(--ink-faint); }
+  .ritual-item .del{ all:unset; cursor:pointer; color:var(--ink-faint); font-size:12px; padding:2px 5px; opacity:0; }
+  .ritual-item:hover .del{ opacity:1; }
+  .ritual-item .del:hover{ color:var(--red); }
+  .ritual-add{ display:flex; gap:6px; margin-top:10px; }
+  .ritual-add input{
+    flex:1; border:1px solid var(--line); background:var(--white); border-radius:4px;
+    padding:7px 9px; font-family:inherit; font-size:12px; color:var(--ink);
+  }
+  .ritual-add input:focus{ outline:none; border-color:var(--ink); }
+  .ritual-add button{
+    all:unset; cursor:pointer; padding:7px 12px; border-radius:10px; border:1px solid var(--line-btn);
+    color:var(--ink); font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .ritual-add button:hover{ background:var(--ink); color:var(--white); }
+
+  .due-list{ display:flex; flex-direction:column; gap:1px; }
+  .due-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 4px; cursor:pointer; border-radius:6px;
+  }
+  .due-row:hover{ background:var(--line-soft); }
+  .due-row-title{ font-size:12.5px; line-height:1.35; }
+  .due-row-meta{ font-size:10.5px; color:var(--ink-faint); margin-top:1px; }
+  .due-row-date{ font-size:10.5px; color:var(--ink-soft); flex-shrink:0; }
+  .due-row-tag{ margin-left:6px; vertical-align:middle; }
+
+  /* ---------- Overview stream summary ---------- */
+  .section-label{ font-size:10.5px; color:var(--ink-faint); margin:0 0 10px; letter-spacing:.07em; text-transform:uppercase; }
+  .stream-summary{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .stream-summary{ grid-template-columns:1fr; } }
+  .summary-card{ padding:18px 18px 16px; cursor:pointer; transition:border-color .12s ease; }
+  .summary-card:hover{ border-color:var(--ink); }
+  .summary-card .top{ display:flex; align-items:center; gap:9px; margin-bottom:14px; }
+  .summary-card svg{ width:15px; height:15px; }
+  .summary-card h3{ font-size:13px; font-weight:700; margin:0; }
+  .summary-card .num{ font-size:24px; font-weight:700; }
+  .summary-card .label{ font-size:11px; color:var(--ink-soft); }
+  .summary-card .overdue{ color:var(--red); font-size:11px; font-weight:700; margin-top:6px; }
+
+  /* ---------- Board head / add panel (shared) ---------- */
+  .board-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .add-btn{
+    all:unset; cursor:pointer; background:var(--ink); color:var(--white);
+    padding:9px 18px; border-radius:11px; box-shadow:var(--shadow-btn); font-size:11px; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase; display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .add-btn:hover{ background:#000; }
+  .add-btn.outline{ background:var(--white); color:var(--ink); border:1px solid var(--line-btn); }
+  .add-btn.outline:hover{ background:var(--ink); color:var(--white); }
+
+  .add-panel{
+    background:var(--white); border:1px solid var(--line); border-radius:12px;
+    padding:16px; margin-bottom:18px; display:none; gap:10px; flex-direction:column;
+  }
+  .add-panel.open{ display:flex; }
+  .add-panel .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .add-panel input, .add-panel select, .add-panel textarea{
+    border:1px solid var(--line); background:var(--white); border-radius:4px;
+    padding:8px 10px; font-family:inherit; font-size:12.5px; color:var(--ink);
+  }
+  .add-panel input:focus, .add-panel select:focus, .add-panel textarea:focus{ outline:none; border-color:var(--ink); }
+  .add-panel input[type=text]{ flex:1; min-width:180px; }
+  .add-panel textarea{ width:100%; min-height:44px; resize:vertical; font-family:inherit; }
+  .add-panel .actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .btn-ghost{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; color:var(--ink-soft); }
+  .btn-ghost:hover{ background:var(--line-soft); color:var(--ink); }
+  .btn-solid{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; font-weight:700; background:var(--ink); color:var(--white); box-shadow:var(--shadow-btn); letter-spacing:.04em; text-transform:uppercase; }
+  .btn-solid:hover{ background:#000; }
+
+  /* ---------- Kanban ---------- */
+  .columns{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-items:start; }
+  @media (max-width:820px){ .columns{ grid-template-columns:1fr; } }
+  .col{ border:1px solid var(--line); border-radius:12px; padding:13px; min-height:90px; background:var(--white); }
+  .col-head{ display:flex; align-items:center; justify-content:space-between; margin:1px 3px 11px; }
+  .col-head h4{ font-size:10.5px; color:var(--ink-soft); font-weight:700; margin:0; letter-spacing:.06em; text-transform:uppercase; }
+  .col-head .n{ font-size:10.5px; color:var(--ink-faint); }
+
+  .task{ border:1px solid var(--line); border-radius:10px; padding:11px 12px; margin-bottom:8px; }
+  .task .title{ font-size:12.5px; font-weight:500; line-height:1.35; }
+  .task .notes{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.4; }
+  .notes-toggle{
+    all:unset; cursor:pointer; font-family:inherit; font-size:11px; color:var(--ink);
+    text-decoration:underline; white-space:nowrap;
+  }
+  .notes-toggle:hover{ color:var(--ink-soft); }
+  .task .meta{ display:flex; align-items:center; gap:8px; margin-top:9px; flex-wrap:wrap; }
+  .tag{ font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; padding:2px 7px; border-radius:20px; border:1px solid var(--line-btn); }
+  .tag.high{ background:var(--ink); color:var(--white); border-color:var(--ink); }
+  .tag.med{ border-color:var(--line-btn); color:var(--ink); background:var(--white); }
+  .tag.low{ border-color:var(--line); color:var(--ink-soft); background:var(--white); }
+  .due{ font-size:10.5px; color:var(--ink-soft); }
+  .due.overdue{ color:var(--red); font-weight:700; }
+  .task .row-actions{ display:flex; align-items:center; gap:4px; margin-top:10px; border-top:1px solid var(--line-soft); padding-top:8px; }
+  .task .row-actions button{ all:unset; cursor:pointer; font-size:10px; color:var(--ink-soft); padding:2px 6px; letter-spacing:.02em; }
+  .task .row-actions button:hover{ color:var(--ink); }
+  .task .row-actions .spacer{ flex:1; }
+  .task .row-actions .del:hover{ color:var(--red); }
+  .empty-col{ font-size:11.5px; color:var(--ink-faint); padding:10px 5px; }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(17,17,17,0.45);
+    display:flex; align-items:center; justify-content:center; z-index:1000; padding:24px;
+  }
+  .modal-box{
+    background:var(--white); border-radius:12px; width:100%; max-width:620px;
+    max-height:88vh; overflow-y:auto; padding:24px 26px; box-shadow:0 20px 60px rgba(0,0,0,0.25);
+    font-family:Helvetica, Arial, sans-serif;
+  }
+  .modal-box h2{ font-size:16px; font-weight:700; margin:0 0 16px; font-family:Helvetica, Arial, sans-serif; }
+  .modal-box label{ display:block; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin:14px 0 6px; font-family:Helvetica, Arial, sans-serif; }
+  .modal-box label:first-of-type{ margin-top:0; }
+  .modal-box input[type=text], .modal-box textarea, .modal-box select, .modal-box input[type=date]{
+    border:1px solid var(--line); border-radius:6px; background:var(--white);
+    font-family:Helvetica, Arial, sans-serif !important; font-size:13.5px; color:var(--ink);
+    padding:9px 11px; width:100%; line-height:1.5;
+  }
+  .modal-box textarea{ min-height:220px; resize:vertical; }
+  .modal-box input[type=text]:focus, .modal-box textarea:focus, .modal-box select:focus, .modal-box input[type=date]:focus{
+    outline:none; border-color:var(--ink);
+  }
+  .modal-box .row{ display:flex; gap:10px; }
+  .modal-box .row > *{ flex:1; }
+  .modal-box .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+
+  /* ---------- Outreach table ---------- */
+  table.outreach{ width:100%; border-collapse:collapse; }
+  table.outreach th{
+    text-align:left; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint);
+    font-weight:700; padding:8px 10px; border-bottom:1px solid var(--line);
+  }
+  table.outreach td{ padding:7px 10px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  table.outreach input[type=text], table.outreach input[type=date], table.outreach select, table.outreach textarea{
+    border:1px solid transparent; background:transparent; font-family:inherit; font-size:12px; color:var(--ink);
+    padding:5px 6px; border-radius:4px; width:100%;
+  }
+  table.outreach input:hover, table.outreach select:hover, table.outreach textarea:hover{ border-color:var(--line); }
+  table.outreach input:focus, table.outreach select:focus, table.outreach textarea:focus{ outline:none; border-color:var(--ink); background:var(--white); }
+  table.outreach .del-row{ all:unset; cursor:pointer; color:var(--ink-faint); font-size:12px; }
+  table.outreach .del-row:hover{ color:var(--red); }
+  .status-pill{ font-size:10px; text-transform:uppercase; letter-spacing:.04em; }
+
+  /* ---------- Ideas & Places ---------- */
+  .planning-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:820px){ .planning-grid{ grid-template-columns:1fr; } }
+  .idea-item{ display:flex; align-items:flex-start; gap:9px; padding:8px 3px; border-bottom:1px solid var(--line-soft); }
+  .idea-item input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; width:14px; height:14px; margin-top:2px;
+    border:1.5px solid var(--ink); border-radius:2px; cursor:pointer; flex-shrink:0; position:relative;
+  }
+  .idea-item input[type=checkbox]:checked{ background:var(--ink); }
+  .idea-item input[type=checkbox]:checked::after{ content:''; position:absolute; left:3.5px; top:0.5px; width:3.5px; height:7px; border:solid var(--white); border-width:0 1.5px 1.5px 0; transform:rotate(40deg); }
+  .idea-item .txt{ flex:1; font-size:12.5px; line-height:1.4; }
+  .idea-item.done .txt{ text-decoration:line-through; color:var(--ink-faint); }
+  .idea-item .del{ all:unset; cursor:pointer; color:var(--ink-faint); font-size:12px; opacity:0; }
+  .idea-due-input{
+    border:1px solid var(--line); border-radius:4px; background:var(--white);
+    font-family:inherit; font-size:10.5px; color:var(--ink-soft); padding:3px 5px; flex-shrink:0;
+  }
+  .idea-due-input:focus{ outline:none; border-color:var(--ink); color:var(--ink); }
+  .idea-item:hover .del{ opacity:1; }
+  .idea-item .del:hover{ color:var(--red); }
+
+  .post-item{ display:flex; align-items:center; gap:10px; padding:8px 3px; border-bottom:1px solid var(--line-soft); }
+  .post-item .pdate{ font-size:10.5px; color:var(--ink-faint); width:52px; flex-shrink:0; }
+  .post-item .ptitle{ flex:1; font-size:12.5px; }
+  .post-item select{ border:1px solid var(--line); border-radius:4px; font-size:10.5px; padding:3px 6px; font-family:inherit; }
+  .post-item .del{ all:unset; cursor:pointer; color:var(--ink-faint); font-size:12px; opacity:0; }
+  .post-item:hover .del{ opacity:1; }
+  .post-item .del:hover{ color:var(--red); }
+
+  .empty-block{ font-size:12px; color:var(--ink-faint); padding:16px 4px; }
+</style>
+</head>
+<body>
+<div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
+
+<script>
+const STORAGE_KEY = 'leguideline-planner-v2';
+
+const STREAM_DEF = {
+  product: {
+    label:'Product Development',
+    tagline:'AI engine and editorial layer — UI/UX, AI refinement, launches.',
+    icon:'<circle cx="12" cy="12" r="9"/><path d="M15.2 8.8l-1.8 4.6-4.6 1.8 1.8-4.6z" stroke-linejoin="round"/>',  
+    subareas:[
+      {key:'uiux', label:'UI/UX', taskKey:'product-uiux'},
+      {key:'ai', label:'AI Refinement', taskKey:'product-ai'},
+      {key:'launches', label:'Launches', taskKey:'product-launches'}
+    ]
+  },
+  content: {
+    label:'Content',
+    tagline:'Research, outreach, talks and the ideas bank.',
+    icon:'<rect x="4.5" y="5" width="15" height="14" rx="2"/><path d="M12 5v14"/>',
+    subareas:[
+      {key:'outreach', label:'Research & Outreach', type:'outreach'},
+      {key:'talks', label:'TALKS', type:'kanban', taskKey:'content-talks'},
+      {key:'ideas', label:'Bank of Ideas', type:'ideas'},
+      {key:'places', label:'Bank of Places', type:'places'}
+    ]
+  },
+  maintenance: {
+    label:'Maintenance',
+    tagline:'Keep leguideline.com, route cards and Google lists current.',
+    icon:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/><circle cx="12" cy="15.3" r="1.1" fill="currentColor" stroke="none"/>',
+    type:'kanban', taskKey:'maintenance'
+  }
+};
+const STREAM_ORDER = ['product','content','maintenance'];
+const COLS = [['backlog','Ideas'],['thisweek','This week'],['done','Done']];
+const OUTREACH_STATUS = ['Researching','Reached out','Waiting reply','Follow up','Agreed','Declined'];
+
+const TASKKEY_META = {
+  'product-uiux': {label:'UI/UX', stream:'product', subarea:'uiux'},
+  'product-ai': {label:'AI Refinement', stream:'product', subarea:'ai'},
+  'product-launches': {label:'Launches', stream:'product', subarea:'launches'},
+  'content-talks': {label:'TALKS', stream:'content', subarea:'talks'},
+  'maintenance': {label:'Maintenance', stream:'maintenance', subarea:null}
+};
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function isoWeekStart(d){ const dt=new Date(d); const day=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-day); return dt.toISOString().slice(0,10); }
+function monthStr(){ return new Date().toISOString().slice(0,7); }
+function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function icon(inner, extra){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ${extra||''}>${inner}</svg>`; }
+
+function defaultState(){
+  return {
+    tasks: { 'product-uiux':[], 'product-ai':[], 'product-launches':[], 'content-talks':[], 'maintenance':[] },
+    outreach: [],
+    ideas: [],
+    places: [],
+    recurring: {
+      daily: [
+        {id:uid(), text:'Post or story to Instagram', sub:'@leguideline'},
+        {id:uid(), text:'Reply to DMs and comments'},
+        {id:uid(), text:'Log any place visited today', sub:'feeds route card pipeline'},
+        {id:uid(), text:'Check outreach inbox for replies'}
+      ],
+      weekly: [
+        {id:uid(), text:"Plan next week's content calendar"},
+        {id:uid(), text:'Shortlist 2 new places to visit'},
+        {id:uid(), text:'Send 3 new outreach messages', sub:'chefs or bloggers'},
+        {id:uid(), text:'Review growth metrics', sub:'followers, saves, reach'}
+      ],
+      monthly: [
+        {id:uid(), text:'Refresh route cards for relevance'},
+        {id:uid(), text:'Update Google lists'},
+        {id:uid(), text:'General site maintenance check', sub:'leguideline.com'}
+      ]
+    },
+    completions: {
+      daily:{ date: todayStr(), done:{} },
+      weekly:{ weekStart: isoWeekStart(new Date()), done:{} },
+      monthly:{ month: monthStr(), done:{} }
+    }
+  };
+}
+
+let state = null;
+let view = { stream:'overview', subarea:null };
+let addPanelOpen = {};
+let outreachFormOpen = false;
+let placeFormOpen = false;
+
+async function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? JSON.parse(raw) : defaultState();
+  }catch(e){ state = defaultState(); }
+  // backward-compat: fill in any fields added after this user's data was first saved
+  state.tasks = state.tasks || {};
+  state.outreach = state.outreach || [];
+  state.ideas = state.ideas || [];
+  state.places = state.places || [];
+  (state.ideas || []).forEach(i=>{ if(i.due===undefined) i.due=''; });
+  state.recurring = state.recurring || { daily:[], weekly:[], monthly:[] };
+  state.completions = state.completions || {
+    daily:{ date: todayStr(), done:{} },
+    weekly:{ weekStart: isoWeekStart(new Date()), done:{} },
+    monthly:{ month: monthStr(), done:{} }
+  };
+  rollover();
+  render();
+}
+async function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('save failed', e); }
+}
+function rollover(){
+  const t=todayStr(), w=isoWeekStart(new Date()), m=monthStr();
+  let changed=false;
+  if(state.completions.daily.date!==t){ state.completions.daily={date:t,done:{}}; changed=true; }
+  if(state.completions.weekly.weekStart!==w){ state.completions.weekly={weekStart:w,done:{}}; changed=true; }
+  if(state.completions.monthly.month!==m){ state.completions.monthly={month:m,done:{}}; changed=true; }
+  if(changed) save();
+}
+
+/* ---- rituals ---- */
+function toggleRitual(period,id){ state.completions[period].done[id]=!state.completions[period].done[id]; save(); render(); }
+function addRitual(period,text){ if(!text.trim()) return; state.recurring[period].push({id:uid(), text:text.trim()}); save(); render(); }
+function delRitual(period,id){ state.recurring[period]=state.recurring[period].filter(r=>r.id!==id); delete state.completions[period].done[id]; save(); render(); }
+
+/* ---- aggregate due items from every tab for Today / This week / This month ---- */
+function collectDueItems(period){
+  const items = [];
+  const t = todayStr();
+  const wStart = state.completions.weekly.weekStart;
+  const wEndDate = new Date(wStart+'T00:00:00'); wEndDate.setDate(wEndDate.getDate()+6);
+  const wEnd = wEndDate.toISOString().slice(0,10);
+  const month = state.completions.monthly.month;
+
+  function inPeriod(dateStr){
+    if(!dateStr) return false;
+    if(period==='daily') return dateStr===t;
+    if(period==='weekly') return dateStr>=wStart && dateStr<=wEnd;
+    if(period==='monthly') return dateStr.slice(0,7)===month;
+    return false;
+  }
+
+  Object.keys(TASKKEY_META).forEach(tk=>{
+    (state.tasks[tk]||[]).forEach(task=>{
+      if(task.status!=='done' && inPeriod(task.due)){
+        const meta = TASKKEY_META[tk];
+        items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:meta.subarea, priority:task.priority });
+      }
+    });
+  });
+
+  state.outreach.forEach(r=>{
+    if(r.status!=='Agreed' && r.status!=='Declined' && inPeriod(r.followUp)){
+      items.push({ title:(r.name||'Untitled contact') + ' — follow up', meta:'Research & Outreach', due:r.followUp, stream:'content', subarea:'outreach' });
+    }
+  });
+
+  state.ideas.forEach(i=>{
+    if(!i.done && inPeriod(i.due)){
+      items.push({ title:i.text, meta:'Bank of Ideas', due:i.due, stream:'content', subarea:'ideas' });
+    }
+  });
+
+  items.sort((a,b)=> (a.due||'').localeCompare(b.due||''));
+  return items;
+}
+
+/* ---- kanban tasks ---- */
+function addTask(taskKey,data){
+  state.tasks[taskKey].push({ id:uid(), title:data.title, notes:data.notes||'', due:data.due||'', priority:data.priority||'med', status:'backlog' });
+  save(); render();
+}
+function moveTask(taskKey,id,dir){
+  const order=['backlog','thisweek','done'];
+  const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
+  const next=order.indexOf(t.status)+dir;
+  if(next>=0 && next<order.length) t.status=order[next];
+  save(); render();
+}
+function delTask(taskKey,id){ state.tasks[taskKey]=state.tasks[taskKey].filter(t=>t.id!==id); save(); render(); }
+function updateTask(taskKey,id,data){
+  const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
+  t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
+  save(); editingTask=null; render();
+}
+let editingTask = null; // {taskKey, id} of the task card currently in edit mode
+let expandedNotes = new Set(); // task ids whose long notes are currently expanded
+function toggleNotes(id){ if(expandedNotes.has(id)) expandedNotes.delete(id); else expandedNotes.add(id); render(); }
+function startEditTask(taskKey,id){ editingTask = {taskKey, id}; render(); }
+function cancelEditTask(){ editingTask = null; render(); }
+
+/* ---- outreach ---- */
+function addOutreachRow(data){
+  state.outreach.push({ id:uid(), name:data.name, type:data.type, status:data.status||'Researching', lastContact:'', followUp:'', notes:'' });
+  save(); render();
+}
+function updateOutreachField(id, field, value){
+  const row=state.outreach.find(r=>r.id===id); if(!row) return;
+  row[field]=value; save();
+}
+function delOutreachRow(id){ state.outreach=state.outreach.filter(r=>r.id!==id); save(); render(); }
+
+/* ---- ideas ---- */
+function addIdea(text){ if(!text.trim()) return; state.ideas.push({id:uid(), text:text.trim(), done:false, due:''}); save(); render(); }
+function toggleIdea(id){ const i=state.ideas.find(i=>i.id===id); if(i){ i.done=!i.done; save(); render(); } }
+function delIdea(id){ state.ideas=state.ideas.filter(i=>i.id!==id); save(); render(); }
+function updateIdeaDue(id, due){ const i=state.ideas.find(i=>i.id===id); if(i){ i.due=due; save(); render(); } }
+
+/* ---- bank of places CRUD is defined near placesView() below ---- */
+
+/* ================= RENDER ================= */
+const LOGO_B64 = "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";
+function wordmark(){ return `<img class="wordmark-img" src="data:image/png;base64,${LOGO_B64}" alt="le GUIDELINE">`; }
+
+function renderNav(){
+  let html = `<button class="${view.stream==='overview'?'active':''}" data-nav="overview">
+    ${icon('<path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1v-9.5"/>')} Overview</button>`;
+  STREAM_ORDER.forEach(k=>{
+    const s = STREAM_DEF[k];
+    const keys = s.subareas ? s.subareas.map(sa=>sa.taskKey).filter(Boolean) : [s.taskKey];
+    let open = 0;
+    keys.forEach(tk=>{ if(state.tasks[tk]) open += state.tasks[tk].filter(t=>t.status!=='done').length; });
+    if(k==='content') open += state.outreach.filter(r=>r.status!=='Agreed' && r.status!=='Declined').length;
+    html += `<button class="${view.stream===k?'active':''}" data-nav="${k}">
+      ${icon(s.icon)} ${s.label} <span class="count">${open}</span></button>`;
+  });
+  return html;
+}
+
+function ritualCard(period,title,windowLabel,cornerTag){
+  const items = state.recurring[period];
+  const doneMap = state.completions[period].done;
+  const doneCount = items.filter(i=>doneMap[i.id]).length;
+  const rows = items.length ? items.map(it=>`
+    <div class="ritual-item ${doneMap[it.id]?'done':''}">
+      <input type="checkbox" ${doneMap[it.id]?'checked':''} data-toggle="${period}:${it.id}">
+      <div class="txt">${escapeHtml(it.text)}${it.sub?`<small>${escapeHtml(it.sub)}</small>`:''}</div>
+      <button class="del" data-delritual="${period}:${it.id}">✕</button>
+    </div>`).join('') : `<div class="empty-block">No ${period} rituals yet.</div>`;
+
+  const due = collectDueItems(period);
+  const dueRows = due.length ? due.map(d=>`
+    <div class="due-row" data-navitem="${d.stream}:${d.subarea||''}">
+      <div class="due-row-main">
+        <div class="due-row-title">${escapeHtml(d.title)}${d.priority?` <span class="tag ${d.priority} due-row-tag">${d.priority}</span>`:''}</div>
+        <div class="due-row-meta">${escapeHtml(d.meta)}</div>
+      </div>
+      <div class="due-row-date">${fmtDate(d.due)}</div>
+    </div>`).join('') : `<div class="empty-block">Nothing due from other tabs.</div>`;
+
+  return `
+  <div class="card ritual-card">
+    <span class="corner-tag upper">${cornerTag} · ${doneCount}/${items.length}</span>
+    <h2>${title}</h2>
+    <div class="window">${windowLabel}</div>
+    <div class="ritual-list">${rows}</div>
+    <div class="ritual-add">
+      <input type="text" placeholder="Add ${period} ritual…" onkeydown="if(event.key==='Enter'){addRitual('${period}', this.value); this.value='';}">
+      <button onclick="const i=this.previousElementSibling; addRitual('${period}', i.value); i.value='';">Add</button>
+    </div>
+    <p class="section-label" style="margin-top:16px;">Due from other tabs · ${due.length}</p>
+    <div class="due-list">${dueRows}</div>
+  </div>`;
+}
+
+function overviewHtml(){
+  const w = state.completions.weekly.weekStart;
+  const wEnd = new Date(w+'T00:00:00'); wEnd.setDate(wEnd.getDate()+6);
+  const monthLabel = new Date(state.completions.monthly.month+'-01T00:00:00').toLocaleDateString(undefined,{month:'long', year:'numeric'});
+
+  const summary = STREAM_ORDER.map(k=>{
+    const s = STREAM_DEF[k];
+    const keys = s.subareas ? s.subareas.map(sa=>sa.taskKey).filter(Boolean) : [s.taskKey];
+    let open=0, overdue=0;
+    keys.forEach(tk=>{
+      (state.tasks[tk]||[]).forEach(t=>{
+        if(t.status!=='done'){ open++; if(t.due && t.due<todayStr()) overdue++; }
+      });
+    });
+    if(k==='content'){ open += state.outreach.filter(r=>r.status!=='Agreed' && r.status!=='Declined').length; }
+    return `<div class="card summary-card" data-nav="${k}">
+      <div class="top">${icon(s.icon)}<h3>${s.label}</h3></div>
+      <div class="num">${open}</div>
+      <div class="label">open item${open===1?'':'s'}</div>
+      ${overdue? `<div class="overdue">${overdue} overdue</div>` : ''}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>Planning Desk</h1>
+        <div class="date">${new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</div>
+      </div>
+      <div class="stream-tagline">Rituals reset daily, weekly (Mon–Sun) and monthly. Streams stay open until closed out.</div>
+    </div>
+    <div class="rituals-grid">
+      ${ritualCard('daily', 'Today', 'Resets every day', 'daily')}
+      ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
+      ${ritualCard('monthly', 'This month', monthLabel, 'monthly')}
+    </div>
+    <p class="section-label">Streams</p>
+    <div class="stream-summary">${summary}</div>
+  `;
+}
+
+function kanbanBoard(taskKey, label, tagline){
+  const tasks = state.tasks[taskKey] || (state.tasks[taskKey]=[]);
+  const panelOpen = addPanelOpen[taskKey];
+  const NOTES_TRUNCATE = 160;
+  const cols = COLS.map(([status,colLabel])=>{
+    const items = tasks.filter(t=>t.status===status);
+    const cards = items.length ? items.map(t=>{
+      const overdue = t.due && t.due<todayStr() && t.status!=='done';
+      let notesHtml = '';
+      if(t.notes){
+        const isLong = t.notes.length > NOTES_TRUNCATE;
+        const isExpanded = expandedNotes.has(t.id);
+        let shown = t.notes;
+        if(isLong && !isExpanded){
+          let cut = t.notes.slice(0, NOTES_TRUNCATE);
+          const lastSpace = cut.lastIndexOf(' ');
+          if(lastSpace > 40) cut = cut.slice(0, lastSpace);
+          shown = cut + '…';
+        }
+        notesHtml = `<div class="notes">${escapeHtml(shown)}${isLong?` <button class="notes-toggle" onclick="toggleNotes('${t.id}')">${isExpanded?'show less':'show more'}</button>`:''}</div>`;
+      }
+      return `
+      <div class="task">
+        <div class="title">${escapeHtml(t.title)}</div>
+        ${notesHtml}
+        <div class="meta">
+          <span class="tag ${t.priority}">${t.priority}</span>
+          ${t.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(t.due)}</span>`:''}
+        </div>
+        <div class="row-actions">
+          ${status!=='backlog'?`<button data-move="${taskKey}:${t.id}:-1">◂ move</button>`:''}
+          ${status!=='done'?`<button data-move="${taskKey}:${t.id}:1">move ▸</button>`:''}
+          <button onclick="startEditTask('${taskKey}','${t.id}')">edit</button>
+          <span class="spacer"></span>
+          <button class="del" data-deltask="${taskKey}:${t.id}">delete</button>
+        </div>
+      </div>`;
+    }).join('') : `<div class="empty-col">Nothing here yet.</div>`;
+    return `<div class="col"><div class="col-head"><h4>${colLabel}</h4><span class="n">${items.length}</span></div>${cards}</div>`;
+  }).join('');
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>${label}</h1>
+        <div class="date">${tasks.filter(t=>t.status!=='done').length} open · ${tasks.filter(t=>t.status==='done').length} done</div>
+      </div>
+      <div class="stream-tagline">${tagline||''}</div>
+    </div>
+    <div class="board-head">
+      <span></span>
+      <button class="add-btn" data-addtoggle="${taskKey}">Add task</button>
+    </div>
+    <div class="add-panel ${panelOpen?'open':''}">
+      <div class="row">
+        <input type="text" id="f-title-${taskKey}" placeholder="Task title" />
+        <select id="f-priority-${taskKey}">
+          <option value="high">High priority</option>
+          <option value="med" selected>Medium priority</option>
+          <option value="low">Low priority</option>
+        </select>
+        <input type="date" id="f-due-${taskKey}" />
+      </div>
+      <textarea id="f-notes-${taskKey}" placeholder="Notes (optional)"></textarea>
+      <div class="actions">
+        <button class="btn-ghost" data-addtoggle="${taskKey}">Cancel</button>
+        <button class="btn-solid" data-submit="${taskKey}">Add to Ideas</button>
+      </div>
+    </div>
+    <div class="columns">${cols}</div>
+  `;
+}
+
+function outreachView(){
+  const rows = state.outreach;
+  const body = rows.length ? rows.map(r=>`
+    <tr>
+      <td><input type="text" value="${escapeHtml(r.name)}" onchange="updateOutreachField('${r.id}','name',this.value)" placeholder="Name"></td>
+      <td>
+        <select onchange="updateOutreachField('${r.id}','type',this.value)">
+          ${['Chef','Blogger','Other'].map(o=>`<option value="${o}" ${r.type===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select onchange="updateOutreachField('${r.id}','status',this.value); render();">
+          ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="date" value="${r.lastContact||''}" onchange="updateOutreachField('${r.id}','lastContact',this.value)"></td>
+      <td><input type="date" value="${r.followUp||''}" onchange="updateOutreachField('${r.id}','followUp',this.value)"></td>
+      <td><input type="text" value="${escapeHtml(r.notes)}" onchange="updateOutreachField('${r.id}','notes',this.value)" placeholder="Notes"></td>
+      <td><button class="del-row" data-deloutreach="${r.id}">✕</button></td>
+    </tr>
+  `).join('') : `<tr><td colspan="7" class="empty-block">No contacts yet — add the first chef or blogger below.</td></tr>`;
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>Research & Outreach</h1>
+        <div class="date">${rows.length} contact${rows.length===1?'':'s'}</div>
+      </div>
+      <div class="stream-tagline">Landscape research, outreach status and follow-up dates for chefs and bloggers.</div>
+    </div>
+    <div class="board-head">
+      <span></span>
+      <button class="add-btn" data-outreachtoggle="1">Add contact</button>
+    </div>
+    <div class="add-panel ${outreachFormOpen?'open':''}">
+      <div class="row">
+        <input type="text" id="f-oname" placeholder="Name" />
+        <select id="f-otype">
+          <option>Chef</option><option>Blogger</option><option>Other</option>
+        </select>
+        <select id="f-ostatus">
+          ${OUTREACH_STATUS.map(o=>`<option value="${o}">${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn-ghost" data-outreachtoggle="1">Cancel</button>
+        <button class="btn-solid" data-outreachsubmit="1">Add contact</button>
+      </div>
+    </div>
+    <table class="outreach">
+      <thead><tr>
+        <th style="width:16%">Name</th><th style="width:10%">Type</th><th style="width:14%">Status</th>
+        <th style="width:12%">Last contact</th><th style="width:12%">Follow up</th><th>Notes</th><th style="width:24px"></th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  `;
+}
+
+function ideasOnlyView(){
+  const ideasHtml = state.ideas.length ? state.ideas.map(i=>`
+    <div class="idea-item ${i.done?'done':''}">
+      <input type="checkbox" ${i.done?'checked':''} onchange="toggleIdea('${i.id}')">
+      <div class="txt">${escapeHtml(i.text)}</div>
+      <input type="date" class="idea-due-input" value="${i.due||''}" title="Set a date to surface this on the Overview" onchange="updateIdeaDue('${i.id}', this.value)">
+      <button class="del" onclick="delIdea('${i.id}')">✕</button>
+    </div>`).join('') : `<div class="empty-block">No ideas logged yet.</div>`;
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>Bank of Ideas</h1>
+        <div class="date">${state.ideas.filter(i=>!i.done).length} open ideas</div>
+      </div>
+      <div class="stream-tagline">A running list of content ideas. Give one a date to have it show up on the Overview (Today / This week / This month); leave it blank to keep it out of the way.</div>
+    </div>
+    <div class="card" style="padding:18px; max-width:640px;">
+      <div>${ideasHtml}</div>
+      <div class="ritual-add">
+        <input type="text" id="f-idea" placeholder="Add an idea…" onkeydown="if(event.key==='Enter'){submitIdea();}">
+        <button onclick="submitIdea()">Add</button>
+      </div>
+    </div>
+  `;
+}
+function submitIdea(){
+  const t = document.getElementById('f-idea');
+  addIdea(t.value);
+  t.value = '';
+}
+
+/* ---- bank of places ---- */
+function addPlace(data){
+  if(!data.name.trim()) return;
+  state.places.push({ id:uid(), name:data.name.trim(), instagram:data.instagram||'', type:data.type||'Restaurant' });
+  save(); render();
+}
+function updatePlaceField(id, field, value){
+  const row = state.places.find(p=>p.id===id); if(!row) return;
+  row[field] = value; save();
+}
+function delPlace(id){ state.places = state.places.filter(p=>p.id!==id); save(); render(); }
+
+const PLACE_TYPES = ['Restaurant','Cafe','Bar','Bakery','Rooftop','Other'];
+
+function placesView(){
+  const rows = state.places || (state.places = []);
+  const body = rows.length ? rows.map(r=>`
+    <tr>
+      <td><input type="text" value="${escapeHtml(r.name)}" onchange="updatePlaceField('${r.id}','name',this.value)" placeholder="Name"></td>
+      <td><input type="text" value="${escapeHtml(r.instagram)}" onchange="updatePlaceField('${r.id}','instagram',this.value)" placeholder="@handle"></td>
+      <td>
+        <select onchange="updatePlaceField('${r.id}','type',this.value)">
+          ${PLACE_TYPES.map(o=>`<option value="${o}" ${r.type===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </td>
+      <td><button class="del-row" data-delplace="${r.id}">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="4" class="empty-block">No places yet — add somewhere worth visiting.</td></tr>`;
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>Bank of Places</h1>
+        <div class="date">${rows.length} place${rows.length===1?'':'s'}</div>
+      </div>
+      <div class="stream-tagline">Potential places to visit for route cards — name, Instagram, type.</div>
+    </div>
+    <div class="board-head">
+      <span></span>
+      <button class="add-btn" data-placetoggle="1">Add place</button>
+    </div>
+    <div class="add-panel ${placeFormOpen?'open':''}">
+      <div class="row">
+        <input type="text" id="f-pname" placeholder="Name" />
+        <input type="text" id="f-pinsta" placeholder="Instagram @handle" />
+        <select id="f-ptype">
+          ${PLACE_TYPES.map(o=>`<option>${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn-ghost" data-placetoggle="1">Cancel</button>
+        <button class="btn-solid" data-placesubmit="1">Add place</button>
+      </div>
+    </div>
+    <table class="outreach">
+      <thead><tr>
+        <th style="width:30%">Name</th><th style="width:30%">Instagram</th><th style="width:25%">Type</th><th style="width:24px"></th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  `;
+}
+
+function mainContent(){
+  if(view.stream==='overview') return overviewHtml();
+  const s = STREAM_DEF[view.stream];
+  if(!s) return overviewHtml();
+
+  let subtabsHtml = '';
+  let body = '';
+
+  if(s.subareas){
+    const active = view.subarea || s.subareas[0].key;
+    subtabsHtml = `<div class="subtabs">${s.subareas.map(sa=>`
+      <button class="${active===sa.key?'active':''}" data-subtab="${sa.key}">${sa.label}</button>
+    `).join('')}</div>`;
+    const sa = s.subareas.find(x=>x.key===active);
+    if(sa.type==='outreach') body = outreachView();
+    else if(sa.type==='ideas') body = ideasOnlyView();
+    else if(sa.type==='places') body = placesView();
+    else body = kanbanBoard(sa.taskKey, sa.label, s.tagline);
+  } else {
+    body = kanbanBoard(s.taskKey, s.label, s.tagline);
+  }
+  return subtabsHtml + body;
+}
+
+function renderEditModal(){
+  if(!editingTask) return '';
+  const {taskKey, id} = editingTask;
+  const t = (state.tasks[taskKey]||[]).find(t=>t.id===id);
+  if(!t) return '';
+  return `
+  <div class="modal-overlay" id="edit-modal-overlay">
+    <div class="modal-box">
+      <h2>Edit task</h2>
+      <label>Title</label>
+      <input type="text" id="e-title" value="${escapeHtml(t.title)}" placeholder="Task title">
+      <label>Notes</label>
+      <textarea id="e-notes" placeholder="Notes (optional)">${escapeHtml(t.notes)}</textarea>
+      <div class="row">
+        <div>
+          <label>Priority</label>
+          <select id="e-priority">
+            <option value="high" ${t.priority==='high'?'selected':''}>High priority</option>
+            <option value="med" ${t.priority==='med'?'selected':''}>Medium priority</option>
+            <option value="low" ${t.priority==='low'?'selected':''}>Low priority</option>
+          </select>
+        </div>
+        <div>
+          <label>Due date</label>
+          <input type="date" id="e-due" value="${t.due||''}">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-ghost" onclick="cancelEditTask()">Cancel</button>
+        <button class="btn-solid" id="e-save">Save</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const root = document.getElementById('root');
+  root.style.padding = '0'; root.style.color = '';
+  root.innerHTML = `
+    <div class="app">
+      <div class="sidebar">
+        <div class="brand-block">
+          ${wordmark()}
+        </div>
+        <div class="nav">${renderNav()}</div>
+        
+        <div class="sidebar-foot">Personal planner<br/>Saved to your account only.</div>
+      </div>
+      <div class="main">${mainContent()}</div>
+    </div>
+    ${renderEditModal()}
+  `;
+  bindEvents();
+  const saveBtn = document.getElementById('e-save');
+  if(saveBtn){
+    saveBtn.addEventListener('click', ()=>{
+      const {taskKey, id} = editingTask;
+      updateTask(taskKey, id, {
+        title: document.getElementById('e-title').value,
+        notes: document.getElementById('e-notes').value,
+        due: document.getElementById('e-due').value,
+        priority: document.getElementById('e-priority').value
+      });
+    });
+  }
+  const overlay = document.getElementById('edit-modal-overlay');
+  if(overlay){
+    overlay.addEventListener('click', (ev)=>{ if(ev.target===overlay) cancelEditTask(); });
+  }
+}
+
+function bindEvents(){
+  document.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', ()=>{ view = { stream: el.getAttribute('data-nav'), subarea:null }; render(); });
+  });
+  document.querySelectorAll('[data-subtab]').forEach(el=>{
+    el.addEventListener('click', ()=>{ view = { stream: view.stream, subarea: el.getAttribute('data-subtab') }; render(); });
+  });
+  document.querySelectorAll('[data-navitem]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const [stream, subarea] = el.getAttribute('data-navitem').split(':');
+      view = { stream, subarea: subarea || null };
+      render();
+    });
+  });
+  document.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('change', ()=>{ const [period,id]=el.getAttribute('data-toggle').split(':'); toggleRitual(period,id); });
+  });
+  document.querySelectorAll('[data-delritual]').forEach(el=>{
+    el.addEventListener('click', ()=>{ const [period,id]=el.getAttribute('data-delritual').split(':'); delRitual(period,id); });
+  });
+  document.querySelectorAll('[data-addtoggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{ const k=el.getAttribute('data-addtoggle'); addPanelOpen[k]=!addPanelOpen[k]; render(); });
+  });
+  document.querySelectorAll('[data-submit]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const k = el.getAttribute('data-submit');
+      const title = document.getElementById(`f-title-${k}`).value;
+      if(!title.trim()) return;
+      addTask(k, {
+        title,
+        notes: document.getElementById(`f-notes-${k}`).value,
+        due: document.getElementById(`f-due-${k}`).value,
+        priority: document.getElementById(`f-priority-${k}`).value
+      });
+      addPanelOpen[k]=false;
+    });
+  });
+  document.querySelectorAll('[data-move]').forEach(el=>{
+    el.addEventListener('click', ()=>{ const [k,id,dir]=el.getAttribute('data-move').split(':'); moveTask(k,id,parseInt(dir,10)); });
+  });
+  document.querySelectorAll('[data-deltask]').forEach(el=>{
+    el.addEventListener('click', ()=>{ const [k,id]=el.getAttribute('data-deltask').split(':'); delTask(k,id); });
+  });
+  document.querySelectorAll('[data-outreachtoggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{ outreachFormOpen=!outreachFormOpen; render(); });
+  });
+  document.querySelectorAll('[data-outreachsubmit]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const name = document.getElementById('f-oname').value;
+      if(!name.trim()) return;
+      addOutreachRow({ name, type: document.getElementById('f-otype').value, status: document.getElementById('f-ostatus').value });
+      outreachFormOpen=false;
+    });
+  });
+  document.querySelectorAll('[data-deloutreach]').forEach(el=>{
+    el.addEventListener('click', ()=>{ delOutreachRow(el.getAttribute('data-deloutreach')); });
+  });
+  document.querySelectorAll('[data-placetoggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{ placeFormOpen=!placeFormOpen; render(); });
+  });
+  document.querySelectorAll('[data-placesubmit]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const name = document.getElementById('f-pname').value;
+      if(!name.trim()) return;
+      addPlace({ name, instagram: document.getElementById('f-pinsta').value, type: document.getElementById('f-ptype').value });
+      placeFormOpen=false;
+    });
+  });
+  document.querySelectorAll('[data-delplace]').forEach(el=>{
+    el.addEventListener('click', ()=>{ delPlace(el.getAttribute('data-delplace')); });
+  });
+}
+
+load();
+</script>
+</body>
+</html>
