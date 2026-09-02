@@ -417,7 +417,11 @@ function patchState(){
   };
 }
 
+let syncStatus = 'idle'; // 'idle' | 'connecting' | 'connected' | 'error'
+let syncError = '';
+
 async function connectSync(){
+  syncStatus = 'connecting'; syncError = ''; render();
   try{
     await initFirebase();
     const ref = fsDoc(db, 'leguideline-planner', syncCode);
@@ -430,16 +434,20 @@ async function connectSync(){
       await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
     }
     rollover();
+    syncStatus = 'connected';
     render();
   }catch(e){
-    console.error('sync connect failed, staying local-only', e);
+    console.error('sync connect failed', e);
+    syncStatus = 'error';
+    syncError = (e && e.message) ? e.message : 'Could not reach the sync server.';
+    render();
   }
 }
 
 async function save(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch(e){ console.error('local save failed', e); }
-  if(db && fsDoc && syncCode){
+  if(db && fsDoc && syncCode && syncStatus==='connected'){ // only push to cloud once genuinely connected
     try{
       const ref = fsDoc(db, 'leguideline-planner', syncCode);
       await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
@@ -457,6 +465,7 @@ function submitSyncCode(){
 }
 function changeSyncCode(){
   syncCode = null;
+  syncStatus = 'idle';
   localStorage.removeItem(SYNC_CODE_KEY);
   render();
 }
@@ -941,7 +950,40 @@ function renderEditModal(){
 }
 
 function renderSyncModal(){
-  if(syncCode) return '';
+  if(syncStatus==='connected' || syncStatus==='local-only') return '';
+
+  if(syncStatus==='connecting'){
+    return `
+    <div class="modal-overlay">
+      <div class="modal-box" style="max-width:420px;">
+        <h2>Connecting…</h2>
+        <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:0;">
+          Reaching the sync server. This should only take a moment.
+        </p>
+      </div>
+    </div>`;
+  }
+
+  if(syncStatus==='error'){
+    return `
+    <div class="modal-overlay">
+      <div class="modal-box" style="max-width:420px;">
+        <h2>Couldn't connect</h2>
+        <p style="font-size:12.5px; color:var(--red); line-height:1.5; margin:0 0 12px; word-break:break-word;">
+          ${escapeHtml(syncError)}
+        </p>
+        <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:0;">
+          Your data is safe and cached on this device. You can retry, or keep using it locally for now — nothing is lost.
+        </p>
+        <div class="actions">
+          <button class="btn-ghost" onclick="dismissSyncError()">Use locally for now</button>
+          <button class="btn-solid" onclick="connectSync()">Retry</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // idle — no code set yet
   return `
   <div class="modal-overlay">
     <div class="modal-box" style="max-width:420px;">
@@ -952,10 +994,15 @@ function renderSyncModal(){
       <label>Sync code</label>
       <input type="text" id="f-synccode" placeholder="e.g. a private phrase only you know" onkeydown="if(event.key==='Enter'){submitSyncCode();}">
       <div class="actions">
+        <button class="btn-ghost" onclick="dismissSyncError()">Skip for now</button>
         <button class="btn-solid" onclick="submitSyncCode()">Connect</button>
       </div>
     </div>
   </div>`;
+}
+function dismissSyncError(){
+  syncStatus = 'local-only'; // user chose to skip/stay local; not actually connected to Firestore
+  render();
 }
 
 function render(){
