@@ -276,6 +276,27 @@
 <script>
 const STORAGE_KEY = 'leguideline-planner-v2';
 
+/* ---- Firebase sync (cross-device) ---- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAXXEOmtCuo7GIkfOqjiRZwrvxiGeQAeKQ",
+  authDomain: "leguideline-planner.firebaseapp.com",
+  projectId: "leguideline-planner",
+  storageBucket: "leguideline-planner.firebasestorage.app",
+  messagingSenderId: "791454085610",
+  appId: "1:791454085610:web:4900404e49d2f164b68293"
+};
+const SYNC_CODE_KEY = 'leguideline-sync-code';
+let db = null, fsDoc = null, fsGetDoc = null, fsSetDoc = null;
+let syncCode = localStorage.getItem(SYNC_CODE_KEY) || null;
+
+async function initFirebase(){
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+  const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  fsDoc = doc; fsGetDoc = getDoc; fsSetDoc = setDoc;
+}
+
 const STREAM_DEF = {
   product: {
     label:'Product Development',
@@ -366,9 +387,22 @@ let placeFormOpen = false;
 
 async function load(){
   try{
+    // paint instantly from local cache while Firestore loads over the network
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
   }catch(e){ state = defaultState(); }
+  patchState();
+  rollover();
+  render();
+
+  if(!syncCode){
+    render(); // ensure the sync-code prompt paints
+    return; // wait for the user to enter a code; syncSubmit() continues the flow
+  }
+  await connectSync();
+}
+
+function patchState(){
   // backward-compat: fill in any fields added after this user's data was first saved
   state.tasks = state.tasks || {};
   state.outreach = state.outreach || [];
@@ -381,12 +415,50 @@ async function load(){
     weekly:{ weekStart: isoWeekStart(new Date()), done:{} },
     monthly:{ month: monthStr(), done:{} }
   };
-  rollover();
-  render();
 }
+
+async function connectSync(){
+  try{
+    await initFirebase();
+    const ref = fsDoc(db, 'leguideline-planner', syncCode);
+    const snap = await fsGetDoc(ref);
+    if(snap.exists() && snap.data().json){
+      state = JSON.parse(snap.data().json);
+      patchState();
+    } else {
+      // first time this code has been used — seed Firestore with current (local) state
+      await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
+    }
+    rollover();
+    render();
+  }catch(e){
+    console.error('sync connect failed, staying local-only', e);
+  }
+}
+
 async function save(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.error('save failed', e); }
+  catch(e){ console.error('local save failed', e); }
+  if(db && fsDoc && syncCode){
+    try{
+      const ref = fsDoc(db, 'leguideline-planner', syncCode);
+      await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
+    }catch(e){ console.error('cloud sync failed', e); }
+  }
+}
+
+function submitSyncCode(){
+  const input = document.getElementById('f-synccode');
+  const code = (input.value || '').trim();
+  if(!code) return;
+  syncCode = code;
+  localStorage.setItem(SYNC_CODE_KEY, code);
+  connectSync();
+}
+function changeSyncCode(){
+  syncCode = null;
+  localStorage.removeItem(SYNC_CODE_KEY);
+  render();
 }
 function rollover(){
   const t=todayStr(), w=isoWeekStart(new Date()), m=monthStr();
@@ -868,6 +940,24 @@ function renderEditModal(){
   </div>`;
 }
 
+function renderSyncModal(){
+  if(syncCode) return '';
+  return `
+  <div class="modal-overlay">
+    <div class="modal-box" style="max-width:420px;">
+      <h2>Sync this planner</h2>
+      <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 4px;">
+        Choose a passphrase. Enter the same one on any device to see the same data there. First device to use a code creates it; anyone who later types that same code links to it too, so pick something only you'd guess.
+      </p>
+      <label>Sync code</label>
+      <input type="text" id="f-synccode" placeholder="e.g. a private phrase only you know" onkeydown="if(event.key==='Enter'){submitSyncCode();}">
+      <div class="actions">
+        <button class="btn-solid" onclick="submitSyncCode()">Connect</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 function render(){
   const root = document.getElementById('root');
   root.style.padding = '0'; root.style.color = '';
@@ -879,11 +969,12 @@ function render(){
         </div>
         <div class="nav">${renderNav()}</div>
         
-        <div class="sidebar-foot">Personal planner<br/>Saved to your account only.</div>
+        <div class="sidebar-foot">Personal planner<br/>${syncCode ? `Synced · <a href="#" onclick="changeSyncCode(); return false;" style="color:inherit;">change code</a>` : 'Not synced yet'}</div>
       </div>
       <div class="main">${mainContent()}</div>
     </div>
     ${renderEditModal()}
+    ${renderSyncModal()}
   `;
   bindEvents();
   const saveBtn = document.getElementById('e-save');
