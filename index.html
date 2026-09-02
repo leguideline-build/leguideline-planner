@@ -69,13 +69,15 @@
   .stream-tagline{ color:var(--ink-soft); font-size:12px; max-width:380px; text-align:right; line-height:1.45; }
 
   .subtabs{ display:flex; gap:2px; margin-bottom:22px; border-bottom:1px solid var(--line); }
-  .subtabs button{
-    all:unset; cursor:grab; padding:9px 4px; margin-right:22px; font-size:12.5px;
+  .subtabs .subtab-btn{
+    cursor:grab; padding:9px 4px; margin-right:22px; font-size:12.5px;
     color:var(--ink-soft); border-bottom:2px solid transparent; margin-bottom:-1px;
+    user-select:none; -webkit-user-select:none;
   }
-  .subtabs button:active{ cursor:grabbing; }
-  .subtabs button:hover{ color:var(--ink); }
-  .subtabs button.active{ color:var(--ink); font-weight:700; border-bottom-color:var(--ink); }
+  .subtabs .subtab-btn:active{ cursor:grabbing; }
+  .subtabs .subtab-btn:hover{ color:var(--ink); }
+  .subtabs .subtab-btn.active{ color:var(--ink); font-weight:700; border-bottom-color:var(--ink); }
+  .subtabs .subtab-btn.drag-over{ border-bottom-color:var(--ink-faint); }
 
   .card{ background:var(--white); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-card); }
 
@@ -301,7 +303,7 @@
     .stream-tagline{ max-width:none; text-align:left; }
 
     .subtabs{ overflow-x:auto; -webkit-overflow-scrolling:touch; flex-wrap:nowrap; }
-    .subtabs button{ flex-shrink:0; white-space:nowrap; margin-right:16px; }
+    .subtabs .subtab-btn{ flex-shrink:0; white-space:nowrap; margin-right:16px; }
 
     .rituals-grid{ grid-template-columns:1fr; gap:12px; }
     .stream-summary{ grid-template-columns:1fr 1fr; gap:10px; }
@@ -1033,7 +1035,13 @@ function getOrderedSubareas(streamKey){
   return stored.map(k=>s.subareas.find(sa=>sa.key===k));
 }
 let dragSubtabKey = null;
-function onSubtabDragStart(key){ dragSubtabKey = key; }
+function onSubtabDragStart(key, event){
+  dragSubtabKey = key;
+  if(event && event.dataTransfer){
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', key); // required by Firefox to allow the drag to proceed
+  }
+}
 function onSubtabDrop(streamKey, targetKey){
   if(!dragSubtabKey || dragSubtabKey===targetKey) return;
   const order = getOrderedSubareas(streamKey).map(sa=>sa.key);
@@ -1059,11 +1067,11 @@ function mainContent(){
     const ordered = getOrderedSubareas(view.stream);
     const active = view.subarea || ordered[0].key;
     subtabsHtml = `<div class="subtabs">${ordered.map(sa=>`
-      <button class="${active===sa.key?'active':''}" data-subtab="${sa.key}"
+      <div class="subtab-btn ${active===sa.key?'active':''}" data-subtab="${sa.key}"
         draggable="true"
-        ondragstart="onSubtabDragStart('${sa.key}')"
+        ondragstart="onSubtabDragStart('${sa.key}', event)"
         ondragover="event.preventDefault()"
-        ondrop="onSubtabDrop('${view.stream}','${sa.key}')">${sa.label}</button>
+        ondrop="onSubtabDrop('${view.stream}','${sa.key}')">${sa.label}</div>
     `).join('')}</div>`;
     const sa = ordered.find(x=>x.key===active);
     if(sa.type==='outreach') body = outreachView();
