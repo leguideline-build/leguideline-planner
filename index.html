@@ -469,6 +469,8 @@ function patchState(){
     if(i.title===undefined) i.title = i.text || ''; // migrate from old {text} shape
     if(i.notes===undefined) i.notes = '';
     if(i.priority===undefined) i.priority = 'med';
+    if(i.status===undefined) i.status = i.done ? 'done' : 'backlog'; // migrate to Ideas / This week / Done columns
+    i.done = (i.status==='done');
   });
   state.recurring = state.recurring || { daily:[], weekly:[], monthly:[] };
   state.completions = state.completions || {
@@ -626,10 +628,17 @@ let ideaPanelOpen = false;
 let editingIdeaId = null;
 function addIdea(data){
   if(!data.title || !data.title.trim()) return;
-  state.ideas.push({ id:uid(), title:data.title.trim(), notes:data.notes||'', priority:data.priority||'med', due:data.due||'', done:false });
+  state.ideas.push({ id:uid(), title:data.title.trim(), notes:data.notes||'', priority:data.priority||'med', due:data.due||'', status:'backlog', done:false });
   save(); render();
 }
-function toggleIdea(id){ const i=state.ideas.find(i=>i.id===id); if(i){ i.done=!i.done; save(); render(); } }
+function toggleIdea(id){ const i=state.ideas.find(i=>i.id===id); if(i){ i.done=!i.done; i.status=i.done?'done':'backlog'; save(); render(); } }
+function moveIdea(id,dir){
+  const order=['backlog','thisweek','done'];
+  const i=state.ideas.find(i=>i.id===id); if(!i) return;
+  const next=order.indexOf(i.status||'backlog')+dir;
+  if(next>=0 && next<order.length){ i.status=order[next]; i.done=(i.status==='done'); }
+  save(); render();
+}
 function delIdea(id){ state.ideas=state.ideas.filter(i=>i.id!==id); save(); render(); }
 function updateIdea(id, data){
   const i=state.ideas.find(i=>i.id===id); if(!i) return;
@@ -892,7 +901,7 @@ function outreachView(){
 
 function ideasOnlyView(){
   const NOTES_TRUNCATE = 160;
-  const ideasHtml = state.ideas.length ? state.ideas.map(i=>{
+  const ideaCard = (i)=>{
     const overdue = i.due && i.due<todayStr() && !i.done;
     let notesHtml = '';
     if(i.notes){
@@ -909,27 +918,32 @@ function ideasOnlyView(){
     }
     return `
     <div class="task">
-      <div class="title" style="${i.done?'text-decoration:line-through;color:var(--ink-faint);':''}">
-        <input type="checkbox" ${i.done?'checked':''} onchange="toggleIdea('${i.id}')" style="margin-right:8px; vertical-align:-2px;">${escapeHtml(i.title)}
-      </div>
+      <div class="title">${escapeHtml(i.title)}</div>
       ${notesHtml}
       <div class="meta">
         <span class="tag ${i.priority}">${i.priority}</span>
         ${i.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(i.due)}</span>`:''}
       </div>
       <div class="row-actions">
+        ${i.status!=='backlog'?`<button onclick="moveIdea('${i.id}',-1)">◂ move</button>`:''}
+        ${i.status!=='done'?`<button onclick="moveIdea('${i.id}',1)">move ▸</button>`:''}
         <button onclick="startEditIdea('${i.id}')">edit</button>
         <span class="spacer"></span>
         <button class="del" onclick="delIdea('${i.id}')">delete</button>
       </div>
     </div>`;
-  }).join('') : `<div class="empty-block">No ideas logged yet.</div>`;
+  };
+  const ideaCols = COLS.map(([status,colLabel])=>{
+    const items = state.ideas.filter(i=>(i.status||'backlog')===status);
+    const cards = items.length ? items.map(ideaCard).join('') : `<div class="empty-col">Nothing here yet.</div>`;
+    return `<div class="col"><div class="col-head"><h4>${colLabel}</h4><span class="n">${items.length}</span></div>${cards}</div>`;
+  }).join('');
 
   return `
     <div class="topbar">
       <div>
         <h1>Bank of Ideas</h1>
-        <div class="date">${state.ideas.filter(i=>!i.done).length} open ideas</div>
+        <div class="date">${state.ideas.filter(i=>i.status!=='done').length} open · ${state.ideas.filter(i=>i.status==='done').length} done</div>
       </div>
       <div class="stream-tagline">Give an idea a date to have it show up on the Overview (Today / This week / This month); leave it blank to keep it out of the way.</div>
     </div>
@@ -953,12 +967,7 @@ function ideasOnlyView(){
         <button class="btn-solid" onclick="submitIdeaForm()">Add idea</button>
       </div>
     </div>
-    <div class="columns" style="grid-template-columns:1fr;">
-      <div class="col" style="max-width:640px;">
-        <div class="col-head"><h4>Ideas</h4><span class="n">${state.ideas.length}</span></div>
-        ${ideasHtml}
-      </div>
-    </div>
+    <div class="columns">${ideaCols}</div>
   `;
 }
 
