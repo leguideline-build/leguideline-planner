@@ -1586,7 +1586,7 @@ function renderSyncModal(){
         Choose a passphrase. Enter the same one on any device to see the same data there. First device to use a code creates it; anyone who later types that same code links to it too, so pick something only you'd guess.
       </p>
       <label>Sync code</label>
-      <input type="text" id="f-synccode" placeholder="e.g. a private phrase only you know" onkeydown="if(event.key==='Enter'){submitSyncCode();}">
+      <input type="text" id="f-synccode" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="e.g. a private phrase only you know" onkeydown="if(event.key==='Enter'){submitSyncCode();}">
       <div class="actions">
         <button class="btn-ghost" onclick="dismissSyncError()">Skip for now</button>
         <button class="btn-solid" onclick="submitSyncCode()">Connect</button>
