@@ -295,7 +295,7 @@
     .nav button.active{ border-left-color:transparent; border-bottom-color:var(--ink); }
     .nav button .count{ margin-left:6px; }
 
-    .sidebar-foot{ display:none; }
+    .sidebar-foot{ margin-top:0; }
 
     .main{ padding:18px 14px 40px; }
     .topbar{ flex-direction:column; align-items:flex-start; gap:6px; margin-bottom:16px; padding-bottom:12px; }
@@ -336,17 +336,7 @@ const firebaseConfig = {
   messagingSenderId: "791454085610",
   appId: "1:791454085610:web:4900404e49d2f164b68293"
 };
-const SYNC_CODE_KEY = 'leguideline-sync-code';
-let db = null, fsDoc = null, fsGetDoc = null, fsSetDoc = null;
-let syncCode = localStorage.getItem(SYNC_CODE_KEY) || null;
-
-async function initFirebase(){
-  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
-  const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-  const app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  fsDoc = doc; fsGetDoc = getDoc; fsSetDoc = setDoc;
-}
+/* sync engine is defined further down (search: merge helpers) */
 
 const STREAM_DEF = {
   product: {
@@ -380,7 +370,7 @@ const STREAM_DEF = {
 };
 const STREAM_ORDER = ['product','content','maintenance'];
 const COLS = [['backlog','Ideas'],['thisweek','This week'],['done','Done']];
-const OUTREACH_STATUS = ['Researching','Reached out','Waiting reply','Follow up','Agreed','Declined'];
+const OUTREACH_STATUS = ['Researching','Reached out','Waiting reply','Follow up','Agreed','Filmed','Declined'];
 
 const TASKKEY_META = {
   'product-legops': {label:'LeG Ops', stream:'product', subarea:'legops'},
@@ -480,24 +470,196 @@ function patchState(){
   };
 }
 
-let syncStatus = 'idle'; // 'idle' | 'connecting' | 'connected' | 'error'
-let syncError = '';
+const SYNC_CODE_KEY = 'leguideline-sync-code';
+const CACHE_CODE_KEY = 'leguideline-cache-code';      // which sync code the local cache belongs to
+const BASE_PREFIX = 'leguideline-sync-base::';        // last state this device agreed on with the cloud, per code
+const BACKUPS_KEY = 'leguideline-backups';            // local snapshots
+const SYNC_COLLECTION = 'leguideline-planner';
+let db = null, fsDoc = null, fsGetDoc = null, fsSetDoc = null, fsRunTransaction = null, fsOnSnapshot = null;
+let syncCode = localStorage.getItem(SYNC_CODE_KEY) || null;
+// migrate: existing devices had a code but no record of which code their cache belongs to
+if(syncCode && !localStorage.getItem(CACHE_CODE_KEY)) localStorage.setItem(CACHE_CODE_KEY, syncCode);
 
-async function connectSync(){
+async function initFirebase(){
+  if(db) return;
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+  const { getFirestore, doc, getDoc, setDoc, runTransaction, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  fsDoc = doc; fsGetDoc = getDoc; fsSetDoc = setDoc; fsRunTransaction = runTransaction; fsOnSnapshot = onSnapshot;
+}
+
+/* ---------- merge helpers ---------- */
+function clone(x){ return x===undefined ? undefined : JSON.parse(JSON.stringify(x)); }
+function stableStr(x){
+  if(Array.isArray(x)) return '['+x.map(stableStr).join(',')+']';
+  if(x && typeof x==='object') return '{'+Object.keys(x).filter(k=>x[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stableStr(x[k])).join(',')+'}';
+  return JSON.stringify(x===undefined?null:x);
+}
+function eq(a,b){ return stableStr(a)===stableStr(b); }
+function isPlainObj(x){ return x && typeof x==='object' && !Array.isArray(x); }
+function isIdArray(x){ return Array.isArray(x) && x.length>0 && x.every(i=>isPlainObj(i) && i.id!==undefined); }
+
+// how much real content a planner holds (default rituals don't count)
+function contentCount(s){
+  if(!s) return 0;
+  let n = 0;
+  Object.values(s.tasks||{}).forEach(a=>{ n += (a||[]).length; });
+  return n + (s.outreach||[]).length + (s.ideas||[]).length + (s.places||[]).length;
+}
+function contentSummary(s){
+  const t = Object.values((s&&s.tasks)||{}).reduce((n,a)=>n+(a||[]).length,0);
+  return `${t} tasks · ${(s.outreach||[]).length} contacts · ${(s.ideas||[]).length} ideas · ${(s.places||[]).length} places`;
+}
+
+// three-way merge: base = last agreed state, l = this device, r = cloud
+// prefer: 'local' | 'remote' — who wins when the same field was changed on both sides
+function merge3(b, l, r, prefer){
+  if(eq(l,r)) return clone(l);
+  if(eq(l,b)) return clone(r);
+  if(eq(r,b)) return clone(l);
+  const la = Array.isArray(l), ra = Array.isArray(r);
+  if((la||ra) && (isIdArray(l)||isIdArray(r)) && (la||l===undefined) && (ra||r===undefined)){
+    return mergeIdArrays(Array.isArray(b)?b:[], l||[], r||[], prefer);
+  }
+  if(isPlainObj(l) && isPlainObj(r)){
+    const out = {}, bb = isPlainObj(b) ? b : {};
+    new Set([...Object.keys(l), ...Object.keys(r)]).forEach(k=>{
+      const v = merge3(bb[k], l[k], r[k], prefer);
+      if(v!==undefined) out[k] = v;
+    });
+    return out;
+  }
+  return clone(prefer==='remote' ? r : l);
+}
+function mergeIdArrays(b, l, r, prefer){
+  const B = new Map(b.filter(isPlainObj).map(x=>[x.id,x]));
+  const L = new Map(l.map(x=>[x.id,x]));
+  const R = new Map(r.map(x=>[x.id,x]));
+  const out = [], seen = new Set();
+  // keep this device's order, slot cloud-only items in after their cloud predecessor
+  const order = l.map(x=>x.id);
+  r.forEach((x,idx)=>{
+    if(L.has(x.id)) return;
+    const prev = idx>0 ? r[idx-1].id : null;
+    const at = prev===null ? -1 : order.indexOf(prev);
+    order.splice(at+1, 0, x.id);
+  });
+  order.forEach(id=>{
+    if(seen.has(id)) return; seen.add(id);
+    const inL = L.has(id), inR = R.has(id), inB = B.has(id);
+    if(inL && inR){ out.push(merge3(B.get(id), L.get(id), R.get(id), prefer)); }
+    else if(inL){ if(inB && eq(L.get(id), B.get(id))) return; out.push(clone(L.get(id))); } // deleted in cloud (unless edited here)
+    else { if(inB && eq(R.get(id), B.get(id))) return; out.push(clone(R.get(id))); }       // deleted here (unless edited in cloud)
+  });
+  return out;
+}
+// the safety rule: never let an empty planner replace one that has content
+function safeMerge(base, local, remote, prefer){
+  if(contentCount(remote)===0 && contentCount(local)>0) return clone(local);
+  if(contentCount(local)===0 && contentCount(remote)>0 && !base) return clone(remote);
+  const merged = merge3(base, local, remote, prefer);
+  if(contentCount(merged)===0 && (contentCount(local)>0 || contentCount(remote)>0)){
+    return clone(contentCount(local)>0 ? local : remote);
+  }
+  return merged;
+}
+
+/* ---------- local persistence ---------- */
+function loadBase(code){ try{ const r = localStorage.getItem(BASE_PREFIX+code); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function storeBase(code, s){ try{ localStorage.setItem(BASE_PREFIX+code, JSON.stringify(s)); }catch(e){} }
+function cacheLocal(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.error('local save failed', e); }
+}
+
+/* ---------- backups ---------- */
+function getLocalBackups(){ try{ return JSON.parse(localStorage.getItem(BACKUPS_KEY)||'[]'); }catch(e){ return []; } }
+function addLocalBackup(kind, s){
+  if(!s || contentCount(s)===0) return;
+  try{
+    let list = getLocalBackups();
+    const day = todayStr();
+    if(kind==='daily' && list.some(b=>b.kind==='daily' && b.date===day && b.code===(syncCode||''))) return;
+    list.unshift({ t:Date.now(), date:day, kind, code:syncCode||'', json:JSON.stringify(s) });
+    const daily = list.filter(b=>b.kind==='daily').slice(0,14);
+    const other = list.filter(b=>b.kind!=='daily').slice(0,6);
+    list = [...daily, ...other].sort((a,b)=>b.t-a.t);
+    localStorage.setItem(BACKUPS_KEY, JSON.stringify(list));
+  }catch(e){ console.warn('local backup failed', e); }
+}
+let cloudBackupDoneFor = null;
+async function cloudDailyBackup(){
+  const day = todayStr();
+  if(!db || !syncCode || cloudBackupDoneFor===syncCode+day || contentCount(state)===0) return;
+  cloudBackupDoneFor = syncCode+day;
+  try{
+    const ref = fsDoc(db, SYNC_COLLECTION, `${syncCode}__backup__${day}`);
+    const snap = await fsGetDoc(ref);
+    if(!snap.exists()) await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now(), backupOf: syncCode, date: day });
+  }catch(e){ console.warn('cloud backup skipped', e); }
+}
+
+/* ---------- connection ---------- */
+let syncStatus = 'idle'; // 'idle' | 'connecting' | 'confirm-new' | 'connected' | 'error' | 'local-only'
+let syncError = '';
+let lastSyncedAt = null;
+let cloudDirty = false;     // local changes not yet in the cloud
+let pushing = false;
+let pushTimer = null, retryTimer = null;
+let unsubscribeSnap = null;
+let lastPushedJson = null;
+
+async function connectSync(opts){
+  opts = opts || {};
+  if(!syncCode) return;
+  if(unsubscribeSnap){ unsubscribeSnap(); unsubscribeSnap = null; }
   syncStatus = 'connecting'; syncError = ''; render();
   try{
     await initFirebase();
-    const ref = fsDoc(db, 'leguideline-planner', syncCode);
+    const code = syncCode;
+    const ref = fsDoc(db, SYNC_COLLECTION, code);
     const snap = await fsGetDoc(ref);
-    if(snap.exists() && snap.data().json){
-      state = JSON.parse(snap.data().json);
-      patchState();
+    const cacheCode = localStorage.getItem(CACHE_CODE_KEY);
+
+    if(!snap.exists() || !snap.data().json){
+      if(!opts.allowCreate){ syncStatus = 'confirm-new'; render(); return; }
+      // brand-new code, confirmed by the user: keep local data only if it already belonged to no other planner
+      if(cacheCode && cacheCode!==code){ addLocalBackup('before-switch', state); state = defaultState(); }
+      const json = JSON.stringify(state);
+      await fsSetDoc(ref, { json, updatedAt: Date.now() });
+      lastPushedJson = json;
+      storeBase(code, clone(state));
     } else {
-      // first time this code has been used — seed Firestore with current (local) state
-      await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
+      const remote = JSON.parse(snap.data().json);
+      let local = state;
+      if(cacheCode && cacheCode!==code){
+        // this device's cache belongs to a different planner: don't mix them, keep a backup and load this one
+        addLocalBackup('before-switch', state);
+        local = null;
+      }
+      const base = local ? loadBase(code) : null;
+      let merged;
+      if(!local) merged = clone(remote);
+      else merged = safeMerge(base, local, remote, base ? 'local' : 'remote');
+      if(local && !base && remote.recurring){
+        // first sync on this device: use the cloud's rituals rather than doubling them up with this device's defaults
+        merged.recurring = clone(remote.recurring);
+        if(remote.completions) merged.completions = clone(remote.completions);
+      }
+      if(local && contentCount(merged) < contentCount(local)) addLocalBackup('before-sync', local);
+      state = merged; patchState();
+      storeBase(code, remote);
+      if(!eq(state, remote)) cloudDirty = true;
     }
+    localStorage.setItem(CACHE_CODE_KEY, code);
+    cacheLocal();
     rollover();
     syncStatus = 'connected';
+    lastSyncedAt = Date.now();
+    subscribeCloud(code);
+    addLocalBackup('daily', state);
+    cloudDailyBackup();
+    if(cloudDirty) schedulePush(50);
     render();
   }catch(e){
     console.error('sync connect failed', e);
@@ -507,31 +669,234 @@ async function connectSync(){
   }
 }
 
-async function save(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.error('local save failed', e); }
-  if(db && fsDoc && syncCode && syncStatus==='connected'){ // only push to cloud once genuinely connected
-    try{
-      const ref = fsDoc(db, 'leguideline-planner', syncCode);
-      await fsSetDoc(ref, { json: JSON.stringify(state), updatedAt: Date.now() });
-    }catch(e){ console.error('cloud sync failed', e); }
+// live updates from other devices
+function subscribeCloud(code){
+  const ref = fsDoc(db, SYNC_COLLECTION, code);
+  unsubscribeSnap = fsOnSnapshot(ref, snap=>{
+    if(code!==syncCode || snap.metadata.hasPendingWrites || !snap.exists()) return;
+    const data = snap.data(); if(!data || !data.json) return;
+    if(data.json===lastPushedJson) return; // our own write echoing back
+    if(pushing){ schedulePush(300); return; } // the push in flight will merge it
+    const remote = JSON.parse(data.json);
+    const base = loadBase(code);
+    const merged = safeMerge(base, state, remote, 'local');
+    if(eq(merged, state)){
+      storeBase(code, remote); lastSyncedAt = Date.now();
+      if(!eq(state, remote)){ cloudDirty = true; schedulePush(400); } // e.g. cloud was emptied: put our data back
+      renderSyncFoot(); return;
+    }
+    state = merged; patchState();
+    storeBase(code, remote);
+    cacheLocal();
+    lastSyncedAt = Date.now();
+    if(!eq(state, remote)){ cloudDirty = true; schedulePush(400); }
+    softRender();
+  }, err=>{ console.warn('live sync stopped', err); });
+}
+
+function schedulePush(ms){
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushToCloud, ms===undefined ? 600 : ms);
+}
+
+// merge with whatever is in the cloud right now, then write — inside a transaction so devices can't clobber each other
+async function pushToCloud(){
+  if(!db || !syncCode || syncStatus!=='connected'){ return; }
+  if(pushing){ schedulePush(400); return; }
+  pushing = true;
+  const code = syncCode;
+  const localAtStart = clone(state);
+  try{
+    const ref = fsDoc(db, SYNC_COLLECTION, code);
+    const written = await fsRunTransaction(db, async tx=>{
+      const snap = await tx.get(ref);
+      let result = localAtStart, remoteJson = null;
+      if(snap.exists() && snap.data().json){
+        remoteJson = snap.data().json;
+        const remote = JSON.parse(remoteJson);
+        result = safeMerge(loadBase(code), localAtStart, remote, 'local');
+        if(eq(result, remote)) return { result: remote, json: remoteJson }; // nothing new to write
+      }
+      const json = JSON.stringify(result);
+      tx.set(ref, { json, updatedAt: Date.now() });
+      return { result, json };
+    });
+    if(code!==syncCode) return;
+    lastPushedJson = written.json;
+    storeBase(code, written.result);
+    // fold in anything typed while the write was in flight
+    const changedMeanwhile = !eq(state, localAtStart);
+    const newState = changedMeanwhile ? merge3(localAtStart, state, written.result, 'local') : written.result;
+    const visibleChange = !eq(newState, state);
+    state = newState; patchState();
+    cacheLocal();
+    cloudDirty = changedMeanwhile;
+    lastSyncedAt = Date.now();
+    clearTimeout(retryTimer);
+    if(cloudDirty) schedulePush(300);
+    cloudDailyBackup();
+    if(visibleChange) softRender(); else renderSyncFoot();
+  }catch(e){
+    console.warn('cloud sync failed, will retry', e);
+    cloudDirty = true;
+    renderSyncFoot();
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(pushToCloud, 15000);
+  }finally{
+    pushing = false;
   }
 }
+
+async function save(){
+  cacheLocal();
+  if(syncCode && syncStatus==='connected'){ cloudDirty = true; schedulePush(); renderSyncFoot(); }
+}
+
+// don't yank the page out from under someone who is typing
+let pendingRender = false;
+function isTyping(){
+  const a = document.activeElement;
+  return a && a!==document.body && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+}
+function softRender(){ if(isTyping()){ pendingRender = true; renderSyncFoot(); } else { pendingRender = false; render(); } }
+document.addEventListener('focusout', ()=>{ setTimeout(()=>{ if(pendingRender && !isTyping()){ pendingRender = false; render(); } }, 120); });
+window.addEventListener('online', ()=>{
+  if(!syncCode) return;
+  if(syncStatus==='error' || syncStatus==='local-only') connectSync();
+  else if(cloudDirty) schedulePush(100);
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && syncCode && (syncStatus==='error')) connectSync();
+});
 
 function submitSyncCode(){
   const input = document.getElementById('f-synccode');
   const code = (input.value || '').trim();
   if(!code) return;
+  if(code.includes('/')){ alert('Please use a code without the "/" character.'); return; }
   syncCode = code;
   localStorage.setItem(SYNC_CODE_KEY, code);
   connectSync();
 }
+function confirmNewCode(){ connectSync({ allowCreate:true }); }
+function cancelNewCode(){
+  // mistyped: forget the code and ask again — nothing was created or changed
+  syncCode = null;
+  localStorage.removeItem(SYNC_CODE_KEY);
+  syncStatus = 'idle';
+  render();
+}
 function changeSyncCode(){
+  if(cloudDirty && syncStatus==='connected' && !confirm('Some changes have not reached the cloud yet. Switch code anyway? (They stay saved on this device and in Backups.)')) return;
+  if(unsubscribeSnap){ unsubscribeSnap(); unsubscribeSnap = null; }
+  addLocalBackup('before-switch', state);
   syncCode = null;
   syncStatus = 'idle';
   localStorage.removeItem(SYNC_CODE_KEY);
   render();
 }
+function maskCode(c){ return c ? (c.slice(0,2) + '••••') : ''; }
+function fmtTime(t){ return t ? new Date(t).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}) : ''; }
+function syncFootHtml(){
+  const link = (fn, txt)=>`<a href="#" onclick="${fn}; return false;" style="color:inherit;">${txt}</a>`;
+  let line;
+  if(syncCode && syncStatus==='connected'){
+    line = cloudDirty ? `Saving… · ${escapeHtml(maskCode(syncCode))}` : `Synced · ${escapeHtml(maskCode(syncCode))} · ${fmtTime(lastSyncedAt)}`;
+  } else if(syncCode && (syncStatus==='connecting' || syncStatus==='confirm-new' || syncStatus==='idle')){
+    line = `Connecting · ${escapeHtml(maskCode(syncCode))}`;
+  } else if(syncCode){
+    line = `<span style="color:var(--red);">Offline</span> — saved on this device · ${link('connectSync()','retry')}`;
+  } else {
+    line = `Not synced · ${link("syncStatus='idle'; render()",'connect')}`;
+  }
+  return `Personal planner<br/>${line}<br/>${syncCode?link('changeSyncCode()','change code')+' · ':''}${link('openBackups()','backups')}`;
+}
+function renderSyncFoot(){ const el = document.getElementById('sync-foot'); if(el) el.innerHTML = syncFootHtml(); }
+
+/* ---------- backups UI, export / import ---------- */
+let backupsOpen = false;
+let cloudBackups = null; // null = not loaded, [] = none
+function openBackups(){ backupsOpen = true; cloudBackups = null; render(); loadCloudBackups(); }
+function closeBackups(){ backupsOpen = false; render(); }
+async function loadCloudBackups(){
+  if(!db || !syncCode){ cloudBackups = []; render(); return; }
+  const found = [];
+  const d = new Date();
+  const reads = [];
+  for(let i=0;i<14;i++){
+    const day = new Date(d.getTime() - i*86400000).toISOString().slice(0,10);
+    reads.push(fsGetDoc(fsDoc(db, SYNC_COLLECTION, `${syncCode}__backup__${day}`)).then(s=>{
+      if(s.exists() && s.data().json) found.push({ t:s.data().updatedAt||0, date:day, kind:'cloud daily', json:s.data().json });
+    }).catch(()=>{}));
+  }
+  await Promise.all(reads);
+  cloudBackups = found.sort((a,b)=>b.t-a.t);
+  if(backupsOpen) render();
+}
+function restoreFromJson(json, label){
+  let data;
+  try{ data = JSON.parse(json); }catch(e){ alert('That backup could not be read.'); return; }
+  if(!data || typeof data!=='object' || !data.tasks){ alert('That does not look like a planner backup.'); return; }
+  if(!confirm(`Restore ${label}?\n\n${contentSummary(data)}\n\nYour current planner is backed up first, so you can undo this.`)) return;
+  addLocalBackup('before-restore', state);
+  state = data; patchState();
+  backupsOpen = false;
+  save(); render();
+}
+function restoreBackup(source, idx){
+  const list = source==='cloud' ? (cloudBackups||[]) : getLocalBackups();
+  const b = list[idx]; if(!b) return;
+  restoreFromJson(b.json, `the ${b.kind} backup from ${new Date(b.t).toLocaleString()}`);
+}
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `leguideline-planner-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+function importBackup(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=> restoreFromJson(reader.result, `the file "${f.name}"`);
+  reader.readAsText(f);
+  input.value = '';
+}
+function renderBackupsModal(){
+  if(!backupsOpen) return '';
+  const row = (b, source, i)=>{
+    let summary = '';
+    try{ summary = contentSummary(JSON.parse(b.json)); }catch(e){}
+    return `<div style="display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid var(--line);">
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13px;">${new Date(b.t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} <span style="color:var(--ink-faint); font-size:11px;">· ${escapeHtml(b.kind)}${b.code?` · ${escapeHtml(maskCode(b.code))}`:''}</span></div>
+        <div style="font-size:11.5px; color:var(--ink-soft);">${summary}</div>
+      </div>
+      <button class="btn-ghost" onclick="restoreBackup('${source}',${i})">Restore</button>
+    </div>`;
+  };
+  const local = getLocalBackups();
+  return `
+  <div class="modal-overlay" id="backups-overlay" onclick="if(event.target===this) closeBackups()">
+    <div class="modal-box" style="max-width:520px;">
+      <h2>Backups</h2>
+      <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 14px;">
+        Now: ${contentSummary(state)}. A snapshot is kept every day (last 14 days) on this device and in the cloud, plus one before any restore or code switch.
+      </p>
+      <div class="actions" style="justify-content:flex-start; margin:0 0 16px;">
+        <button class="btn-solid" onclick="exportBackup()">Export file</button>
+        <label style="margin:0; cursor:pointer; display:inline-flex; align-items:center; color:var(--ink); border:1px solid var(--ink); border-radius:999px; padding:0 16px; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;">Import file<input type="file" accept=".json,application/json" style="display:none" onchange="importBackup(this)"></label>
+      </div>
+      <h4 style="font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin:10px 0 4px;">In the cloud</h4>
+      ${cloudBackups===null ? `<div style="font-size:12px; color:var(--ink-faint); padding:8px 0;">Loading…</div>` : cloudBackups.length ? cloudBackups.map((b,i)=>row(b,'cloud',i)).join('') : `<div style="font-size:12px; color:var(--ink-faint); padding:8px 0;">None yet${syncCode?'':' (not connected)'}.</div>`}
+      <h4 style="font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin:16px 0 4px;">On this device</h4>
+      ${local.length ? local.map((b,i)=>row(b,'local',i)).join('') : `<div style="font-size:12px; color:var(--ink-faint); padding:8px 0;">None yet.</div>`}
+      <div class="actions"><button class="btn-ghost" onclick="closeBackups()">Close</button></div>
+    </div>
+  </div>`;
+}
+
 function rollover(){
   const t=todayStr(), w=isoWeekStart(new Date()), m=monthStr();
   let changed=false;
@@ -1165,6 +1530,22 @@ function renderIdeaEditModal(){
 function renderSyncModal(){
   if(syncStatus==='connected' || syncStatus==='local-only') return '';
 
+  if(syncStatus==='confirm-new'){
+    return `
+    <div class="modal-overlay">
+      <div class="modal-box" style="max-width:420px;">
+        <h2>This code is new</h2>
+        <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:0;">
+          No planner uses <b style="color:var(--ink);">${escapeHtml(syncCode||'')}</b> yet. If you meant your existing planner, go back and check the spelling (codes are case-sensitive). Nothing has been changed.
+        </p>
+        <div class="actions">
+          <button class="btn-ghost" onclick="confirmNewCode()">Create a new planner</button>
+          <button class="btn-solid" onclick="cancelNewCode()">I mistyped — go back</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
   if(syncStatus==='connecting'){
     return `
     <div class="modal-overlay">
@@ -1229,13 +1610,14 @@ function render(){
         </div>
         <div class="nav">${renderNav()}</div>
         
-        <div class="sidebar-foot">Personal planner<br/>${syncCode ? `Synced · <a href="#" onclick="changeSyncCode(); return false;" style="color:inherit;">change code</a>` : 'Not synced yet'}</div>
+        <div class="sidebar-foot" id="sync-foot">${syncFootHtml()}</div>
       </div>
       <div class="main">${mainContent()}</div>
     </div>
     ${renderEditModal()}
     ${renderIdeaEditModal()}
     ${renderSyncModal()}
+    ${renderBackupsModal()}
   `;
   bindEvents();
   const saveBtn = document.getElementById('e-save');
