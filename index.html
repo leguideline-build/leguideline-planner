@@ -174,6 +174,25 @@
   /* ---------- Kanban ---------- */
   .columns{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-items:start; }
   @media (max-width:820px){ .columns{ grid-template-columns:1fr; } }
+  .series-pills{ display:flex; gap:6px; flex-wrap:wrap; margin:-8px 0 20px; }
+  .series-pill{ border:none; background:transparent; color:var(--ink-soft); font-family:inherit; font-size:13px; padding:7px 15px; border-radius:999px; cursor:pointer; }
+  .series-pill:hover{ color:var(--ink); }
+  .series-pill.active{ background:var(--line); color:var(--ink); }
+  .series-pill .n{ font-size:10.5px; color:var(--ink-faint); margin-left:3px; }
+  .series-tag{ font-size:10.5px; color:var(--ink-soft); border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
+  .task .meta .status-pill{ margin-left:auto; text-transform:none !important; letter-spacing:0 !important; font-weight:400; }
+  .task .row-actions .status-pill, .status-pill{ text-transform:none; letter-spacing:0; border:1px solid var(--line); border-radius:999px; background:var(--white); color:var(--ink); font-size:11.5px; padding:4px 26px 4px 11px; font-family:inherit; cursor:pointer; }
+  .status-pill:focus{ outline:none; border-color:var(--ink); }
+  .card.video-plan{ margin-top:14px; padding:18px 18px 16px; }
+  .video-plan .top{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .video-plan .top svg{ width:16px; height:16px; }
+  .video-plan .top h3{ margin:0; font-size:14px; font-weight:700; }
+  .video-plan-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  @media (max-width:820px){ .video-plan-grid{ grid-template-columns:1fr; } }
+  .video-plan-col h3{ font-size:13px; font-weight:700; margin:0; display:flex; justify-content:space-between; }
+  .video-plan-col h3 .n{ color:var(--ink-faint); font-weight:400; font-size:11px; }
+  .video-plan-col .window{ font-size:11px; color:var(--ink-faint); margin:2px 0 8px; }
+  .due-row-date.overdue{ color:var(--red); }
   .col{ border:1px solid var(--line); border-radius:12px; padding:13px; min-height:90px; background:var(--white); }
   .col-head{ display:flex; align-items:center; justify-content:space-between; margin:1px 3px 11px; }
   .col-head h4{ font-size:10.5px; color:var(--ink-soft); font-weight:700; margin:0; letter-spacing:.06em; text-transform:uppercase; }
@@ -338,6 +357,8 @@ const firebaseConfig = {
 };
 /* sync engine is defined further down (search: merge helpers) */
 
+const VIDEO_SERIES = [['taste','Taste'],['product','Product'],['founder','Founder'],['discovery','Discovery'],['talk','Talk'],['other','Other']];
+const VIDEO_STATUS = [['backlog','Backlog'],['ready','Ready'],['thisweek','This week'],['done','Done']];
 const STREAM_DEF = {
   product: {
     label:'Product Development',
@@ -352,11 +373,11 @@ const STREAM_DEF = {
   },
   content: {
     label:'Content',
-    tagline:'Research, outreach, talks and the ideas bank.',
+    tagline:'Research, outreach, video production and the ideas bank.',
     icon:'<rect x="4.5" y="5" width="15" height="14" rx="2"/><path d="M12 5v14"/>',
     subareas:[
       {key:'outreach', label:'Research & Outreach', type:'outreach'},
-      {key:'talks', label:'TALKS', type:'kanban', taskKey:'content-talks'},
+      {key:'video', label:'Video Prod', type:'videoprod'},
       {key:'ideas', label:'Bank of Ideas', type:'ideas'},
       {key:'places', label:'Bank of Places', type:'places'}
     ]
@@ -377,7 +398,7 @@ const TASKKEY_META = {
   'product-uiux': {label:'UI/UX', stream:'product', subarea:'uiux'},
   'product-ai': {label:'AI Refinement', stream:'product', subarea:'ai'},
   'product-launches': {label:'Launches', stream:'product', subarea:'launches'},
-  'content-talks': {label:'TALKS', stream:'content', subarea:'talks'},
+  ...Object.fromEntries(VIDEO_SERIES.map(([key,label])=>['video-'+key, {label:'Video Prod · '+label, stream:'content', subarea:'video', series:key}])),
   'maintenance': {label:'Maintenance', stream:'maintenance', subarea:null}
 };
 
@@ -391,7 +412,8 @@ function icon(inner, extra){ return `<svg viewBox="0 0 24 24" fill="none" stroke
 
 function defaultState(){
   return {
-    tasks: { 'product-legops':[], 'product-uiux':[], 'product-ai':[], 'product-launches':[], 'content-talks':[], 'maintenance':[] },
+    tasks: Object.assign({ 'product-legops':[], 'product-uiux':[], 'product-ai':[], 'product-launches':[], 'maintenance':[] },
+      Object.fromEntries(VIDEO_SERIES.map(([key])=>['video-'+key, []]))),
     outreach: [],
     ideas: [],
     places: [],
@@ -449,6 +471,13 @@ async function load(){
 function patchState(){
   // backward-compat: fill in any fields added after this user's data was first saved
   state.tasks = state.tasks || {};
+  Object.keys(TASKKEY_META).forEach(tk=>{ if(!Array.isArray(state.tasks[tk])) state.tasks[tk] = []; });
+  if(Array.isArray(state.tasks['content-talks'])){
+    // TALKS tab became Video Prod › Talk
+    const have = new Set(state.tasks['video-talk'].map(t=>t.id));
+    state.tasks['content-talks'].forEach(t=>{ if(!have.has(t.id)) state.tasks['video-talk'].push(t); });
+    delete state.tasks['content-talks'];
+  }
   state.outreach = state.outreach || [];
   state.outreach.forEach(r=>{ if(r.priority===undefined) r.priority='med'; });
   state.ideas = state.ideas || [];
@@ -932,7 +961,7 @@ function collectDueItems(period){
     (state.tasks[tk]||[]).forEach(task=>{
       if(task.status!=='done' && inPeriod(task.due)){
         const meta = TASKKEY_META[tk];
-        items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:meta.subarea, priority:task.priority });
+        items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:meta.subarea + (meta.series?':'+meta.series:''), priority:task.priority });
       }
     });
   });
@@ -955,20 +984,25 @@ function collectDueItems(period){
 
 /* ---- kanban tasks ---- */
 function addTask(taskKey,data){
-  state.tasks[taskKey].push({ id:uid(), title:data.title, notes:data.notes||'', due:data.due||'', priority:data.priority||'med', status:'backlog' });
+  state.tasks[taskKey].push({ id:uid(), title:data.title, notes:data.notes||'', due:data.due||'', priority:data.priority||'med', status:data.status||'backlog' });
   save(); render();
 }
 function moveTask(taskKey,id,dir){
   const order=['backlog','thisweek','done'];
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
-  const next=order.indexOf(t.status)+dir;
+  const next=order.indexOf(t.status==='ready'?'backlog':t.status)+dir;
   if(next>=0 && next<order.length) t.status=order[next];
   save(); render();
+}
+function setTaskStatus(taskKey,id,status){
+  const t=(state.tasks[taskKey]||[]).find(t=>t.id===id); if(!t) return;
+  t.status=status; save(); render();
 }
 function delTask(taskKey,id){ state.tasks[taskKey]=state.tasks[taskKey].filter(t=>t.id!==id); save(); render(); }
 function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
+  if(data.status) t.status=data.status;
   save(); editingTask=null; render();
 }
 let editingTask = null; // {taskKey, id} of the task card currently in edit mode
@@ -1028,12 +1062,18 @@ function submitIdeaForm(){
 const LOGO_B64 = "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";
 function wordmark(){ return `<img class="wordmark-img" src="data:image/png;base64,${LOGO_B64}" alt="le GUIDELINE">`; }
 
+function streamTaskKeys(k){
+  const s = STREAM_DEF[k];
+  let keys = s.subareas ? s.subareas.map(sa=>sa.taskKey).filter(Boolean) : [s.taskKey];
+  if(s.subareas && s.subareas.some(sa=>sa.type==='videoprod')) keys = keys.concat(VIDEO_SERIES.map(([x])=>'video-'+x));
+  return keys;
+}
 function renderNav(){
   let html = `<button class="${view.stream==='overview'?'active':''}" data-nav="overview">
     ${icon('<path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1v-9.5"/>')} Overview</button>`;
   STREAM_ORDER.forEach(k=>{
     const s = STREAM_DEF[k];
-    const keys = s.subareas ? s.subareas.map(sa=>sa.taskKey).filter(Boolean) : [s.taskKey];
+    const keys = streamTaskKeys(k);
     let open = 0;
     keys.forEach(tk=>{ if(state.tasks[tk]) open += state.tasks[tk].filter(t=>t.status!=='done').length; });
     if(k==='content') open += state.outreach.filter(r=>r.status!=='Agreed' && r.status!=='Declined').length;
@@ -1079,6 +1119,45 @@ function ritualCard(period,title,windowLabel,cornerTag){
   </div>`;
 }
 
+function videoPlanCard(){
+  const t = todayStr();
+  const wStart = isoWeekStart(new Date());
+  const addDays = (iso,n)=>{ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  const wEnd = addDays(wStart,6), nStart = addDays(wStart,7), nEnd = addDays(wStart,13);
+  const all = [];
+  VIDEO_SERIES.forEach(([key,label])=>{
+    (state.tasks['video-'+key]||[]).forEach(v=>{ if(v.status!=='done') all.push({...v, series:label, seriesKey:key}); });
+  });
+  const byDate = (a,b)=>(a.due||'9999').localeCompare(b.due||'9999');
+  const publish = all.filter(v=>v.due && v.due<=wEnd).sort(byDate);           // this week, plus anything overdue
+  const produce = all.filter(v=>v.status==='thisweek').sort(byDate);
+  const prepare = all.filter(v=>v.due && v.due>=nStart && v.due<=nEnd).sort(byDate);
+  const statusLabel = Object.fromEntries(VIDEO_STATUS);
+  const rows = list => list.length ? list.map(v=>{
+    const overdue = v.due && v.due<t;
+    return `<div class="due-row" data-navitem="content:video:${v.seriesKey}">
+      <div class="due-row-main">
+        <div class="due-row-title">${escapeHtml(v.title)} <span class="tag ${v.priority} due-row-tag">${v.priority}</span></div>
+        <div class="due-row-meta">${v.series} · ${statusLabel[v.status]||''}</div>
+      </div>
+      <div class="due-row-date ${overdue?'overdue':''}">${v.due?(overdue?'overdue · ':'')+fmtDate(v.due):''}</div>
+    </div>`; }).join('') : `<div class="empty-block">Nothing here.</div>`;
+  const col = (title, sub, list)=>`<div class="video-plan-col">
+      <h3>${title} <span class="n">${list.length}</span></h3>
+      <div class="window">${sub}</div>
+      <div class="due-list">${rows(list)}</div>
+    </div>`;
+  return `
+    <div class="card video-plan">
+      <div class="top" data-navitem="content:video:all" style="cursor:pointer;">${icon('<rect x="3.5" y="6.5" width="12" height="11" rx="2"/><path d="M15.5 10.5l5-3v9l-5-3z" stroke-linejoin="round"/>')}<h3>Video Prod</h3></div>
+      <div class="video-plan-grid">
+        ${col('Publish this week', `Date ${fmtDate(wStart)} – ${fmtDate(wEnd)}`, publish)}
+        ${col('Produce this week', 'Status “This week”', produce)}
+        ${col('Prepare for next week', `Date ${fmtDate(nStart)} – ${fmtDate(nEnd)}`, prepare)}
+      </div>
+    </div>`;
+}
+
 function overviewHtml(){
   const w = state.completions.weekly.weekStart;
   const wEnd = new Date(w+'T00:00:00'); wEnd.setDate(wEnd.getDate()+6);
@@ -1086,7 +1165,7 @@ function overviewHtml(){
 
   const summary = STREAM_ORDER.map(k=>{
     const s = STREAM_DEF[k];
-    const keys = s.subareas ? s.subareas.map(sa=>sa.taskKey).filter(Boolean) : [s.taskKey];
+    const keys = streamTaskKeys(k);
     let open=0, overdue=0;
     keys.forEach(tk=>{
       (state.tasks[tk]||[]).forEach(t=>{
@@ -1117,80 +1196,111 @@ function overviewHtml(){
     </div>
     <p class="section-label">Streams</p>
     <div class="stream-summary">${summary}</div>
+    ${videoPlanCard()}
   `;
 }
 
-function kanbanBoard(taskKey, label, tagline){
-  const tasks = state.tasks[taskKey] || (state.tasks[taskKey]=[]);
-  const panelOpen = addPanelOpen[taskKey];
+const colOf = s => s==='ready' ? 'backlog' : s;   // Ready videos sit in the Ideas column
+function statusSelect(taskKey, t){
+  return `<select class="status-pill" onchange="setTaskStatus('${taskKey}','${t.id}',this.value)">${VIDEO_STATUS.map(([v,l])=>`<option value="${v}" ${t.status===v?'selected':''}>${l}</option>`).join('')}</select>`;
+}
+function taskCard(taskKey, t, isVideo, seriesLabel){
   const NOTES_TRUNCATE = 160;
+  const status = colOf(t.status);
+  const overdue = t.due && t.due<todayStr() && t.status!=='done';
+  let notesHtml = '';
+  if(t.notes){
+    const isLong = t.notes.length > NOTES_TRUNCATE;
+    const isExpanded = expandedNotes.has(t.id);
+    let shown = t.notes;
+    if(isLong && !isExpanded){
+      let cut = t.notes.slice(0, NOTES_TRUNCATE);
+      const lastSpace = cut.lastIndexOf(' ');
+      if(lastSpace > 40) cut = cut.slice(0, lastSpace);
+      shown = cut + '…';
+    }
+    notesHtml = `<div class="notes">${escapeHtml(shown)}${isLong?` <button class="notes-toggle" onclick="toggleNotes('${t.id}')">${isExpanded?'show less':'show more'}</button>`:''}</div>`;
+  }
+  return `
+  <div class="task">
+    <div class="title">${escapeHtml(t.title)}</div>
+    ${notesHtml}
+    <div class="meta">
+      <span class="tag ${t.priority}">${t.priority}</span>
+      ${t.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(t.due)}</span>`:''}
+      ${seriesLabel?`<span class="series-tag">${seriesLabel}</span>`:''}
+      ${isVideo?statusSelect(taskKey, t):''}
+    </div>
+    <div class="row-actions">
+      ${status!=='backlog'?`<button data-move="${taskKey}:${t.id}:-1">◂ move</button>`:''}
+      ${status!=='done'?`<button data-move="${taskKey}:${t.id}:1">move ▸</button>`:''}
+      <button onclick="startEditTask('${taskKey}','${t.id}')">edit</button>
+      <span class="spacer"></span>
+      <button class="del" data-deltask="${taskKey}:${t.id}">delete</button>
+    </div>
+  </div>`;
+}
+// opts: { isVideo, allSeries } — allSeries shows every video series on one board
+function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
+  const keys = allSeries ? VIDEO_SERIES.map(([k])=>'video-'+k) : [taskKey];
+  keys.forEach(k=>{ if(!state.tasks[k]) state.tasks[k]=[]; });
+  const entries = [];
+  keys.forEach(k=>state.tasks[k].forEach(t=>entries.push({k,t})));
+  const seriesName = k => (VIDEO_SERIES.find(([s])=>'video-'+s===k)||[])[1];
+  const panelOpen = addPanelOpen[taskKey];
   const cols = COLS.map(([status,colLabel])=>{
-    const items = tasks.filter(t=>t.status===status);
-    const cards = items.length ? items.map(t=>{
-      const overdue = t.due && t.due<todayStr() && t.status!=='done';
-      let notesHtml = '';
-      if(t.notes){
-        const isLong = t.notes.length > NOTES_TRUNCATE;
-        const isExpanded = expandedNotes.has(t.id);
-        let shown = t.notes;
-        if(isLong && !isExpanded){
-          let cut = t.notes.slice(0, NOTES_TRUNCATE);
-          const lastSpace = cut.lastIndexOf(' ');
-          if(lastSpace > 40) cut = cut.slice(0, lastSpace);
-          shown = cut + '…';
-        }
-        notesHtml = `<div class="notes">${escapeHtml(shown)}${isLong?` <button class="notes-toggle" onclick="toggleNotes('${t.id}')">${isExpanded?'show less':'show more'}</button>`:''}</div>`;
-      }
-      return `
-      <div class="task">
-        <div class="title">${escapeHtml(t.title)}</div>
-        ${notesHtml}
-        <div class="meta">
-          <span class="tag ${t.priority}">${t.priority}</span>
-          ${t.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(t.due)}</span>`:''}
-        </div>
-        <div class="row-actions">
-          ${status!=='backlog'?`<button data-move="${taskKey}:${t.id}:-1">◂ move</button>`:''}
-          ${status!=='done'?`<button data-move="${taskKey}:${t.id}:1">move ▸</button>`:''}
-          <button onclick="startEditTask('${taskKey}','${t.id}')">edit</button>
-          <span class="spacer"></span>
-          <button class="del" data-deltask="${taskKey}:${t.id}">delete</button>
-        </div>
-      </div>`;
-    }).join('') : `<div class="empty-col">Nothing here yet.</div>`;
+    const items = entries.filter(e=>colOf(e.t.status)===status);
+    const cards = items.length ? items.map(e=>taskCard(e.k, e.t, isVideo, allSeries?seriesName(e.k):'')).join('') : `<div class="empty-col">Nothing here yet.</div>`;
     return `<div class="col"><div class="col-head"><h4>${colLabel}</h4><span class="n">${items.length}</span></div>${cards}</div>`;
   }).join('');
-
+  const all = entries.map(e=>e.t);
   return `
     <div class="topbar">
       <div>
         <h1>${label}</h1>
-        <div class="date">${tasks.filter(t=>t.status!=='done').length} open · ${tasks.filter(t=>t.status==='done').length} done</div>
+        <div class="date">${all.filter(t=>t.status!=='done').length} open · ${all.filter(t=>t.status==='done').length} done</div>
       </div>
       <div class="stream-tagline">${tagline||''}</div>
     </div>
     <div class="board-head">
       <span></span>
-      <button class="add-btn" data-addtoggle="${taskKey}">Add task</button>
+      <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
     </div>
     <div class="add-panel ${panelOpen?'open':''}">
       <div class="row">
-        <input type="text" id="f-title-${taskKey}" placeholder="Task title" />
+        <input type="text" id="f-title-${taskKey}" placeholder="${isVideo?'Task':'Task title'}" />
+        ${allSeries?`<select id="f-series-${taskKey}">${VIDEO_SERIES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>`:''}
         <select id="f-priority-${taskKey}">
           <option value="high">High priority</option>
           <option value="med" selected>Medium priority</option>
           <option value="low">Low priority</option>
         </select>
         <input type="date" id="f-due-${taskKey}" />
+        ${isVideo?`<select id="f-status-${taskKey}">${VIDEO_STATUS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`:''}
       </div>
-      <textarea id="f-notes-${taskKey}" placeholder="Notes (optional)"></textarea>
+      <textarea id="f-notes-${taskKey}" placeholder="${isVideo?'Description (optional)':'Notes (optional)'}"></textarea>
       <div class="actions">
         <button class="btn-ghost" data-addtoggle="${taskKey}">Cancel</button>
-        <button class="btn-solid" data-submit="${taskKey}">Add to Ideas</button>
+        <button class="btn-solid" data-submit="${taskKey}">${isVideo?'Add video':'Add to Ideas'}</button>
       </div>
     </div>
     <div class="columns">${cols}</div>
   `;
+}
+
+/* ---- Content › Video Prod: series pills (All, Taste, Product, …) ---- */
+let videoSeries = 'all';
+function videoProdView(){
+  const pills = [['all','All'], ...VIDEO_SERIES].map(([k,l])=>{
+    const n = k==='all' ? VIDEO_SERIES.reduce((s,[x])=>s+(state.tasks['video-'+x]||[]).filter(t=>t.status!=='done').length,0)
+                        : (state.tasks['video-'+k]||[]).filter(t=>t.status!=='done').length;
+    return `<button class="series-pill ${videoSeries===k?'active':''}" onclick="videoSeries='${k}'; render();">${l}${n?` <span class="n">${n}</span>`:''}</button>`;
+  }).join('');
+  const tagline = 'Videos by series. Give a video a date to see it on the Overview.';
+  const board = videoSeries==='all'
+    ? kanbanBoard('video-all', 'Video Prod', tagline, true, true)
+    : kanbanBoard('video-'+videoSeries, (VIDEO_SERIES.find(([k])=>k===videoSeries)||[])[1], tagline, true);
+  return `<div class="series-pills">${pills}</div>` + board;
 }
 
 function outreachView(){
@@ -1451,6 +1561,7 @@ function mainContent(){
     if(sa.type==='outreach') body = outreachView();
     else if(sa.type==='ideas') body = ideasOnlyView();
     else if(sa.type==='places') body = placesView();
+    else if(sa.type==='videoprod') body = videoProdView();
     else body = kanbanBoard(sa.taskKey, sa.label, s.tagline);
   } else {
     body = kanbanBoard(s.taskKey, s.label, s.tagline);
@@ -1463,13 +1574,14 @@ function renderEditModal(){
   const {taskKey, id} = editingTask;
   const t = (state.tasks[taskKey]||[]).find(t=>t.id===id);
   if(!t) return '';
+  const isVideo = taskKey.startsWith('video-');
   return `
   <div class="modal-overlay" id="edit-modal-overlay">
     <div class="modal-box">
-      <h2>Edit task</h2>
-      <label>Title</label>
+      <h2>${isVideo?'Edit video':'Edit task'}</h2>
+      <label>${isVideo?'Task':'Title'}</label>
       <input type="text" id="e-title" value="${escapeHtml(t.title)}" placeholder="Task title">
-      <label>Notes</label>
+      <label>${isVideo?'Description':'Notes'}</label>
       <textarea id="e-notes" placeholder="Notes (optional)">${escapeHtml(t.notes)}</textarea>
       <div class="row">
         <div>
@@ -1481,9 +1593,13 @@ function renderEditModal(){
           </select>
         </div>
         <div>
-          <label>Due date</label>
+          <label>${isVideo?'Date':'Due date'}</label>
           <input type="date" id="e-due" value="${t.due||''}">
         </div>
+        ${isVideo?`<div>
+          <label>Status</label>
+          <select id="e-status">${VIDEO_STATUS.map(([v,l])=>`<option value="${v}" ${t.status===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>`:''}
       </div>
       <div class="actions">
         <button class="btn-ghost" onclick="cancelEditTask()">Cancel</button>
@@ -1628,7 +1744,8 @@ function render(){
         title: document.getElementById('e-title').value,
         notes: document.getElementById('e-notes').value,
         due: document.getElementById('e-due').value,
-        priority: document.getElementById('e-priority').value
+        priority: document.getElementById('e-priority').value,
+        status: (document.getElementById('e-status')||{}).value
       });
     });
   }
@@ -1662,8 +1779,9 @@ function bindEvents(){
   });
   document.querySelectorAll('[data-navitem]').forEach(el=>{
     el.addEventListener('click', ()=>{
-      const [stream, subarea] = el.getAttribute('data-navitem').split(':');
+      const [stream, subarea, series] = el.getAttribute('data-navitem').split(':');
       view = { stream, subarea: subarea || null };
+      if(series) videoSeries = series;
       render();
     });
   });
@@ -1681,11 +1799,13 @@ function bindEvents(){
       const k = el.getAttribute('data-submit');
       const title = document.getElementById(`f-title-${k}`).value;
       if(!title.trim()) return;
-      addTask(k, {
+      const seriesSel = document.getElementById(`f-series-${k}`);
+      addTask(seriesSel ? 'video-'+seriesSel.value : k, {
         title,
         notes: document.getElementById(`f-notes-${k}`).value,
         due: document.getElementById(`f-due-${k}`).value,
-        priority: document.getElementById(`f-priority-${k}`).value
+        priority: document.getElementById(`f-priority-${k}`).value,
+        status: (document.getElementById(`f-status-${k}`)||{}).value
       });
       addPanelOpen[k]=false;
     });
