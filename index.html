@@ -166,6 +166,12 @@
   .add-panel input[type=text]{ flex:1; min-width:180px; }
   .add-panel textarea{ width:100%; min-height:44px; resize:vertical; font-family:inherit; }
   .add-panel .actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .board-actions{ display:flex; gap:8px; align-items:center; }
+  .mic-btn{ gap:6px; }
+  .mic-btn svg{ width:13px; height:13px; }
+  .mic-btn.listening{ background:var(--red, #c0392b); color:#fff; border-color:transparent; animation:micpulse 1.2s ease-in-out infinite; }
+  @keyframes micpulse{ 0%,100%{ opacity:1; } 50%{ opacity:.65; } }
+  .voice-hint{ font-size:11px; color:var(--ink-soft); }
   .btn-ghost{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; color:var(--ink-soft); }
   .btn-ghost:hover{ background:var(--line-soft); color:var(--ink); }
   .btn-solid{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; font-weight:700; background:var(--ink); color:var(--white); box-shadow:var(--shadow-btn); letter-spacing:.04em; text-transform:uppercase; }
@@ -982,6 +988,77 @@ function collectDueItems(period){
   return items;
 }
 
+/* ---- voice: add tasks by speaking ---- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const VOICE_SUPPORTED = !!SpeechRec;
+let voiceRec = null;
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// Turns "call the printer tomorrow high priority" into {title, due, priority}
+function parseVoiceTask(text){
+  let t = ' '+text.trim()+' ';
+  let priority = 'med', due = '';
+  const pr = [
+    [/\b(high[- ]priority|urgent|important|asap)\b/i,'high'],
+    [/\b(low[- ]priority|no rush|whenever)\b/i,'low'],
+    [/\b(medium|normal)[- ]priority\b/i,'med'],
+    [/\bpriority (high|urgent)\b/i,'high'], [/\bpriority low\b/i,'low'], [/\bpriority (medium|normal)\b/i,'med']
+  ];
+  for(const [re,v] of pr){ if(re.test(t)){ priority=v; t=t.replace(re,' '); break; } }
+  const now = new Date(); now.setHours(12,0,0,0);
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const lead = '(?:\\b(?:due|by|on|for|before)\\s+)?';
+  let m;
+  if((m = t.match(new RegExp(lead+'\\btoday\\b|'+lead+'\\btonight\\b','i')))){ due=ymd(now); t=t.replace(m[0],' '); }
+  else if((m = t.match(new RegExp(lead+'\\b(?:the day after tomorrow)\\b','i')))){ const d=new Date(now); d.setDate(d.getDate()+2); due=ymd(d); t=t.replace(m[0],' '); }
+  else if((m = t.match(new RegExp(lead+'\\btomorrow\\b','i')))){ const d=new Date(now); d.setDate(d.getDate()+1); due=ymd(d); t=t.replace(m[0],' '); }
+  else if((m = t.match(new RegExp(lead+'\\b(?:end of (?:the )?week)\\b','i')))){ const d=new Date(now); d.setDate(d.getDate()+((5-d.getDay()+7)%7)); due=ymd(d); t=t.replace(m[0],' '); }
+  else if((m = t.match(new RegExp(lead+'\\bnext week\\b','i')))){ const d=new Date(now); d.setDate(d.getDate()+(((1-d.getDay()+7)%7)||7)); due=ymd(d); t=t.replace(m[0],' '); }
+  else if((m = t.match(new RegExp(lead+'(?:\\b(this|next)\\s+)?\\b('+days.join('|')+')\\b','i')))){
+    const target = days.indexOf(m[2].toLowerCase()); const d=new Date(now);
+    let diff = (target-d.getDay()+7)%7; if(diff===0) diff=7; if((m[1]||'').toLowerCase()==='next' && diff<7) diff+=7;
+    d.setDate(d.getDate()+diff); due=ymd(d); t=t.replace(m[0],' ');
+  }
+  else if((m = t.match(new RegExp(lead+'\\bin (\\d+|one|two|three|four|five|six|seven) (day|days|week|weeks)\\b','i')))){
+    const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7};
+    const n = parseInt(m[1],10) || words[m[1].toLowerCase()] || 1;
+    const d=new Date(now); d.setDate(d.getDate()+n*(/week/i.test(m[2])?7:1)); due=ymd(d); t=t.replace(m[0],' ');
+  }
+  let title = t.replace(/\s+/g,' ').trim().replace(/^(add|new|create)\s+(a\s+)?(task|video)?\s*(to\s+)?/i,'').replace(/[,.\s]+$/,'').replace(/^[,.\s]+/,'');
+  if(title) title = title.charAt(0).toUpperCase()+title.slice(1);
+  return { title, due, priority };
+}
+function startVoice(taskKey, btn){
+  if(!VOICE_SUPPORTED) return;
+  if(voiceRec){ voiceRec.stop(); return; }
+  const hint = document.getElementById('voice-hint-'+taskKey);
+  const rec = new SpeechRec();
+  rec.lang = 'en-US'; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
+  let finalText = '';
+  rec.onstart = ()=>{ btn.classList.add('listening'); btn.lastChild.textContent='Listening…'; if(hint) hint.textContent='Say it like: "Email the supplier Friday, high priority"'; };
+  rec.onresult = e=>{
+    let interim=''; finalText='';
+    for(const r of e.results){ if(r.isFinal) finalText+=r[0].transcript; else interim+=r[0].transcript; }
+    if(hint) hint.textContent = '“'+(finalText||interim)+'”';
+  };
+  rec.onerror = e=>{
+    if(hint) hint.textContent = e.error==='not-allowed' ? 'Microphone access was blocked. Allow it in your browser settings.' : (e.error==='no-speech' ? "Didn't catch that. Tap Speak and try again." : 'Voice input error: '+e.error);
+  };
+  rec.onend = ()=>{
+    voiceRec = null; btn.classList.remove('listening'); btn.lastChild.textContent='Speak';
+    if(!finalText.trim()) return;
+    const parsed = parseVoiceTask(finalText);
+    addPanelOpen[taskKey] = true; render();
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el && v) el.value=v; };
+    set('f-title-'+taskKey, parsed.title);
+    set('f-due-'+taskKey, parsed.due);
+    set('f-priority-'+taskKey, parsed.priority);
+    const h=document.getElementById('voice-hint-'+taskKey); if(h) h.textContent='Heard: “'+finalText.trim()+'” — check the details, then add.';
+    const ti=document.getElementById('f-title-'+taskKey); if(ti) ti.focus();
+  };
+  voiceRec = rec;
+  try{ rec.start(); }catch(err){ voiceRec=null; }
+}
+
 /* ---- kanban tasks ---- */
 function addTask(taskKey,data){
   state.tasks[taskKey].push({ id:uid(), title:data.title, notes:data.notes||'', due:data.due||'', priority:data.priority||'med', status:data.status||'backlog' });
@@ -1263,8 +1340,11 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
       <div class="stream-tagline">${tagline||''}</div>
     </div>
     <div class="board-head">
-      <span></span>
-      <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
+      <span class="voice-hint" id="voice-hint-${taskKey}"></span>
+      <div class="board-actions">
+        ${VOICE_SUPPORTED?`<button class="add-btn outline mic-btn" data-voice="${taskKey}" title="Add a task by voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>Speak</button>`:''}
+        <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
+      </div>
     </div>
     <div class="add-panel ${panelOpen?'open':''}">
       <div class="row">
@@ -1793,6 +1873,9 @@ function bindEvents(){
   });
   document.querySelectorAll('[data-addtoggle]').forEach(el=>{
     el.addEventListener('click', ()=>{ const k=el.getAttribute('data-addtoggle'); addPanelOpen[k]=!addPanelOpen[k]; render(); });
+  });
+  document.querySelectorAll('[data-voice]').forEach(el=>{
+    el.addEventListener('click', ()=>startVoice(el.getAttribute('data-voice'), el));
   });
   document.querySelectorAll('[data-submit]').forEach(el=>{
     el.addEventListener('click', ()=>{
