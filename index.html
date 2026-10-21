@@ -166,6 +166,30 @@
   .add-panel input[type=text]{ flex:1; min-width:180px; }
   .add-panel textarea{ width:100%; min-height:44px; resize:vertical; font-family:inherit; }
   .add-panel .actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .board-actions{ display:flex; gap:8px; align-items:center; }
+  .mic-btn{ gap:6px; }
+  .mic-btn svg{ width:13px; height:13px; }
+  .mic-btn.listening{ background:var(--red, #c0392b); color:#fff; border-color:transparent; animation:micpulse 1.2s ease-in-out infinite; }
+  @keyframes micpulse{ 0%,100%{ opacity:1; } 50%{ opacity:.65; } }
+  .dump-box{ max-width:760px; }
+  .dump-sub{ font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin:-6px 0 14px; }
+  .modal-box textarea#dump-text{ min-height:240px; }
+  .dump-interim{ font-size:12px; color:var(--ink-soft); min-height:16px; margin-top:6px; font-style:italic; }
+  .dump-actions{ justify-content:space-between !important; align-items:center; flex-wrap:wrap; }
+  .dump-right{ display:flex; gap:8px; margin-left:auto; }
+  .dump-list{ display:flex; flex-direction:column; gap:10px; }
+  .dump-row{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius:10px; padding:12px; transition:opacity .15s; }
+  .dump-row.off{ opacity:.45; }
+  .dump-unsure{ font-size:11px; color:var(--ink-soft); font-style:italic; }
+  .dump-check{ margin-top:11px; width:16px; height:16px; accent-color:var(--ink); flex:none; }
+  .dump-fields{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+  .dump-fields input[type=text]{ font-weight:700; }
+  .dump-meta{ display:grid; grid-template-columns:2fr 1fr 1.3fr 1fr; gap:8px; }
+  .modal-box .dump-meta select, .modal-box .dump-meta input[type=date]{ font-size:12px; padding:7px 8px; }
+  .modal-box textarea.dump-notes{ min-height:38px; font-size:12.5px; padding:7px 10px; }
+  @media (max-width:640px){ .dump-meta{ grid-template-columns:1fr 1fr; } .dump-row{ padding:10px; gap:8px; } }
+  .toast{ position:fixed; left:50%; bottom:28px; transform:translate(-50%,12px); background:var(--ink); color:var(--white); padding:10px 18px; border-radius:999px; font-size:12px; font-weight:700; opacity:0; transition:all .25s; z-index:2000; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
   .btn-ghost{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; color:var(--ink-soft); }
   .btn-ghost:hover{ background:var(--line-soft); color:var(--ink); }
   .btn-solid{ all:unset; cursor:pointer; padding:9px 15px; border-radius:10px; font-size:11px; font-weight:700; background:var(--ink); color:var(--white); box-shadow:var(--shadow-btn); letter-spacing:.04em; text-transform:uppercase; }
@@ -982,6 +1006,409 @@ function collectDueItems(period){
   return items;
 }
 
+/* ---- brain dump: messy text (typed, pasted or dictated) → reviewed tasks ---- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const VOICE_SUPPORTED = !!SpeechRec;
+const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+let dump = null;      // { fromKey, text, items:null|[...], listening }
+let dumpRec = null;
+
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function noon(){ const d=new Date(); d.setHours(12,0,0,0); return d; }
+function addDays(n){ const d=noon(); d.setDate(d.getDate()+n); return d; }
+
+const BOARD_ALIASES = {
+  'leg ops':'product-legops','legops':'product-legops','ops':'product-legops','operations':'product-legops',
+  'ui/ux':'product-uiux','ui ux':'product-uiux','uiux':'product-uiux','ux':'product-uiux','ui':'product-uiux','design':'product-uiux',
+  'ai':'product-ai','ai refinement':'product-ai','refinement':'product-ai',
+  'launches':'product-launches','launch':'product-launches',
+  'maintenance':'maintenance','website':'maintenance','site':'maintenance',
+  'video':'video-other','videos':'video-other','video prod':'video-other','taste':'video-taste','founder':'video-founder',
+  'discovery':'video-discovery','talk':'video-talk','talks':'video-talk','product video':'video-product','product videos':'video-product'
+};
+function boardFromAlias(s){ return BOARD_ALIASES[(s||'').toLowerCase().replace(/[#*_]/g,'').replace(/\s+/g,' ').trim()] || null; }
+
+const BOARD_WORDS = {
+  'product-legops':['leg ops','legops','editorial','editor','editors','guideline','guidelines','workflow','process','processes','admin','ops','operations','contract','invoice','budget','team'],
+  'product-uiux':['ui','ux','design','redesign','figma','screen','screens','layout','button','buttons','font','fonts','typography','colour','colours','color','colors','icon','icons','mockup','mockups','wireframe','wireframes','onboarding','navigation','menu','app','mobile','header','footer','responsive','dark mode','spacing','page','pages'],
+  'product-ai':['ai','model','models','prompt','prompts','llm','gpt','claude','engine','refinement','refine','accuracy','hallucination','hallucinations','training','dataset','embeddings','algorithm','recommendations'],
+  'product-launches':['launch','launches','release','announce','announcement','press','go live','beta','waitlist','newsletter','campaign'],
+  'maintenance':['website','site','leguideline.com','route card','route cards','google list','google lists','list','lists','broken','link','links','seo','domain','hosting','maintenance','listing','listings','outdated','opening hours']
+};
+const VIDEO_WORDS = ['video','videos','film','filming','shoot','shooting','footage','reel','reels','episode','episodes','record','recording','b-roll','broll','youtube','tiktok','thumbnail','thumbnails','storyboard','voiceover','subtitles','captions','cut','edit the video'];
+const SERIES_WORDS = { taste:['taste','tasting'], founder:['founder','founders'], discovery:['discovery'], talk:['talk','interview','podcast','conversation'], product:['product video'] };
+
+function countWords(text, words){
+  let n=0; const t=' '+text.toLowerCase().replace(/[^a-z0-9./ -]/g,' ')+' ';
+  for(const w of words){ if(t.includes(' '+w+' ') || t.includes(' '+w+'.') ) n++; }
+  return n;
+}
+function guessBoard(text, fallback){
+  const tag = text.match(/#([a-z/]+)/i); if(tag && boardFromAlias(tag[1])) return boardFromAlias(tag[1]);
+  const v = countWords(text, VIDEO_WORDS);
+  let series = null;
+  for(const [k,ws] of Object.entries(SERIES_WORDS)){ if(countWords(text, ws)){ series=k; break; } }
+  if(v || (series && series!=='product')){
+    if(series) return 'video-'+series;
+    return (fallback||'').startsWith('video-') ? fallback : 'video-other';
+  }
+  let best=null, bestN=0;
+  for(const [k,ws] of Object.entries(BOARD_WORDS)){ const n=countWords(text, ws); if(n>bestN){ best=k; bestN=n; } }
+  return best || fallback;
+}
+
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function futureDate(y,m,d){ let dt=new Date(y,m,d,12); if(dt < addDays(-1)) dt=new Date(y+1,m,d,12); return dt; }
+// returns {due, rest}
+function extractDate(t){
+  const lead = '(?:\\b(?:due|by|on|for|before|until|till|no later than)\\s+)?';
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const mon = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+  const now = noon();
+  const rules = [
+    [lead+'(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?'+mon+'\\b', m=>futureDate(now.getFullYear(), MONTHS.indexOf(m[2].slice(0,3).toLowerCase()), +m[1])],
+    [lead+mon+'\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b', m=>futureDate(now.getFullYear(), MONTHS.indexOf(m[1].slice(0,3).toLowerCase()), +m[2])],
+    [lead+'\\b(\\d{1,2})[/.](\\d{1,2})(?:[/.](\\d{2,4}))?\\b', m=>{ const dd=+m[1], mm=+m[2]-1; if(mm>11||dd>31) return null; return m[3] ? new Date((m[3].length===2?2000+ +m[3]:+m[3]), mm, dd, 12) : futureDate(now.getFullYear(), mm, dd); }],
+    [lead+'\\b(?:today|tonight|this evening|this afternoon|end of (?:the )?day|eod)\\b', ()=>now],
+    [lead+'\\bthe day after tomorrow\\b', ()=>addDays(2)],
+    [lead+'\\btomorrow\\b', ()=>addDays(1)],
+    [lead+'\\b(?:the\\s+)?end of (?:the |this )?week\\b|'+lead+'\\beow\\b', ()=>addDays((5-now.getDay()+7)%7)],
+    [lead+'\\b(?:this\\s+)?weekend\\b', ()=>addDays(((6-now.getDay()+7)%7)||7)],
+    [lead+'\\bnext week\\b', ()=>addDays(((1-now.getDay()+7)%7)||7)],
+    [lead+'\\b(?:the\\s+)?end of (?:the |this )?month\\b|'+lead+'\\beom\\b', ()=>new Date(now.getFullYear(), now.getMonth()+1, 0, 12)],
+    [lead+'\\bnext month\\b', ()=>new Date(now.getFullYear(), now.getMonth()+1, 1, 12)],
+    [lead+'(?:\\b(this|next|coming)\\s+)?\\b('+days.join('|')+')\\b', m=>{ const target=days.indexOf(m[2].toLowerCase()); let diff=(target-now.getDay()+7)%7; if(diff===0) diff=7; if((m[1]||'').toLowerCase()==='next' && diff<7) diff+=7; return addDays(diff); }],
+    [lead+'\\bin (\\d+|a|an|one|two|three|four|five|six|seven|couple of|few) (day|days|week|weeks)\\b', m=>{ const w={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,'couple of':2,few:3}; const n=parseInt(m[1],10)||w[m[1].toLowerCase()]||1; return addDays(n*(/week/i.test(m[2])?7:1)); }],
+    [lead+'\\bthe (\\d{1,2})(?:st|nd|rd|th)\\b', m=>futureDate(now.getFullYear(), now.getMonth()+(+m[1]<now.getDate()?1:0), +m[1])]
+  ];
+  for(const [src,fn] of rules){
+    const m = t.match(new RegExp(src,'i'));
+    if(m){ const d=fn(m); if(d && !isNaN(d)) return { due: ymd(d), rest: t.replace(m[0],' ') }; }
+  }
+  return { due:'', rest:t };
+}
+// returns {priority, rest, found}
+function extractPriority(t){
+  const rules = [
+    [/\b(?:(?:top|high|highest|max)[- ]?prio(?:rity)?|urgent(?:ly)?|important|critical|asap|as soon as possible|priority one|p1)\b|!{2,}/i,'high'],
+    [/\b(?:low[- ]?prio(?:rity)?|no rush|not urgent|whenever|someday|some day|nice to have|eventually|at some point|one day|if (?:i|we) have time|p3)\b/i,'low'],
+    [/\b(?:medium|normal|mid)[- ]?prio(?:rity)?\b|\bp2\b/i,'med']
+  ];
+  for(const [re,v] of rules){
+    if(re.test(t)){ let rest=t; rules.forEach(([r])=>{ rest=rest.replace(new RegExp(r.source,'gi'),' '); }); return { priority:v, rest, found:true }; }
+  }
+  return { priority:'med', rest:t, found:false };
+}
+
+const INTENT_RE = /^(?:(?:ok(?:ay)?|so|um+|uh+|right|also|and|then|plus|oh|well|anyway|next|after that|and then|first(?:ly)?|second(?:ly)?|finally|lastly)[,\s]+)*(?:(?:i|we)\s+(?:really\s+|still\s+|also\s+|definitely\s+)?(?:need|have|got|want|should|must|gotta|ought|has|needs)\s+(?:to\s+)?|(?:i'?m|we'?re|i am|we are)\s+(?:going|gonna|planning|meant|supposed)\s+(?:to\s+)?|(?:i|we)'?ll\s+(?:need to\s+|have to\s+)?|(?:i|we) will\s+|(?:need|have|want|got)\s+to\s+|gotta\s+|(?:don'?t|do not)\s+forget\s+(?:to\s+|about\s+)?|remember\s+(?:to\s+)?|remind me\s+(?:to\s+)?|(?:let'?s|lets)\s+|(?:we|i)\s+(?:could|might)\s+|should\s+|must\s+|(?:to-?do|task|action|reminder)s?\s*:?\s+|maybe\s+(?:we\s+should\s+|i\s+should\s+)?|someone (?:needs|has) to\s+|it would be (?:good|nice|great) to\s+|(?:i'?d|we'?d) like to\s+|try (?:and|to)\s+)/i;
+const FILLER_RE = /^(?:(?:ok(?:ay)?|so|um+|uh+|right|also|and|then|plus|oh|well|anyway|next|after that|and then|first(?:ly)?|second(?:ly)?|finally|lastly)[,\s]+)+/i;
+function stripIntent(s){
+  let t=s.trim(), had=false, m;
+  for(let i=0;i<4;i++){ if((m=t.match(INTENT_RE)) && m[0]){ had=true; t=t.slice(m[0].length); } else break; }
+  t = t.replace(FILLER_RE,'');
+  return { text:t.trim(), had };
+}
+const VERBS = 'add|adjust|analy[sz]e|answer|apply|approve|archive|arrange|ask|audit|back|book|brainstorm|brief|build|buy|call|cancel|caption|change|chase|check|choose|clarify|clean|close|collect|colou?r|compare|compile|confirm|connect|contact|continue|convert|coordinate|copy|correct|create|cut|deal|debug|decide|define|delete|deliver|deploy|design|develop|discuss|do|document|double-check|download|draft|edit|email|e-mail|export|figure|file|fill|film|finali[sz]e|find|finish|fix|follow|gather|get|give|go|grab|handle|hire|implement|import|improve|include|integrate|interview|invite|invoice|launch|learn|list|look|mail|make|map|meet|merge|message|migrate|move|optimi[sz]e|order|organi[sz]e|outline|pay|phone|pick|pitch|plan|polish|post|prep|prepare|present|print|prioriti[sz]e|publish|push|put|read|reach|record|redesign|redo|refine|refresh|release|remove|rename|renew|reorder|reorgani[sz]e|replace|reply|reschedule|research|reserve|respond|restructure|review|revise|rewrite|ring|run|save|schedule|scout|script|select|send|set|setup|share|shoot|ship|shortlist|sign|simplify|sketch|sort|speak|start|storyboard|submit|subtitle|summari[sz]e|sync|take|talk|teach|tell|test|text|think|tidy|track|train|translate|try|tweak|update|upload|validate|verify|visit|wait|whatsapp|work|wrap|write';
+const VERB_RE = new RegExp('^(?:'+VERBS+')(?:s|ed|ing)?\\b','i');
+const CONTEXT_RE = /^(?:it|its|it's|this|that|these|those|they|them|their|which|because|cause|since|so that|as|but|though|although|ideally|preferably|probably|note|nb|fyi|ps|e\.?g\.?|for example|like|with|without|otherwise|maybe it|should be|needs to be|has to be|the reason|he|she|his|her|we already|already)\b/i;
+
+function splitSentences(line){
+  return line.replace(/([.!?])\s+(?=\S)/g,'$1\u0001').split(/\u0001|;\s*/).map(s=>s.trim()).filter(Boolean);
+}
+// split "call Ana, email the printer and book the studio" into separate actions,
+// but keep "fix the header and footer" together
+function splitActions(s){
+  const parts = s.split(/(\s*,\s*(?:and\s+then\s+|and\s+also\s+|then\s+|and\s+|also\s+|plus\s+)?|\s+(?:and\s+then|and\s+also|after\s+that|then|and|also|plus)\s+)/i);
+  const out=[]; let acc=parts[0]||'';
+  for(let i=1;i<parts.length;i+=2){
+    const sep=parts[i], piece=parts[i+1]||'';
+    const st = stripIntent(piece);
+    if((st.had || VERB_RE.test(st.text)) && acc.trim().split(/\s+/).length>=2){ out.push(acc); acc=piece; }
+    else acc += sep+piece;
+  }
+  out.push(acc);
+  return out.map(x=>x.trim()).filter(Boolean);
+}
+function tidy(s){
+  return s.replace(/#[a-z/]+/gi,' ').replace(/\s+/g,' ').replace(/\s+([,.!?;:])/g,'$1')
+    .replace(/^[\s,.;:–—-]+|[\s,;:–—-]+$/g,'').replace(/\s+(?:please|pls|plz|first|asap|soon|later|too|as well|at some point)\b[.!]?$/i,'').replace(/[\s,.;:!?–—-]+$/,'').trim();
+}
+function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+
+const NEEDS_RE = /^(.+?)\s+(?:needs?|has to|have to|must|should|ought to)\s+(?:to\s+)?(?:be\s+)?(fix|fixing|fixed|updat(?:e|ing|ed)|chang(?:e|ing|ed)|redo(?:ne|ing)?|redone|check(?:ing|ed)?|review(?:ing|ed)?|replac(?:e|ing|ed)|remov(?:e|ing|ed)|clean(?:ing|ed)?(?: up)?|sort(?:ing|ed)?(?: out)?|done|finish(?:ing|ed)?|translat(?:e|ing|ed)|rewrit(?:e|ing|ten)|redesign(?:ing|ed)?|test(?:ing|ed)?|refresh(?:ing|ed)?|renew(?:ing|ed)?|sign(?:ing|ed)?|approv(?:e|ing|ed)|pa(?:y|id|ying)|sen[dt](?:ing)?|film(?:ing|ed)?|edit(?:ing|ed)?|publish(?:ing|ed)?|post(?:ing|ed)?|added|adding)\b\s*(.*)$/i;
+const NEEDS_VERB = {fix:'Fix',updat:'Update',chang:'Change',redo:'Redo',check:'Check',review:'Review',replac:'Replace',remov:'Remove',clean:'Clean up',sort:'Sort out',done:'Finish',finish:'Finish',translat:'Translate',rewrit:'Rewrite',redesign:'Redesign',test:'Test',refresh:'Refresh',renew:'Renew',sign:'Sign',approv:'Approve',pa:'Pay',sen:'Send',film:'Film',edit:'Edit',publish:'Publish',post:'Post',add:'Add'};
+function needsToAction(body){
+  const m = body.match(NEEDS_RE); if(!m) return null;
+  const key = Object.keys(NEEDS_VERB).sort((a,b)=>b.length-a.length).find(k=>m[2].toLowerCase().startsWith(k));
+  if(!key) return null;
+  let obj = m[1].replace(/^(?:also|and|so|then)\s+/i,'');
+  obj = /^(?:the|our|my|a|an|this|that|these|those|all|some)\b/i.test(obj) ? obj.replace(/^\w+/,w=>w.toLowerCase()) : obj;
+  return NEEDS_VERB[key]+' '+obj+(m[3]?' '+m[3]:'');
+}
+// "the onboarding screens feel cramped" → "the onboarding screens"
+function subjectOf(ctx){
+  const m = ctx.match(/^((?:the|our|my|this|that|these|those)\s+[\w\s/&'-]{2,40}?)\s+(?:is|are|feel|feels|look|looks|seem|seems|was|were|keeps|keep|has|have|got|gets|doesn'?t|don'?t|isn'?t|aren'?t|still|need|needs|broke|broken)\b/i);
+  return m ? m[1].replace(/^\w+/,w=>w.toLowerCase()) : null;
+}
+// "the Lisbon route card is outdated" → "Update the Lisbon route card"
+const PROBLEM_MAP = [
+  [/\b(?:is|are|looks?|seems?|feels?|got|gets|went|has gone|have gone)?\s*(?:outdated|out of date|old|stale|not up to date|wrong now)\b|\bchanged\b/i,'Update'],
+  [/\b(?:is|are|looks?|seems?|keeps?|got|gets)?\s*(?:broken|broke|wrong|buggy|not working|crashing|failing|off|bad|slow|down|hallucinating|glitchy)\b|\b(?:doesn'?t|don'?t|does not|do not|won'?t|isn'?t|aren'?t)\s+work/i,'Fix'],
+  [/\b(?:is|are)\s+missing\b|\bwe (?:don'?t|do not) have\b|\bthere(?:'s| is) no\b/i,'Add'],
+  [/\b(?:is|are|looks?|seems?|feels?)\s+(?:too\s+)?(?:cramped|ugly|confusing|messy|cluttered|clunky|small|big|long|short|dated|boring|unclear|hard to read)\b/i,'Improve']
+];
+function problemToAction(ctx){
+  const subj = subjectOf(ctx); if(!subj) return null;
+  for(const [re,verb] of PROBLEM_MAP){ if(re.test(ctx)) return verb+' '+subj; }
+  return null;
+}
+function applyMeta(target, pr, dt){
+  if(!target) return;
+  if(pr.found) target.priority = pr.priority;
+  if(dt.due && !target.due){ target.due = dt.due; target.status = dt.due <= ymd(addDays(7)) ? 'thisweek' : target.status; }
+}
+function addNote(target, s){
+  const n = cap(tidy(s)); if(!n || /^(?:it'?s|it is|this is|that'?s|they'?re|very|really|so|too)$/i.test(n)) return;
+  target.notes = (target.notes ? target.notes+(/[.!?]$/.test(target.notes)?' ':'. ') : '') + n;
+}
+
+function analyzeDumpText(text, fallback){
+  const items=[]; let header=null;
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const multiLine = lines.length>1;
+  const bulletRe=/^\s*(?:[-*•–·▪>]|\d+[.)]|\[\s?[xX ]?\s?\])\s*/;
+  for(let line of lines){
+    const h = line.match(/^#*\s*(?:for\s+)?([a-z][a-z0-9 /.&-]{0,30}?)\s*:\s*(.*)$/i);
+    if(h && boardFromAlias(h[1])){ header = boardFromAlias(h[1]); line = h[2].trim(); if(!line) continue; }
+    const bullet = bulletRe.test(line);
+    line = line.replace(bulletRe,'');
+    let firstOfLine = true;
+    for(let sentence of splitSentences(line)){
+      let sBoard = null;
+      const sh = sentence.match(/^([a-z][a-z0-9 /&-]{0,20}?)\s*:\s+(.+)$/i);
+      if(sh && boardFromAlias(sh[1])){ sBoard = boardFromAlias(sh[1]); sentence = sh[2]; }
+      const pending = []; let sentenceTask = null; let sentenceStartsLine = firstOfLine;
+      for(const chunk of splitActions(sentence)){
+        const pr = extractPriority(chunk);
+        const dt = extractDate(pr.rest);
+        const st = stripIntent(dt.rest.trim());
+        let body = st.text.replace(/^(?:it'?s|it is|this is|that'?s)\s*$/i,'');
+        const prev = items[items.length-1];
+        const isContext = !st.had && !bullet && CONTEXT_RE.test(body);
+        const needs = !isContext && needsToAction(body);
+        const isTask = !isContext && (st.had || bullet || !!needs || VERB_RE.test(body));
+        if(!isTask){
+          const target = sentenceTask || (pending.length===0 && !sentenceStartsLine ? prev : null) || (isContext ? (sentenceTask||prev) : null);
+          if(!body.trim()){ applyMeta(sentenceTask||prev, pr, dt); continue; }
+          if(isContext && target){ applyMeta(target, pr, dt); addNote(target, body); continue; }
+          pending.push({body, pr, dt});
+          firstOfLine=false; continue;
+        }
+        if(needs) body = needs;
+        body = body.replace(/^(?:thinking|think|thought|brainstorm(?:ing)?)\s+(?:about|of)\s+(?:doing\s+)?/i,'Plan ');
+        // title vs. details
+        const notes=[];
+        body = body.replace(/\(([^)]*)\)/g,(m,x)=>{ notes.push(x); return ' '; });
+        const cut = body.match(/^(.{6,}?)\s*(?::\s+|\s[-–—]\s|,\s+(?=(?:it'?s|it is|this is|that'?s|they'?re|which)\s)|\s(?:because|cause|since|so that|so we|so i|which|as it|as the|as we|in order to|to make sure|to ensure|otherwise)\s)(.+)$/i);
+        if(cut && cut[1].split(/\s+/).length>=2){ body=cut[1]; notes.unshift(cut[2]); }
+        if(body.split(/\s+/).length>12){
+          const idx = body.indexOf(', ', body.split(/\s+/).slice(0,3).join(' ').length);
+          if(idx>0){ notes.unshift(body.slice(idx+2)); body=body.slice(0,idx); }
+        }
+        // context said earlier in the same sentence ("the onboarding screens feel cramped, redesign them")
+        pending.forEach(p=>{
+          const subj = subjectOf(p.body);
+          const pro = /\b(them|it|those|these)\b[\s.!?]*$/i;
+          if(subj && pro.test(body.trim())) body = body.trim().replace(pro, subj);
+          notes.unshift(p.body);
+        });
+        const title = cap(tidy(body));
+        if(!title || title.length<2){ applyMeta(prev, pr, dt); continue; }
+        let board = header || sBoard || guessBoard(chunk+' '+title+' '+pending.map(p=>p.body).join(' '), '');
+        if(!board && sentenceTask) board = sentenceTask.board;            // "call Ana about the shoot and book the studio"
+        if(!board && prev && /^(it|this|that|them)\b/i.test(st.text)) board = prev.board;
+        const item = { on:true, title, notes:'', board: board || fallback, priority:'med', due:'', status:'backlog' };
+        notes.forEach(n=>addNote(item, n));
+        applyMeta(item, pr, dt);
+        pending.forEach(p=>applyMeta(item, p.pr, p.dt));
+        pending.length = 0;
+        items.push(item); sentenceTask = item; firstOfLine=false;
+      }
+      // context with no action in its sentence
+      for(const p of pending){
+        const prev = items[items.length-1];
+        const fix = problemToAction(p.body);
+        const brd = header || sBoard || guessBoard(p.body, '') || fallback;
+        if(fix){
+          const item = { on:true, title: cap(tidy(fix)), notes:'', board: brd, priority:'med', due:'', status:'backlog' };
+          addNote(item, p.body); applyMeta(item, p.pr, p.dt); items.push(item);
+        } else if(prev && !(sentenceStartsLine && multiLine)){ applyMeta(prev, p.pr, p.dt); addNote(prev, p.body); }
+        else {
+          // not clearly a task: offer it, but unticked
+          const item = { on:false, unsure:true, title: cap(tidy(p.body)), notes:'', board: brd, priority:'med', due:'', status:'backlog' };
+          applyMeta(item, p.pr, p.dt);
+          if(item.title.length>1) items.push(item);
+        }
+      }
+    }
+  }
+  // merge duplicates
+  const seen = new Map(); const out=[];
+  for(const it of items){
+    const k = it.title.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(seen.has(k)){ const o=seen.get(k); if(it.notes && !o.notes.includes(it.notes)) addNote(o, it.notes); if(!o.due){ o.due=it.due; o.status=it.status; } if(it.priority==='high') o.priority='high'; continue; }
+    seen.set(k,it); out.push(it);
+  }
+  out.forEach(it=>{ if(it.notes && !/[.!?]$/.test(it.notes)) it.notes+='.'; });
+  return out;
+}
+
+/* ---- dump modal ---- */
+function dumpFallback(fromKey){
+  if(!fromKey) return 'product-legops';
+  if(fromKey==='video-all') return 'video-other';
+  return TASKKEY_META[fromKey] ? fromKey : 'product-legops';
+}
+function openDump(fromKey){ dump = { fromKey: dumpFallback(fromKey), text:'', items:null, listening:false }; render(); setTimeout(()=>{ const t=document.getElementById('dump-text'); if(t) t.focus(); },30); }
+function closeDump(){ stopDumpMic(); dump=null; render(); }
+function analyzeDump(){
+  const ta=document.getElementById('dump-text'); if(ta) dump.text=ta.value;
+  stopDumpMic();
+  const items = analyzeDumpText(dump.text||'', dump.fromKey);
+  if(!items.length){ const n=document.getElementById('dump-interim'); if(n) n.textContent="I couldn't find any tasks in that. Try writing a few things you need to do."; return; }
+  dump.items = items; render();
+}
+function dumpBack(){ dump.items=null; render(); }
+function dumpSet(i,field,val){
+  if(!dump||!dump.items[i]) return;
+  dump.items[i][field]=val;
+  if(field==='on'){
+    const row=document.getElementById('dump-row-'+i); if(row) row.classList.toggle('off',!val);
+    const n=dump.items.filter(x=>x.on&&x.title.trim()).length;
+    const b=document.getElementById('dump-add'); if(b) b.textContent = n ? `Add ${n} task${n===1?'':'s'}` : 'Nothing selected';
+  }
+}
+function addDumpTasks(){
+  const chosen = dump.items.filter(x=>x.on && x.title.trim());
+  if(!chosen.length) return;
+  chosen.forEach(x=>{
+    if(!state.tasks[x.board]) state.tasks[x.board]=[];
+    state.tasks[x.board].push({ id:uid(), title:x.title.trim(), notes:x.notes||'', due:x.due||'', priority:x.priority||'med', status:x.status||'backlog' });
+  });
+  dump=null; save(); render();
+  toast(`Added ${chosen.length} task${chosen.length===1?'':'s'}`);
+}
+function toast(msg){
+  const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),10); setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),300); },2600);
+}
+function toggleDumpMic(){ if(dumpRec) stopDumpMic(); else startDumpMic(); }
+function stopDumpMic(){ if(dump) dump.listening=false; if(dumpRec){ const r=dumpRec; dumpRec=null; try{ r.stop(); }catch(e){} } updateMicBtn(); }
+function updateMicBtn(){
+  const b=document.getElementById('dump-mic'); if(!b) return;
+  const on = !!(dump && dump.listening);
+  b.classList.toggle('listening', on); b.querySelector('span').textContent = on ? 'Stop' : 'Dictate';
+  if(!on){ const n=document.getElementById('dump-interim'); if(n && n.dataset.live) { n.textContent=''; delete n.dataset.live; } }
+}
+function startDumpMic(){
+  if(!VOICE_SUPPORTED || !dump) return;
+  const rec = new SpeechRec();
+  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = true;
+  rec.onresult = e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal){
+        let piece = r[0].transcript.trim(); if(!piece) continue;
+        piece = cap(piece);
+        const ta=document.getElementById('dump-text');
+        const cur = ta ? ta.value : (dump.text||'');
+        const glue = !cur.trim() ? '' : (/[.!?\n]\s*$/.test(cur) ? ' ' : '. ');
+        dump.text = cur.replace(/\s+$/,'') + glue + piece;
+        if(ta){ ta.value = dump.text; ta.scrollTop = ta.scrollHeight; }
+      } else interim += r[0].transcript;
+    }
+    const n=document.getElementById('dump-interim'); if(n){ n.textContent = interim ? '… '+interim : 'Listening…'; n.dataset.live='1'; }
+  };
+  rec.onerror = e=>{
+    if(e.error==='no-speech' || e.error==='aborted') return;
+    const n=document.getElementById('dump-interim');
+    if(n) n.textContent = e.error==='not-allowed' ? 'Microphone access was blocked. Allow it in your browser settings.' : 'Dictation error: '+e.error;
+    dump && (dump.listening=false); dumpRec=null; updateMicBtn();
+  };
+  rec.onend = ()=>{ // browsers stop after a pause; keep going until the user taps Stop
+    if(dumpRec===rec && dump && dump.listening){ try{ rec.start(); return; }catch(e){} }
+    if(dumpRec===rec) dumpRec=null;
+    updateMicBtn();
+  };
+  dumpRec = rec; dump.listening = true;
+  try{ rec.start(); }catch(e){ dumpRec=null; dump.listening=false; }
+  updateMicBtn();
+  const n=document.getElementById('dump-interim'); if(n && dump.listening){ n.textContent='Listening…'; n.dataset.live='1'; }
+}
+function boardOptions(sel){
+  return Object.entries(TASKKEY_META).map(([k,m])=>`<option value="${k}" ${k===sel?'selected':''}>${escapeHtml((STREAM_DEF[m.stream]||{}).label && m.stream==='product' ? 'Product · '+m.label : m.label)}</option>`).join('');
+}
+function renderDumpModal(){
+  if(!dump) return '';
+  if(!dump.items){
+    return `
+    <div class="modal-overlay" id="dump-overlay">
+      <div class="modal-box dump-box">
+        <h2>Brain dump</h2>
+        <p class="dump-sub">Type, paste or dictate everything on your mind, as messy as you like. It gets split into separate tasks with a board, priority, due date and notes, and you review them before anything is added.</p>
+        <textarea id="dump-text" oninput="dump.text=this.value" onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){analyzeDump();}" placeholder="e.g. ok so I need to fix the broken links on the site by Friday, it's urgent. Call Ana about the taste shoot next week and book the studio. UI: the onboarding screens feel cramped, redesign them. Also refine the AI prompt for restaurant summaries because it's too long">${escapeHtml(dump.text||'')}</textarea>
+        <div class="dump-interim" id="dump-interim"></div>
+        <div class="actions dump-actions">
+          ${VOICE_SUPPORTED?`<button class="add-btn outline mic-btn ${dump.listening?'listening':''}" id="dump-mic" onclick="toggleDumpMic()">${MIC_SVG}<span>${dump.listening?'Stop':'Dictate'}</span></button>`:'<span></span>'}
+          <div class="dump-right">
+            <button class="btn-ghost" onclick="closeDump()">Cancel</button>
+            <button class="btn-solid" onclick="analyzeDump()">Turn into tasks</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const n = dump.items.filter(x=>x.on&&x.title.trim()).length;
+  const rows = dump.items.map((it,i)=>`
+    <div class="dump-row ${it.on?'':'off'}" id="dump-row-${i}">
+      <input type="checkbox" class="dump-check" ${it.on?'checked':''} onchange="dumpSet(${i},'on',this.checked)" aria-label="Include task">
+      <div class="dump-fields">
+        ${it.unsure?'<div class="dump-unsure">Not sure this is a task. Tick it to add it anyway.</div>':''}
+        <input type="text" value="${escapeHtml(it.title)}" onchange="dumpSet(${i},'title',this.value)" placeholder="Task title">
+        <div class="dump-meta">
+          <select onchange="dumpSet(${i},'board',this.value)" aria-label="Board">${boardOptions(it.board)}</select>
+          <select onchange="dumpSet(${i},'priority',this.value)" aria-label="Priority">
+            <option value="high" ${it.priority==='high'?'selected':''}>High</option>
+            <option value="med" ${it.priority==='med'?'selected':''}>Medium</option>
+            <option value="low" ${it.priority==='low'?'selected':''}>Low</option>
+          </select>
+          <input type="date" value="${it.due||''}" onchange="dumpSet(${i},'due',this.value)" aria-label="Due date">
+          <select onchange="dumpSet(${i},'status',this.value)" aria-label="Column">
+            <option value="backlog" ${it.status==='backlog'?'selected':''}>Ideas</option>
+            <option value="thisweek" ${it.status==='thisweek'?'selected':''}>This week</option>
+          </select>
+        </div>
+        <textarea class="dump-notes" onchange="dumpSet(${i},'notes',this.value)" placeholder="Notes (optional)">${escapeHtml(it.notes||'')}</textarea>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="modal-overlay" id="dump-overlay">
+    <div class="modal-box dump-box">
+      <h2>${dump.items.length} task${dump.items.length===1?'':'s'} found</h2>
+      <p class="dump-sub">Untick anything you don't want and adjust the details. Nothing is added until you confirm.</p>
+      <div class="dump-list">${rows}</div>
+      <div class="actions dump-actions">
+        <button class="btn-ghost" onclick="dumpBack()">Back to text</button>
+        <div class="dump-right">
+          <button class="btn-ghost" onclick="closeDump()">Cancel</button>
+          <button class="btn-solid" id="dump-add" onclick="addDumpTasks()">${n?`Add ${n} task${n===1?'':'s'}`:'Nothing selected'}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 /* ---- kanban tasks ---- */
 function addTask(taskKey,data){
   state.tasks[taskKey].push({ id:uid(), title:data.title, notes:data.notes||'', due:data.due||'', priority:data.priority||'med', status:data.status||'backlog' });
@@ -1189,6 +1616,7 @@ function overviewHtml(){
       </div>
       <div class="stream-tagline">Rituals reset daily, weekly (Mon–Sun) and monthly. Streams stay open until closed out.</div>
     </div>
+    <div class="board-head"><span></span><button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
     <div class="rituals-grid">
       ${ritualCard('daily', 'Today', 'Resets every day', 'daily')}
       ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
@@ -1264,7 +1692,10 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
     </div>
     <div class="board-head">
       <span></span>
-      <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
+      <div class="board-actions">
+        <button class="add-btn outline dump-btn" onclick="openDump('${taskKey}')" title="Turn messy notes into tasks">Brain dump</button>
+        <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
+      </div>
     </div>
     <div class="add-panel ${panelOpen?'open':''}">
       <div class="row">
@@ -1734,6 +2165,7 @@ function render(){
     ${renderIdeaEditModal()}
     ${renderSyncModal()}
     ${renderBackupsModal()}
+    ${renderDumpModal()}
   `;
   bindEvents();
   const saveBtn = document.getElementById('e-save');
