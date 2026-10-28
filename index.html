@@ -336,6 +336,9 @@
   .col.dimmed{ opacity:.55; }
 
   .board-head .filter-bar{ margin:0; }
+  .col .filter-bar, .ritual-card .filter-bar, .video-plan-col .filter-bar{ margin:0 0 10px; gap:5px; }
+  .col .filter-bar select, .ritual-card .filter-bar select, .video-plan-col .filter-bar select{ font-size:10.5px; padding:3px 7px; max-width:100%; }
+  .col .filter-bar .sep{ display:none; }
   .who-tag{ font-size:10.5px; color:var(--ink); background:var(--line-soft); border-radius:999px; padding:2px 8px; white-space:nowrap; }
   .who-tag::before{ content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--ink); margin-right:5px; vertical-align:1px; }
   .ms-chip{
@@ -1104,14 +1107,17 @@ function collectDueItems(period){
   });
 
   items.sort((a,b)=> (a.due||'').localeCompare(b.due||''));
-  return items.filter(passesOverview);
+  return items;
 }
 
-/* ---- overview filters: stream, priority, deadline, person ---- */
-let overviewFilter = { stream:'', priority:'', deadline:'', who:'' };
-function setOverviewFilter(field, val){ overviewFilter[field] = val; render(); }
-function passesOverview(it){
-  const f = overviewFilter;
+/* ---- overview filters: each card (Today / This week / This month) and each Video Prod column has its own ---- */
+let overviewFilters = {}; // scope -> { stream, priority, deadline, who }
+function getOF(scope){ return overviewFilters[scope] || (overviewFilters[scope] = { stream:'', priority:'', deadline:'', who:'' }); }
+function setOverviewFilter(scope, field, val){ getOF(scope)[field] = val; render(); }
+function clearOverviewFilter(scope){ overviewFilters[scope] = { stream:'', priority:'', deadline:'', who:'' }; render(); }
+function ofActive(scope){ const f = getOF(scope); return !!(f.stream || f.priority || f.deadline || f.who); }
+function passesOverview(it, scope){
+  const f = getOF(scope);
   if(f.stream){
     const [st, sub] = f.stream.split(':');
     if(it.stream!==st) return false;
@@ -1127,16 +1133,15 @@ function passesOverview(it){
   }
   return true;
 }
-function overviewFilterBar(){
-  const f = overviewFilter;
-  const sel = (field, label, opts)=>`<select class="${f[field]?'on':''}" onchange="setOverviewFilter('${field}',this.value)" aria-label="${label}">${opts.map(([v,l])=>`<option value="${escapeHtml(v)}" ${f[field]===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>`;
-  const active = f.stream || f.priority || f.deadline || f.who;
+function overviewFilterBar(scope, withStream){
+  const f = getOF(scope);
+  const sel = (field, label, opts)=>`<select class="${f[field]?'on':''}" onchange="setOverviewFilter('${scope}','${field}',this.value)" aria-label="${label}">${opts.map(([v,l])=>`<option value="${escapeHtml(v)}" ${f[field]===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>`;
   return `<div class="filter-bar">
-    ${sel('stream','Stream',[['','All streams'],['product','Product Development'],['content','Content'],['content:video','Content · Video Prod'],['content:outreach','Content · Outreach'],['content:ideas','Content · Bank of Ideas'],['maintenance','Maintenance']])}
+    ${withStream ? sel('stream','Stream',[['','All streams'],['product','Product Development'],['content','Content'],['content:video','Content · Video Prod'],['content:outreach','Content · Outreach'],['content:ideas','Content · Bank of Ideas'],['maintenance','Maintenance']]) : ''}
     ${sel('priority','Priority',[['','Any priority'],['high','High'],['med','Medium'],['low','Low']])}
     ${sel('deadline','Deadline',[['','Any deadline'],['overdue','Overdue'],['today','Due today'],['upcoming','Upcoming']])}
     ${sel('who','Person',[['','Anyone'],['__none','Unassigned'], ...peopleList().map(p=>[p,p])])}
-    ${active?`<button class="clear" onclick="overviewFilter={stream:'',priority:'',deadline:'',who:''}; render();">Clear filters</button>`:''}
+    ${ofActive(scope)?`<button class="clear" onclick="clearOverviewFilter('${scope}')">Clear</button>`:''}
   </div>`;
 }
 
@@ -1673,7 +1678,8 @@ function ritualCard(period,title,windowLabel,cornerTag){
       <button class="del" data-delritual="${period}:${it.id}">✕</button>
     </div>`).join('') : `<div class="empty-block">No ${period} rituals yet.</div>`;
 
-  const due = collectDueItems(period);
+  const dueAll = collectDueItems(period);
+  const due = dueAll.filter(it=>passesOverview(it, period));
   const dueRows = due.length ? due.map(d=>`
     <div class="due-row" data-navitem="${d.stream}:${d.subarea||''}">
       <div class="due-row-main">
@@ -1681,7 +1687,7 @@ function ritualCard(period,title,windowLabel,cornerTag){
         <div class="due-row-meta">${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</div>
       </div>
       <div class="due-row-date ${d.due<todayStr()?'overdue':''}">${fmtDate(d.due)}</div>
-    </div>`).join('') : `<div class="empty-block">${(overviewFilter.stream||overviewFilter.priority||overviewFilter.deadline||overviewFilter.who)?'Nothing matches these filters.':'Nothing due from other tabs.'}</div>`;
+    </div>`).join('') : `<div class="empty-block">${dueAll.length?'Nothing matches these filters.':'Nothing due from other tabs.'}</div>`;
 
   return `
   <div class="card ritual-card">
@@ -1693,7 +1699,8 @@ function ritualCard(period,title,windowLabel,cornerTag){
       <input type="text" placeholder="Add ${period} ritual…" onkeydown="if(event.key==='Enter'){addRitual('${period}', this.value); this.value='';}">
       <button onclick="const i=this.previousElementSibling; addRitual('${period}', i.value); i.value='';">Add</button>
     </div>
-    <p class="section-label" style="margin-top:16px;">Due from other tabs · ${due.length}</p>
+    <p class="section-label" style="margin-top:16px;">Due from other tabs · ${due.length!==dueAll.length?due.length+' of '+dueAll.length:due.length}</p>
+    ${overviewFilterBar(period, true)}
     <div class="due-list">${dueRows}</div>
   </div>`;
 }
@@ -1710,7 +1717,7 @@ function videoPlanCard(){
       videoMilestones(v).forEach(m=>{
         if(!m.date || m.done) return;
         const it = { title:v.title, due:m.date, priority:v.priority, who:v.assignee||'', series:label, seriesKey:key, stream:'content', subarea:'video:'+key };
-        if(passesOverview(it)) lists[m.label].push(it);
+        lists[m.label].push(it);
       });
     });
   });
@@ -1725,12 +1732,14 @@ function videoPlanCard(){
       <div class="due-row-date ${overdue?'overdue':''}">${(overdue?'overdue · ':'')+fmtDate(v.due)}</div>
     </div>`; }).join('') : `<div class="empty-block">Nothing here.</div>`;
   const col = (label)=>{
-    const all = lists[label].sort(byDate);
+    const scope = 'vp-'+label;
+    const all = lists[label].filter(it=>passesOverview(it, scope)).sort(byDate);
     const now = all.filter(v=>v.due<=wEnd);                   // this week, plus anything overdue
     const next = all.filter(v=>v.due>=nStart && v.due<=nEnd);
     return `<div class="video-plan-col">
       <h3>${label} <span class="n">${now.length}</span></h3>
       <div class="window">This week · ${fmtDate(wStart)} – ${fmtDate(wEnd)}</div>
+      ${overviewFilterBar(scope, false)}
       <div class="due-list">${rows(now)}</div>
       <p class="next-label">Next week · ${next.length}</p>
       <div class="due-list">${next.length?rows(next):'<div class="empty-block" style="padding:6px 4px;">Nothing yet.</div>'}</div>
@@ -1754,9 +1763,9 @@ function overviewHtml(){
         <h1>Planning Desk</h1>
         <div class="date">${new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</div>
       </div>
-      <div class="stream-tagline">Rituals reset daily, weekly (Mon–Sun) and monthly. Filters apply to everything due below.</div>
+      <div class="stream-tagline">Rituals reset daily, weekly (Mon–Sun) and monthly. Each card and column has its own filters.</div>
     </div>
-    <div class="board-head">${overviewFilterBar()}<button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
+    <div class="board-head"><span></span><button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
     <div class="rituals-grid">
       ${ritualCard('daily', 'Today', 'Resets every day', 'daily')}
       ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
@@ -1821,7 +1830,7 @@ function taskCard(taskKey, t, isVideo, seriesLabel){
 /* ---- board filters (Video Prod) ---- */
 let boardFilters = {}; // per board key: { sort, due, series, priority, status }
 let boardColOrder = {}; // what each column shows right now, for drag and drop: { backlog:[[k,id],…], … }
-let boardSortMode = 'manual';
+let boardColSort = {}; // sort mode of each column right now
 function getFilters(key){ return boardFilters[key] || (boardFilters[key] = { sort:'manual', due:'', series:'', priority:'', status:'', who:'' }); }
 function setFilter(key, field, val){ getFilters(key)[field] = val; render(); }
 function clearFilters(key){ boardFilters[key] = { sort:getFilters(key).sort, due:'', series:'', priority:'', status:'', who:'' }; render(); }
@@ -1846,20 +1855,19 @@ function sortEntries(list, mode){
 function filterBar(key, allSeries){
   const f = getFilters(key);
   const sel = (field, opts)=>`<select class="${f[field]?'on':''}" onchange="setFilter('${key}','${field}',this.value)" aria-label="${field}">${opts.map(([v,l])=>`<option value="${v}" ${f[field]===v?'selected':''}>${l}</option>`).join('')}</select>`;
-  const active = f.due || f.series || f.priority || f.status || f.who;
+  const active = f.due || f.series || f.priority || f.who;
   return `<div class="filter-bar">
     <select class="${f.sort!=='manual'?'on':''}" onchange="setFilter('${key}','sort',this.value)" aria-label="Sort">
       <option value="manual" ${f.sort==='manual'?'selected':''}>My order (drag)</option>
-      <option value="due" ${f.sort==='due'?'selected':''}>Sort by next date</option>
-      <option value="priority" ${f.sort==='priority'?'selected':''}>Sort by priority</option>
+      <option value="due" ${f.sort==='due'?'selected':''}>By next date</option>
+      <option value="priority" ${f.sort==='priority'?'selected':''}>By priority</option>
     </select>
     <span class="sep"></span>
     ${sel('due', [['','Any next date'],['overdue','Overdue'],['week','This week'],['next','Next week'],['later','Later'],['none','No date']])}
     ${allSeries ? sel('series', [['','All series'], ...VIDEO_SERIES]) : ''}
     ${sel('priority', [['','Any priority'],['high','High'],['med','Medium'],['low','Low']])}
-    ${sel('status', [['','Any status'], ...COLS])}
     ${sel('who', [['','Anyone'],['__none','Unassigned'], ...peopleList().map(p=>[p,p])])}
-    ${active?`<button class="clear" onclick="clearFilters('${key}')">Clear filters</button>`:''}
+    ${active?`<button class="clear" onclick="clearFilters('${key}')">Clear</button>`:''}
   </div>`;
 }
 
@@ -1871,23 +1879,23 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
   keys.forEach(k=>state.tasks[k].forEach(t=>entries.push({k,t})));
   const seriesName = k => (VIDEO_SERIES.find(([s])=>'video-'+s===k)||[])[1];
   const panelOpen = addPanelOpen[taskKey];
-  const f = isVideo ? getFilters(taskKey) : { sort:'manual' };
-  const passes = e => !isVideo || (
+  const passes = (e, f) => !isVideo || (
     (!f.due || dueBucket(dateOf(e))===f.due) &&
     (!f.who || (f.who==='__none' ? !e.t.assignee : e.t.assignee===f.who)) &&
     (!f.series || e.k==='video-'+f.series) &&
     (!f.priority || e.t.priority===f.priority));
-  boardSortMode = f.sort;
-  boardColOrder = {};
+  boardColOrder = {}; boardColSort = {};
   const cols = COLS.map(([status,colLabel])=>{
+    const fKey = taskKey+'|'+status;
+    const f = isVideo ? getFilters(fKey) : { sort:'manual' };
     const inCol = entries.filter(e=>colOf(e.t.status)===status);
-    const hidden = isVideo && f.status && f.status!==status;
-    const items = hidden ? [] : sortEntries(inCol.filter(passes), f.sort);
+    const items = sortEntries(inCol.filter(e=>passes(e,f)), f.sort);
     boardColOrder[status] = items.map(e=>[e.k, e.t.id]);
+    boardColSort[status] = f.sort;
     const filtered = items.length!==inCol.length;
-    const empty = hidden ? 'Hidden by the status filter.' : (inCol.length ? 'Nothing matches these filters.' : 'Nothing here yet.');
+    const empty = inCol.length ? 'Nothing matches these filters.' : 'Nothing here yet.';
     const cards = items.length ? items.map(e=>taskCard(e.k, e.t, isVideo, allSeries?seriesName(e.k):'')).join('') : `<div class="empty-col">${empty}</div>`;
-    return `<div class="col ${hidden?'dimmed':''}" data-dropcol="${status}"><div class="col-head"><h4>${colLabel}</h4><span class="n">${filtered?items.length+' of '+inCol.length:inCol.length}</span></div>${cards}</div>`;
+    return `<div class="col" data-dropcol="${status}"><div class="col-head"><h4>${colLabel}</h4><span class="n">${filtered?items.length+' of '+inCol.length:inCol.length}</span></div>${isVideo?filterBar(fKey, allSeries):''}${cards}</div>`;
   }).join('');
   const all = entries.map(e=>e.t);
   return `
@@ -1929,7 +1937,6 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
         <button class="btn-solid" data-submit="${taskKey}">${isVideo?'Add video':'Add to Ideas'}</button>
       </div>
     </div>
-    ${isVideo?filterBar(taskKey, allSeries):''}
     <div class="columns">${cols}</div>
   `;
 }
@@ -2563,7 +2570,7 @@ function dropCard(status, beforeKeyId){
   if(!dragCard) return;
   const t = findTask(dragCard.k, dragCard.id); if(!t) return;
   const sameCol = colOf(t.status)===status;
-  if(boardSortMode==='manual'){
+  if((boardColSort[status]||'manual')==='manual'){
     const list = (boardColOrder[status]||[]).filter(([k,id])=>!(k===dragCard.k && id===dragCard.id));
     let idx = beforeKeyId ? list.findIndex(([k,id])=>k+':'+id===beforeKeyId) : list.length;
     if(idx<0) idx = list.length;
