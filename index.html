@@ -413,6 +413,51 @@
     .modal-overlay{ padding:14px; align-items:flex-end; }
     .modal-box{ max-width:none !important; width:100%; max-height:82vh; padding:20px 18px; border-radius:16px 16px 0 0; }
   }
+
+  /* ==================== alignment pass: selects, tags, filter rows ==================== */
+  /* one chevron, always the same distance from the right edge */
+  .filter-bar select, select.status-pill{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-color:var(--white); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23767676' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; background-size:10px 10px;
+    padding:0 28px 0 12px; height:28px; line-height:26px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .task .meta select.status-pill{ height:22px; line-height:20px; font-size:11px !important; padding:0 24px 0 10px; background-position:right 8px center; }
+
+  /* filters inside cards and columns: an even two-column grid */
+  .col .filter-bar, .ritual-card .filter-bar, .video-plan-col .filter-bar{
+    display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px; margin:0 0 12px;
+  }
+  .col .filter-bar select, .ritual-card .filter-bar select, .video-plan-col .filter-bar select{
+    width:100%; max-width:none; font-size:11px; height:28px; line-height:26px; padding:0 26px 0 11px; background-position:right 9px center;
+  }
+  .filter-bar .full{ grid-column:1 / -1; }
+  .col .filter-bar .clear, .ritual-card .filter-bar .clear, .video-plan-col .filter-bar .clear{ justify-self:start; align-self:center; padding:0 2px; }
+
+  /* tags and chips share one height and baseline */
+  .tag, .series-tag, .who-tag, .ms-chip{
+    display:inline-flex; align-items:center; height:20px; box-sizing:border-box; line-height:1; vertical-align:middle;
+  }
+  .tag{ padding:1px 8px 0; }
+  .series-tag, .ms-chip{ padding:0 8px; }
+  .who-tag{ padding:0 9px; }
+  .who-tag::before{ vertical-align:0; }
+
+  /* task card: tags wrap on the left, the status dropdown stays put on the right */
+  .task .meta{ display:flex; align-items:flex-start; gap:10px; flex-wrap:nowrap; margin-top:10px; }
+  .task .meta-tags{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; flex:1; min-width:0; padding-top:1px; }
+  .task .meta .status-pill{ margin-left:0; flex:none; }
+  .task .title{ line-height:1.4; }
+  .task .row-actions{ align-items:center; }
+
+  /* overview rows: title, then one line with priority + where it's from; date on the right */
+  .due-row{ align-items:center; }
+  .due-row-main{ flex:1; min-width:0; }
+  .due-row-meta{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:4px; }
+  .due-row-meta .tag{ height:17px; font-size:9px; padding:0 6px; }
+  .due-row-date{ white-space:nowrap; text-align:right; }
+  .section-label{ margin-bottom:8px; }
 </style>
 </head>
 <body>
@@ -1112,10 +1157,10 @@ function collectDueItems(period){
 
 /* ---- overview filters: each card (Today / This week / This month) and each Video Prod column has its own ---- */
 let overviewFilters = {}; // scope -> { stream, priority, deadline, who }
-function getOF(scope){ return overviewFilters[scope] || (overviewFilters[scope] = { stream:'', priority:'', deadline:'', who:'' }); }
+function getOF(scope){ return overviewFilters[scope] || (overviewFilters[scope] = { stream:'', series:'', priority:'', deadline:'', who:'' }); }
 function setOverviewFilter(scope, field, val){ getOF(scope)[field] = val; render(); }
-function clearOverviewFilter(scope){ overviewFilters[scope] = { stream:'', priority:'', deadline:'', who:'' }; render(); }
-function ofActive(scope){ const f = getOF(scope); return !!(f.stream || f.priority || f.deadline || f.who); }
+function clearOverviewFilter(scope){ overviewFilters[scope] = { stream:'', series:'', priority:'', deadline:'', who:'' }; render(); }
+function ofActive(scope){ const f = getOF(scope); return !!(f.stream || f.series || f.priority || f.deadline || f.who); }
 function passesOverview(it, scope){
   const f = getOF(scope);
   if(f.stream){
@@ -1123,6 +1168,7 @@ function passesOverview(it, scope){
     if(it.stream!==st) return false;
     if(sub && !(it.subarea||'').startsWith(sub)) return false;
   }
+  if(f.series && it.subarea!=='video:'+f.series) return false;
   if(f.priority && it.priority!==f.priority) return false;
   if(f.who){ if(f.who==='__none' ? !!it.who : it.who!==f.who) return false; }
   if(f.deadline){
@@ -1133,15 +1179,16 @@ function passesOverview(it, scope){
   }
   return true;
 }
-function overviewFilterBar(scope, withStream){
+function overviewFilterBar(scope, withStream, withSeries){
   const f = getOF(scope);
   const sel = (field, label, opts)=>`<select class="${f[field]?'on':''}" onchange="setOverviewFilter('${scope}','${field}',this.value)" aria-label="${label}">${opts.map(([v,l])=>`<option value="${escapeHtml(v)}" ${f[field]===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>`;
   return `<div class="filter-bar">
-    ${withStream ? sel('stream','Stream',[['','All streams'],['product','Product Development'],['content','Content'],['content:video','Content · Video Prod'],['content:outreach','Content · Outreach'],['content:ideas','Content · Bank of Ideas'],['maintenance','Maintenance']]) : ''}
+    ${withSeries ? sel('series','Series',[['','All series'], ...VIDEO_SERIES]) : ''}
+    ${withStream ? sel('stream','Stream',[['','All streams'],['product','Product Development'],['content','Content'],['maintenance','Maintenance']]) : ''}
     ${sel('priority','Priority',[['','Any priority'],['high','High'],['med','Medium'],['low','Low']])}
     ${sel('deadline','Deadline',[['','Any deadline'],['overdue','Overdue'],['today','Due today'],['upcoming','Upcoming']])}
     ${sel('who','Person',[['','Anyone'],['__none','Unassigned'], ...peopleList().map(p=>[p,p])])}
-    ${ofActive(scope)?`<button class="clear" onclick="clearOverviewFilter('${scope}')">Clear</button>`:''}
+    ${ofActive(scope)?`<button class="clear full" onclick="clearOverviewFilter('${scope}')">Clear filters</button>`:''}
   </div>`;
 }
 
@@ -1683,8 +1730,8 @@ function ritualCard(period,title,windowLabel,cornerTag){
   const dueRows = due.length ? due.map(d=>`
     <div class="due-row" data-navitem="${d.stream}:${d.subarea||''}">
       <div class="due-row-main">
-        <div class="due-row-title">${escapeHtml(d.title)}${d.priority?` <span class="tag ${d.priority} due-row-tag">${d.priority}</span>`:''}</div>
-        <div class="due-row-meta">${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</div>
+        <div class="due-row-title">${escapeHtml(d.title)}</div>
+        <div class="due-row-meta">${d.priority?`<span class="tag ${d.priority}">${d.priority}</span>`:''}<span>${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</span></div>
       </div>
       <div class="due-row-date ${d.due<todayStr()?'overdue':''}">${fmtDate(d.due)}</div>
     </div>`).join('') : `<div class="empty-block">${dueAll.length?'Nothing matches these filters.':'Nothing due from other tabs.'}</div>`;
@@ -1726,8 +1773,8 @@ function videoPlanCard(){
     const overdue = v.due<t;
     return `<div class="due-row" data-navitem="content:video:${v.seriesKey}">
       <div class="due-row-main">
-        <div class="due-row-title">${escapeHtml(v.title)} <span class="tag ${v.priority} due-row-tag">${v.priority}</span></div>
-        <div class="due-row-meta">${v.series}${v.who?' · '+escapeHtml(v.who):''}</div>
+        <div class="due-row-title">${escapeHtml(v.title)}</div>
+        <div class="due-row-meta"><span class="tag ${v.priority}">${v.priority}</span><span>${v.series}${v.who?' · '+escapeHtml(v.who):''}</span></div>
       </div>
       <div class="due-row-date ${overdue?'overdue':''}">${(overdue?'overdue · ':'')+fmtDate(v.due)}</div>
     </div>`; }).join('') : `<div class="empty-block">Nothing here.</div>`;
@@ -1739,7 +1786,7 @@ function videoPlanCard(){
     return `<div class="video-plan-col">
       <h3>${label} <span class="n">${now.length}</span></h3>
       <div class="window">This week · ${fmtDate(wStart)} – ${fmtDate(wEnd)}</div>
-      ${overviewFilterBar(scope, false)}
+      ${overviewFilterBar(scope, false, true)}
       <div class="due-list">${rows(now)}</div>
       <p class="next-label">Next week · ${next.length}</p>
       <div class="due-list">${next.length?rows(next):'<div class="empty-block" style="padding:6px 4px;">Nothing yet.</div>'}</div>
@@ -1804,7 +1851,7 @@ function taskCard(taskKey, t, isVideo, seriesLabel){
   <div class="task" draggable="true" data-dragtask="${taskKey}:${t.id}">
     <div class="title">${escapeHtml(t.title)}</div>
     ${notesHtml}
-    <div class="meta">
+    <div class="meta"><div class="meta-tags">
       <span class="tag ${t.priority}">${t.priority}</span>
       ${isVideo ? videoMilestones(t).filter(m=>m.date).map(m=>{
           const od = !m.done && m.date<todayStr();
@@ -1816,7 +1863,7 @@ function taskCard(taskKey, t, isVideo, seriesLabel){
         : (t.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(t.due)}</span>`:'')}
       ${whoTag(t.assignee)}
       ${seriesLabel?`<span class="series-tag">${seriesLabel}</span>`:''}
-      ${isVideo?statusSelect(taskKey, t):''}
+      </div>${isVideo?statusSelect(taskKey, t):''}
     </div>
     <div class="row-actions">
       ${status!=='backlog'?`<button data-move="${taskKey}:${t.id}:-1">◂ move</button>`:''}
@@ -1857,7 +1904,7 @@ function filterBar(key, allSeries){
   const sel = (field, opts)=>`<select class="${f[field]?'on':''}" onchange="setFilter('${key}','${field}',this.value)" aria-label="${field}">${opts.map(([v,l])=>`<option value="${v}" ${f[field]===v?'selected':''}>${l}</option>`).join('')}</select>`;
   const active = f.due || f.series || f.priority || f.who;
   return `<div class="filter-bar">
-    <select class="${f.sort!=='manual'?'on':''}" onchange="setFilter('${key}','sort',this.value)" aria-label="Sort">
+    <select class="full ${f.sort!=='manual'?'on':''}" onchange="setFilter('${key}','sort',this.value)" aria-label="Sort">
       <option value="manual" ${f.sort==='manual'?'selected':''}>My order (drag)</option>
       <option value="due" ${f.sort==='due'?'selected':''}>By next date</option>
       <option value="priority" ${f.sort==='priority'?'selected':''}>By priority</option>
@@ -1867,7 +1914,7 @@ function filterBar(key, allSeries){
     ${allSeries ? sel('series', [['','All series'], ...VIDEO_SERIES]) : ''}
     ${sel('priority', [['','Any priority'],['high','High'],['med','Medium'],['low','Low']])}
     ${sel('who', [['','Anyone'],['__none','Unassigned'], ...peopleList().map(p=>[p,p])])}
-    ${active?`<button class="clear" onclick="clearFilters('${key}')">Clear</button>`:''}
+    ${active?`<button class="clear full" onclick="clearFilters('${key}')">Clear filters</button>`:''}
   </div>`;
 }
 
