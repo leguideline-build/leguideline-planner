@@ -458,6 +458,58 @@
   .due-row-meta .tag{ height:17px; font-size:9px; padding:0 6px; }
   .due-row-date{ white-space:nowrap; text-align:right; }
   .section-label{ margin-bottom:8px; }
+
+  /* film / montage / publish step on overview rows */
+  .step-tag{
+    display:inline-flex; align-items:center; height:18px; box-sizing:border-box; line-height:1;
+    font-size:10.5px; font-weight:700; color:#0c2dba; border:1px solid #0c2dba; border-radius:999px; padding:0 8px;
+  }
+  /* on overview rows the action leads; priority steps back to a quiet outline */
+  .due-row-meta .tag, .due-row-meta .tag.high, .due-row-meta .tag.med, .due-row-meta .tag.low{
+    background:var(--white); color:var(--ink-soft); border:1px solid var(--line); font-weight:400;
+  }
+  .due-row-meta .tag.high{ color:var(--ink); border-color:var(--ink-faint); }
+  .due-row-meta .step-tag{ order:-1; }
+  /* a filter that is in use */
+  .filter-bar select.on{ border-color:#0c2dba !important; color:#0c2dba !important; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%230c2dba' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  .filter-bar .clear{ color:#0c2dba; }
+  .ritual-card .window{ margin-bottom:14px; }
+
+  /* board / table toggle */
+  .view-toggle{ display:inline-flex; gap:2px; padding:3px; border:1px solid var(--line); border-radius:999px; background:var(--white); }
+  .view-toggle button{
+    all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; height:30px; padding:0 15px; border-radius:999px;
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .view-toggle button svg{ width:14px; height:14px; }
+  .view-toggle button:hover{ color:var(--ink); }
+  .view-toggle button.on{ background:var(--ink); color:var(--white); }
+  .view-toggle button:focus-visible{ outline:2px solid #0c2dba; outline-offset:2px; }
+
+  /* video table */
+  .table-filters{ margin:0 0 12px; }
+  .table-filters .table-count{ margin-left:auto; font-size:11px; color:var(--ink-faint); }
+  table.vtable{ min-width:1120px; table-layout:fixed; }
+  table.vtable td:first-child, table.vtable th:first-child{ min-width:220px; }
+  table.vtable input[type=text]{ text-overflow:ellipsis; }
+  table.vtable select{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23767676' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center; background-size:10px 10px; padding-right:24px;
+  }
+  table.vtable td{ padding:5px 8px; }
+  .th-sort{ all:unset; cursor:pointer; font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit; display:inline-flex; align-items:center; gap:4px; }
+  .th-sort:hover, .th-sort.on{ color:var(--ink); }
+  .th-sort .arr{ font-size:8px; }
+  .date-cell{ display:flex; align-items:center; gap:4px; }
+  .date-cell input[type=checkbox]{ width:13px; height:13px; accent-color:var(--ink); flex:none; margin:0; cursor:pointer; }
+  .date-cell input[type=checkbox]:disabled{ opacity:.3; cursor:default; }
+  .date-cell.overdue input[type=date]{ color:var(--red); font-weight:700; }
+  .date-cell.done input[type=date]{ color:var(--ink-faint); text-decoration:line-through; }
+  .row-btns{ white-space:nowrap; text-align:right; }
+  .link-btn{ all:unset; cursor:pointer; font-size:10.5px; color:var(--ink-soft); margin-right:10px; }
+  .link-btn:hover{ color:var(--ink); }
+  @media (max-width:720px){ .board-head .view-toggle button{ padding:0 11px; } }
 </style>
 </head>
 <body>
@@ -1131,7 +1183,7 @@ function collectDueItems(period){
       if(tk.startsWith('video-')){
         // one line per film / montage / publish date
         videoMilestones(task).forEach(m=>{
-          if(!m.done && inPeriod(m.date)) items.push({ title:task.title, meta:meta.label+' · '+m.label, due:m.date, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'' });
+          if(!m.done && inPeriod(m.date)) items.push({ title:task.title, meta:meta.label, step:m.label, due:m.date, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'' });
         });
       } else if(inPeriod(task.due)){
         items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'' });
@@ -1615,11 +1667,13 @@ function moveTask(taskKey,id,dir){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   const next=order.indexOf(t.status==='ready'?'backlog':t.status)+dir;
   if(next>=0 && next<order.length) t.status=order[next];
-  save(); render();
+  keepInIdeas(t); save(); render();
 }
+// moved to Ideas by hand: don't auto-move it to This week again until next week
+function keepInIdeas(t){ if(t && (t.status==='backlog' || t.status==='ready')) t.autoWeek = isoWeekStart(new Date()); }
 function setTaskStatus(taskKey,id,status){
   const t=(state.tasks[taskKey]||[]).find(t=>t.id===id); if(!t) return;
-  t.status=status; save(); render();
+  t.status=status; keepInIdeas(t); save(); render();
 }
 function delTask(taskKey,id){ state.tasks[taskKey]=state.tasks[taskKey].filter(t=>t.id!==id); save(); render(); }
 function updateTask(taskKey,id,data){
@@ -1666,7 +1720,7 @@ function moveIdea(id,dir){
   const i=state.ideas.find(i=>i.id===id); if(!i) return;
   const next=order.indexOf(i.status||'backlog')+dir;
   if(next>=0 && next<order.length){ i.status=order[next]; i.done=(i.status==='done'); }
-  save(); render();
+  keepInIdeas(i); save(); render();
 }
 function delIdea(id){ state.ideas=state.ideas.filter(i=>i.id!==id); save(); render(); }
 function updateIdea(id, data){
@@ -1715,38 +1769,22 @@ function renderNav(){
 }
 
 function ritualCard(period,title,windowLabel,cornerTag){
-  const items = state.recurring[period];
-  const doneMap = state.completions[period].done;
-  const doneCount = items.filter(i=>doneMap[i.id]).length;
-  const rows = items.length ? items.map(it=>`
-    <div class="ritual-item ${doneMap[it.id]?'done':''}">
-      <input type="checkbox" ${doneMap[it.id]?'checked':''} data-toggle="${period}:${it.id}">
-      <div class="txt">${escapeHtml(it.text)}${it.sub?`<small>${escapeHtml(it.sub)}</small>`:''}</div>
-      <button class="del" data-delritual="${period}:${it.id}">✕</button>
-    </div>`).join('') : `<div class="empty-block">No ${period} rituals yet.</div>`;
-
   const dueAll = collectDueItems(period);
   const due = dueAll.filter(it=>passesOverview(it, period));
   const dueRows = due.length ? due.map(d=>`
     <div class="due-row" data-navitem="${d.stream}:${d.subarea||''}">
       <div class="due-row-main">
         <div class="due-row-title">${escapeHtml(d.title)}</div>
-        <div class="due-row-meta">${d.priority?`<span class="tag ${d.priority}">${d.priority}</span>`:''}<span>${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</span></div>
+        <div class="due-row-meta">${d.priority?`<span class="tag ${d.priority}">${d.priority}</span>`:''}${d.step?`<span class="step-tag">${d.step}</span>`:''}<span>${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</span></div>
       </div>
       <div class="due-row-date ${d.due<todayStr()?'overdue':''}">${fmtDate(d.due)}</div>
-    </div>`).join('') : `<div class="empty-block">${dueAll.length?'Nothing matches these filters.':'Nothing due from other tabs.'}</div>`;
+    </div>`).join('') : `<div class="empty-block">${dueAll.length?'Nothing matches these filters.':'Nothing due.'}</div>`;
 
   return `
   <div class="card ritual-card">
-    <span class="corner-tag upper">${cornerTag} · ${doneCount}/${items.length}</span>
+    <span class="corner-tag upper">${due.length!==dueAll.length?due.length+' of '+dueAll.length:due.length} due</span>
     <h2>${title}</h2>
     <div class="window">${windowLabel}</div>
-    <div class="ritual-list">${rows}</div>
-    <div class="ritual-add">
-      <input type="text" placeholder="Add ${period} ritual…" onkeydown="if(event.key==='Enter'){addRitual('${period}', this.value); this.value='';}">
-      <button onclick="const i=this.previousElementSibling; addRitual('${period}', i.value); i.value='';">Add</button>
-    </div>
-    <p class="section-label" style="margin-top:16px;">Due from other tabs · ${due.length!==dueAll.length?due.length+' of '+dueAll.length:due.length}</p>
     ${overviewFilterBar(period, true)}
     <div class="due-list">${dueRows}</div>
   </div>`;
@@ -1810,11 +1848,11 @@ function overviewHtml(){
         <h1>Planning Desk</h1>
         <div class="date">${new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</div>
       </div>
-      <div class="stream-tagline">Rituals reset daily, weekly (Mon–Sun) and monthly. Each card and column has its own filters.</div>
+      <div class="stream-tagline">Everything with a date, from every tab. Weeks run Mon–Sun. Each card and column has its own filters.</div>
     </div>
     <div class="board-head"><span></span><button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
     <div class="rituals-grid">
-      ${ritualCard('daily', 'Today', 'Resets every day', 'daily')}
+      ${ritualCard('daily', 'Today', new Date().toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}), 'daily')}
       ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
       ${ritualCard('monthly', 'This month', monthLabel, 'monthly')}
     </div>
@@ -1874,6 +1912,110 @@ function taskCard(taskKey, t, isVideo, seriesLabel){
     </div>
   </div>`;
 }
+/* ---- Video Prod: board / table view (remembered on this device) ---- */
+let videoView = (()=>{ try{ return localStorage.getItem('leguideline-video-view') || 'board'; }catch(e){ return 'board'; } })();
+function setVideoView(v){ videoView = v; try{ localStorage.setItem('leguideline-video-view', v); }catch(e){} render(); }
+const BOARD_ICON = '<rect x="4" y="4.5" width="4.5" height="15" rx="1"/><rect x="10.5" y="4.5" width="4.5" height="10" rx="1"/><rect x="17" y="4.5" width="3" height="7" rx="1"/>';
+const TABLE_ICON = '<path d="M4 7h16M4 12h16M4 17h16"/>';
+function viewToggle(){
+  return `<div class="view-toggle" role="tablist" aria-label="View">
+    <button class="${videoView==='board'?'on':''}" onclick="setVideoView('board')" role="tab" aria-selected="${videoView==='board'}">${icon(BOARD_ICON)}Board</button>
+    <button class="${videoView==='table'?'on':''}" onclick="setVideoView('table')" role="tab" aria-selected="${videoView==='table'}">${icon(TABLE_ICON)}Table</button>
+  </div>`;
+}
+
+/* ---- Video Prod table ---- */
+let tableSort = { key:'manual', dir:1 };
+function sortTable(key){ tableSort = tableSort.key===key ? { key, dir:-tableSort.dir } : { key, dir:1 }; render(); }
+function videoField(k, id, field, value){
+  const t = findTask(k, id); if(!t) return;
+  if(field==='series'){
+    if('video-'+value===k || !state.tasks['video-'+value]) return;
+    state.tasks[k] = state.tasks[k].filter(x=>x.id!==id);
+    state.tasks['video-'+value].push(t);
+    save(); render(); return;
+  }
+  if(field==='assignee' && value==='__add') return; // handled by personPick
+  t[field] = value;
+  if(field==='status') keepInIdeas(t);
+  save(); render();
+}
+function videoTable(taskKey, entries, allSeries){
+  const fKey = taskKey+'|table';
+  const f = getFilters(fKey);
+  const t0 = todayStr();
+  const passes = e =>
+    (!f.due || dueBucket(videoNextDate(e.t))===f.due) &&
+    (!f.who || (f.who==='__none' ? !e.t.assignee : e.t.assignee===f.who)) &&
+    (!f.series || e.k==='video-'+f.series) &&
+    (!f.priority || e.t.priority===f.priority) &&
+    (!f.status || colOf(e.t.status)===f.status);
+  const seriesOf = k => (VIDEO_SERIES.find(([s])=>'video-'+s===k)||[])[1]||'';
+  const statusOrder = { backlog:0, ready:0, thisweek:1, done:2 };
+  const val = (e, key)=>{
+    switch(key){
+      case 'title': return (e.t.title||'').toLowerCase();
+      case 'series': return seriesOf(e.k);
+      case 'priority': return PRIO_ORDER[e.t.priority] ?? 1;
+      case 'who': return (e.t.assignee||'~').toLowerCase();
+      case 'film': return e.t.filmDue || '9999';
+      case 'edit': return e.t.editDue || '9999';
+      case 'publish': return e.t.due || '9999';
+      case 'status': return statusOrder[e.t.status] ?? 0;
+      default: return typeof e.t.rank==='number' ? e.t.rank : 0;
+    }
+  };
+  const rows = entries.filter(passes).sort((a,b)=>{
+    const x = val(a, tableSort.key), y = val(b, tableSort.key);
+    return (x<y?-1:x>y?1:0) * tableSort.dir || (val(a,'manual')-val(b,'manual'));
+  });
+  const th = (key, label, w)=>`<th ${w?`style="width:${w}"`:''}><button class="th-sort ${tableSort.key===key?'on':''}" onclick="sortTable('${key}')">${label}${tableSort.key===key?`<span class="arr">${tableSort.dir>0?'▲':'▼'}</span>`:''}</button></th>`;
+  const dateCell = (e, dateKey, doneKey)=>{
+    const d = e.t[dateKey]||'';
+    const done = doneKey ? !!e.t[doneKey] : e.t.status==='done';
+    const od = d && !done && d<t0;
+    return `<div class="date-cell ${done&&d?'done':''} ${od?'overdue':''}">
+      ${doneKey?`<input type="checkbox" ${done?'checked':''} ${d?'':'disabled'} title="Mark as done" onchange="videoField('${e.k}','${e.t.id}','${doneKey}',this.checked)">`:''}
+      <input type="date" value="${d}" onchange="videoField('${e.k}','${e.t.id}','${dateKey}',this.value)">
+    </div>`;
+  };
+  const body = rows.length ? rows.map(e=>{ const t=e.t; return `
+    <tr>
+      <td><input type="text" value="${escapeHtml(t.title)}" onchange="videoField('${e.k}','${t.id}','title',this.value)" placeholder="Video title"></td>
+      <td><select onchange="videoField('${e.k}','${t.id}','series',this.value)">${VIDEO_SERIES.map(([k,l])=>`<option value="${k}" ${'video-'+k===e.k?'selected':''}>${l}</option>`).join('')}</select></td>
+      <td><select onchange="videoField('${e.k}','${t.id}','priority',this.value)">
+        <option value="high" ${t.priority==='high'?'selected':''}>High</option>
+        <option value="med" ${t.priority==='med'?'selected':''}>Med</option>
+        <option value="low" ${t.priority==='low'?'selected':''}>Low</option>
+      </select></td>
+      <td><select data-prev="${escapeHtml(t.assignee||'')}" onchange="personPick(this); if(this.value!=='__add') videoField('${e.k}','${t.id}','assignee',this.value)">${personOptions(t.assignee||'')}</select></td>
+      <td>${dateCell(e,'filmDue','filmDone')}</td>
+      <td>${dateCell(e,'editDue','editDone')}</td>
+      <td>${dateCell(e,'due',null)}</td>
+      <td><select onchange="videoField('${e.k}','${t.id}','status',this.value)">${COLS.map(([v,l])=>`<option value="${v}" ${colOf(t.status)===v?'selected':''}>${l}</option>`).join('')}</select></td>
+      <td class="row-btns"><button class="link-btn" onclick="startEditTask('${e.k}','${t.id}')">edit</button><button class="del-row" data-deltask="${e.k}:${t.id}" title="Delete">✕</button></td>
+    </tr>`; }).join('') : `<tr><td colspan="9" class="empty-block">${entries.length?'Nothing matches these filters.':'No videos yet.'}</td></tr>`;
+  const sel = (field, opts)=>`<select class="${f[field]?'on':''}" onchange="setFilter('${fKey}','${field}',this.value)" aria-label="${field}">${opts.map(([v,l])=>`<option value="${escapeHtml(v)}" ${f[field]===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>`;
+  const active = f.due || f.series || f.priority || f.who || f.status;
+  return `
+    <div class="filter-bar table-filters">
+      ${allSeries ? sel('series', [['','All series'], ...VIDEO_SERIES]) : ''}
+      ${sel('status', [['','Any status'], ...COLS])}
+      ${sel('due', [['','Any next date'],['overdue','Overdue'],['week','This week'],['next','Next week'],['later','Later'],['none','No date']])}
+      ${sel('priority', [['','Any priority'],['high','High'],['med','Medium'],['low','Low']])}
+      ${sel('who', [['','Anyone'],['__none','Unassigned'], ...peopleList().map(p=>[p,p])])}
+      ${active?`<button class="clear" onclick="clearFilters('${fKey}')">Clear filters</button>`:''}
+      <span class="table-count">${rows.length===entries.length?rows.length:rows.length+' of '+entries.length} video${entries.length===1?'':'s'}</span>
+    </div>
+    <div class="table-scroll"><table class="outreach vtable">
+      <thead><tr>
+        ${th('title','Video','')}${th('series','Series','118px')}${th('priority','Priority','86px')}${th('who','Assigned','128px')}
+        ${th('film','Film','140px')}${th('edit','Montage','140px')}${th('publish','Publish','124px')}${th('status','Status','112px')}<th style="width:78px"></th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table></div>`;
+}
+
 /* ---- board filters (Video Prod) ---- */
 let boardFilters = {}; // per board key: { sort, due, series, priority, status }
 let boardColOrder = {}; // what each column shows right now, for drag and drop: { backlog:[[k,id],…], … }
@@ -1954,7 +2096,7 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
       <div class="stream-tagline">${tagline||''}</div>
     </div>
     <div class="board-head">
-      <span></span>
+      ${isVideo?viewToggle():'<span></span>'}
       <div class="board-actions">
         <button class="add-btn outline dump-btn" onclick="openDump('${taskKey}')" title="Turn messy notes into tasks">Brain dump</button>
         <button class="add-btn" data-addtoggle="${taskKey}">${isVideo?'Add video':'Add task'}</button>
@@ -1984,7 +2126,7 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
         <button class="btn-solid" data-submit="${taskKey}">${isVideo?'Add video':'Add to Ideas'}</button>
       </div>
     </div>
-    <div class="columns">${cols}</div>
+    ${isVideo && videoView==='table' ? videoTable(taskKey, entries, allSeries) : `<div class="columns">${cols}</div>`}
   `;
 }
 
@@ -2539,7 +2681,24 @@ function dismissSyncError(){
   render();
 }
 
+/* anything dated up to the end of this week (incl. overdue) moves itself from Ideas to This week.
+   Once per task per week: if you move it back to Ideas, it stays there. */
+function autoPromote(){
+  const ws = isoWeekStart(new Date());
+  const we = (()=>{ const d=new Date(ws+'T00:00:00'); d.setDate(d.getDate()+6); return d.toISOString().slice(0,10); })();
+  let changed = false;
+  const dates = (t, isVideo)=> isVideo ? videoMilestones(t).filter(m=>m.date && !m.done).map(m=>m.date) : (t.due ? [t.due] : []);
+  const consider = (t, isVideo)=>{
+    if(!(t.status==='backlog' || t.status==='ready' || !t.status) || t.autoWeek===ws) return;
+    if(dates(t, isVideo).some(d=>d<=we)){ t.status='thisweek'; t.autoWeek=ws; changed=true; }
+  };
+  Object.keys(state.tasks||{}).forEach(k=>(state.tasks[k]||[]).forEach(t=>consider(t, k.startsWith('video-'))));
+  (state.ideas||[]).forEach(i=>{ const before=i.status; consider(i,false); if(i.status!==before) i.done=false; });
+  return changed;
+}
+
 function render(){
+  if(state && autoPromote()) save();
   const root = document.getElementById('root');
   root.style.padding = '0'; root.style.color = '';
   root.innerHTML = `
@@ -2627,7 +2786,7 @@ function dropCard(status, beforeKeyId){
   } else if(sameCol){
     toast('Switch to “My order” to reorder by dragging');
   }
-  if(!sameCol){ t.status = status; }
+  if(!sameCol){ t.status = status; keepInIdeas(t); }
   dragCard = null;
   save(); render();
 }
