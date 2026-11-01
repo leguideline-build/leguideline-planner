@@ -636,13 +636,30 @@
     font-family:inherit; font-size:10px; color:var(--ink-soft); padding:2px 6px; letter-spacing:.02em; max-width:80px;
   }
   .task .row-actions select.move-to:hover, .task .row-actions select.move-to:focus{ color:var(--ink); outline:none; }
+
+  /* drag a column title to move the column */
+  th[data-colkey]{ cursor:grab; }
+  th[data-colkey]:active{ cursor:grabbing; }
+  th.col-dragging{ opacity:.4; }
+  th.col-drop-before{ box-shadow:inset 2px 0 0 #2c20d0; }
+  th.col-drop-after{ box-shadow:inset -2px 0 0 #2c20d0; }
+
+  /* table search box: same pill as the filters */
+  .table-search{
+    border:1px solid var(--line); border-radius:999px; background:var(--white); font-family:inherit;
+    font-size:11.5px; color:var(--ink); height:28px; padding:0 12px; width:180px; box-sizing:border-box;
+  }
+  .table-search:focus{ outline:none; border-color:var(--ink); }
+  .table-search.on{ border-color:#2c20d0; }
+  @media (max-width:720px){ .table-search{ width:100%; } }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '01.11-b';
+const APP_VERSION = '01.11-e';
+const APP_BUILD = 202611011800; // bigger = newer; the page only ever reloads to a bigger build
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -652,14 +669,18 @@ async function checkForNewVersion(){
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache:'no-store' });
     if(!r.ok) return;
     const html = await r.text();
-    const m = html.match(/const APP_VERSION = '([^']+)'/);
-    if(!m || m[1]===APP_VERSION) return;
+    const m = html.match(/const APP_BUILD = (\d+)/);
+    if(!m || +m[1] <= APP_BUILD) return;                                // only ever move forward, never back to an older copy
     if(typeof cloudDirty!=='undefined' && cloudDirty) return;          // let pending changes reach the cloud first
     const a = document.activeElement;
     if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;       // don't interrupt typing
-    location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
+    if(Date.now() - lastInteraction < 30000) return;                   // wait until you've paused for 30 seconds
+    if(document.querySelector('.modal-overlay')) return;
+    location.replace(location.pathname + '?v=' + m[1] + location.hash);
   }catch(e){ /* offline or file:// — ignore */ }
 }
+let lastInteraction = Date.now();
+['keydown','input','pointerdown','change'].forEach(ev=>document.addEventListener(ev, ()=>{ lastInteraction = Date.now(); }, true));
 if(location.protocol.startsWith('http')){
   setTimeout(checkForNewVersion, 1500);
   document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') checkForNewVersion(); });
@@ -852,7 +873,7 @@ function patchState(){
   state.ideas = state.ideas || [];
   state.places = state.places || [];
   if(!Array.isArray(state.accounts)) state.accounts = [];
-  if(!Array.isArray(state.outreachColumns)) state.outreachColumns = [];
+  ensureOutreachColumns();
   if(!Array.isArray(state.accountColumns) || !state.accountColumns.length) state.accountColumns = defaultAccountColumns();
   state.subareaOrder = state.subareaOrder || {};
   (state.ideas || []).forEach(i=>{
@@ -1168,6 +1189,7 @@ window.addEventListener('online', ()=>{
 });
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible' && syncCode && (syncStatus==='error')) connectSync();
+  if(document.visibilityState==='hidden' && cloudDirty && syncStatus==='connected'){ clearTimeout(pushTimer); pushToCloud(); }
 });
 
 function submitSyncCode(){
@@ -1893,6 +1915,7 @@ function cancelEditTask(){ editingTask = null; render(); }
 
 /* ---- outreach ---- */
 function addOutreachRow(data){
+  delete tableFilters.outreach;
   state.outreach.push({ id:uid(), name:data.name, venue:data.venue||'', type:data.type, status:data.status||'Researching', priority:data.priority||'med', lastContact:'', followUp:'', notes:'' });
   save(); render();
 }
@@ -2371,37 +2394,30 @@ function videoProdView(){
   return `<div class="series-pills">${pills}</div>` + board;
 }
 
+function outreachCell(r, c){
+  if(c.id==='status') return `<select class="${r.status==='Agreed'?'status-agreed':''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
+      ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
+    </select>`;
+  if(c.id==='priority') return `<select onchange="updateOutreachField('${r.id}','priority',this.value); render();">
+      <option value="high" ${r.priority==='high'?'selected':''}>High</option>
+      <option value="med" ${r.priority==='med'?'selected':''}>Med</option>
+      <option value="low" ${r.priority==='low'?'selected':''}>Low</option>
+    </select>`;
+  return bankCell('outreach', r, c);
+}
 function outreachView(){
+  ensureOutreachColumns();
   const rows = state.outreach;
-  const extra = bankCols('outreach');
+  const cols = bankCols('outreach');
+  const typeCol = cols.find(c=>c.id==='type');
+  const typeOpts = (typeCol && typeCol.options && typeCol.options.length) ? typeCol.options : ['Chef','Blogger','Other'];
+  const widthOf = id => (OUTREACH_BUILTIN.find(x=>x.id===id)||{}).w || '';
   const body = rows.length ? rows.map(r=>`
-    <tr>
-      <td><input type="text" value="${escapeHtml(r.name)}" onchange="updateOutreachField('${r.id}','name',this.value)" placeholder="Name"></td>
-      <td><input type="text" value="${escapeHtml(r.venue||'')}" onchange="updateOutreachField('${r.id}','venue',this.value)" placeholder="Venue"></td>
-      <td>
-        <select onchange="updateOutreachField('${r.id}','type',this.value)">
-          ${['Chef','Blogger','Other'].map(o=>`<option value="${o}" ${r.type===o?'selected':''}>${o}</option>`).join('')}
-        </select>
-      </td>
-      <td>
-        <select class="${r.status==='Agreed'?'status-agreed':''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
-          ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
-        </select>
-      </td>
-      <td>
-        <select onchange="updateOutreachField('${r.id}','priority',this.value); render();">
-          <option value="high" ${r.priority==='high'?'selected':''}>High</option>
-          <option value="med" ${r.priority==='med'?'selected':''}>Med</option>
-          <option value="low" ${r.priority==='low'?'selected':''}>Low</option>
-        </select>
-      </td>
-      <td><input type="date" value="${r.lastContact||''}" onchange="updateOutreachField('${r.id}','lastContact',this.value)"></td>
-      <td><input type="date" value="${r.followUp||''}" onchange="updateOutreachField('${r.id}','followUp',this.value)"></td>
-      <td><input type="text" value="${escapeHtml(r.notes)}" onchange="updateOutreachField('${r.id}','notes',this.value)" placeholder="Notes"></td>
-      ${extra.map(c=>`<td>${bankCell('outreach', r, c)}</td>`).join('')}
+    <tr data-bankrow="${r.id}">
+      ${cols.map(c=>`<td>${outreachCell(r, c)}</td>`).join('')}
       <td><button class="del-row" data-deloutreach="${r.id}">✕</button></td>
     </tr>
-  `).join('') : `<tr><td colspan="${9+extra.length}" class="empty-block">No contacts yet — add the first chef or blogger below.</td></tr>`;
+  `).join('') + noMatchRow(cols.length+1) : `<tr><td colspan="${cols.length+1}" class="empty-block">No contacts yet — add the first chef or blogger.</td></tr>`;
 
   return `
     <div class="topbar">
@@ -2409,7 +2425,7 @@ function outreachView(){
         <h1>Research & Outreach</h1>
         <div class="date">${rows.length} contact${rows.length===1?'':'s'}</div>
       </div>
-      <div class="stream-tagline">Landscape research, outreach status and follow-up dates for chefs and bloggers.</div>
+      <div class="stream-tagline">Landscape research, outreach status and follow-up dates for chefs and bloggers. Click a column title to edit it, drag it to move it.</div>
     </div>
     <div class="board-head">
       <span></span>
@@ -2423,7 +2439,7 @@ function outreachView(){
         <input type="text" id="f-oname" placeholder="Name" />
         <input type="text" id="f-ovenue" placeholder="Venue" />
         <select id="f-otype">
-          <option>Chef</option><option>Blogger</option><option>Other</option>
+          ${typeOpts.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
         </select>
         <select id="f-ostatus">
           ${OUTREACH_STATUS.map(o=>`<option value="${o}">${o}</option>`).join('')}
@@ -2439,10 +2455,10 @@ function outreachView(){
         <button class="btn-solid" data-outreachsubmit="1">Add contact</button>
       </div>
     </div>
-    <div class="table-scroll"><table class="outreach" data-resize-id="outreach">
+    ${tableFilterBar('outreach')}
+    <div class="table-scroll"><table class="outreach" data-resize-id="outreach" data-filter-bank="outreach">
       <thead><tr>
-        <th data-col="name" style="width:13%">Name</th><th data-col="venue" style="width:12%">Venue</th><th data-col="type" style="width:8%">Type</th><th data-col="status" style="width:11%">Status</th><th data-col="priority" style="width:7%">Priority</th>
-        <th data-col="last" style="width:10%">Last contact</th><th data-col="follow" style="width:10%">Follow up</th><th data-col="notes">Notes</th>${extra.map(c=>`<th data-col="${c.id}"><button class="pcol-head" onclick="openBankCol('outreach','${c.id}')" title="Edit column">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`).join('')}<th data-col="del" data-noresize="1" style="width:28px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column">＋</button></th>
+        ${cols.map(c=>bankTh('outreach', c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:28px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
@@ -2535,6 +2551,8 @@ function defaultPlaceColumns(){
   ];
 }
 const COLTYPE_ICON = {
+  status: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',
+  priority: '<path d="M6 19V5M6 5h10l-2 3.5 2 3.5H6"/>',
   text: '<path d="M5 7h14M5 12h14M5 17h9"/>',
   select: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 10.5l3.5 3.5 3.5-3.5"/>',
   date: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M9 3.5v4M15 3.5v4"/>'
@@ -2551,21 +2569,40 @@ function defaultAccountColumns(){
     { id:'notes', title:'Notes', type:'text' }
   ];
 }
+const OUTREACH_BUILTIN = [
+  { id:'name', title:'Name', type:'text', builtin:true, w:'13%' },
+  { id:'venue', title:'Venue', type:'text', builtin:true, w:'12%' },
+  { id:'type', title:'Type', type:'select', builtin:true, options:['Chef','Blogger','Other'], w:'8%' },
+  { id:'status', title:'Status', type:'status', builtin:true, w:'11%' },
+  { id:'priority', title:'Priority', type:'priority', builtin:true, w:'7%' },
+  { id:'lastContact', title:'Last contact', type:'date', builtin:true, w:'10%' },
+  { id:'followUp', title:'Follow up', type:'date', builtin:true, w:'10%' },
+  { id:'notes', title:'Notes', type:'text', builtin:true }
+];
+function defaultOutreachColumns(){ return OUTREACH_BUILTIN.map(c=>{ const x = Object.assign({}, c); delete x.w; if(x.options) x.options = x.options.slice(); return x; }); }
+// make sure every built-in column is in the list (older planners only stored the extra ones)
+function ensureOutreachColumns(){
+  if(!Array.isArray(state.outreachColumns)) state.outreachColumns = [];
+  const have = new Set(state.outreachColumns.map(c=>c.id));
+  const missing = defaultOutreachColumns().filter(c=>!have.has(c.id));
+  if(missing.length) state.outreachColumns = missing.concat(state.outreachColumns);
+}
 const BANKS = {
   places: { rows:'places', cols:'placeColumns', defaults:()=>defaultPlaceColumns(), title:'Bank of Places', one:'place', many:'places', add:'Add place',
     tagline:'Potential places to visit for route cards. Click a column title to rename it, change its type or delete it.',
     empty:'No places yet — add somewhere worth visiting.' },
-  outreach: { rows:'outreach', cols:'outreachColumns', defaults:()=>[], title:'Research & Outreach', one:'contact', many:'contacts', add:'Add contact', tagline:'', empty:'' },
+  outreach: { rows:'outreach', cols:'outreachColumns', defaults:()=>defaultOutreachColumns(), title:'Research & Outreach', one:'contact', many:'contacts', add:'Add contact', tagline:'', empty:'' },
   accounts: { rows:'accounts', cols:'accountColumns', defaults:()=>defaultAccountColumns(), title:'Bank of Accounts', one:'account', many:'accounts', add:'Add account',
     tagline:'People and accounts worth following, featuring or reaching out to. Click a column title to rename it, change its type or delete it.',
     empty:'No accounts yet — add a person or account worth keeping track of.' }
 };
 function bankRows(b){ const B = BANKS[b]; return Array.isArray(state[B.rows]) ? state[B.rows] : (state[B.rows] = []); }
-function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || (!state[B.cols].length && b!=='outreach')) state[B.cols] = B.defaults(); return state[B.cols]; }
+function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || !state[B.cols].length) state[B.cols] = B.defaults(); return state[B.cols]; }
 
 let focusBankRow = null;
 let bankColEdit = null; // { bank, id|null, title, type, options }
 function addBankRow(b){
+  delete tableFilters[b];
   const row = { id:uid() };
   bankCols(b).forEach(c=>{ row[c.id] = ''; });
   bankRows(b).push(row);
@@ -2604,7 +2641,8 @@ function saveBankCol(){
   const options = [...new Set(document.getElementById('pc-options').value.split('\n').map(x=>x.trim()).filter(Boolean))];
   if(bankColEdit.id){
     const c = bankCols(b).find(c=>c.id===bankColEdit.id);
-    if(c){ c.title = title; c.type = type; if(type==='select') c.options = options; else delete c.options; }
+    if(c && c.builtin){ c.title = title; if(c.type==='select') c.options = options; }
+    else if(c){ c.title = title; c.type = type; if(type==='select') c.options = options; else delete c.options; }
   } else {
     const c = { id:'c_'+uid(), title, type };
     if(type==='select') c.options = options;
@@ -2615,7 +2653,8 @@ function saveBankCol(){
 function delBankCol(){
   const b = bankColEdit.bank, B = BANKS[b];
   const c = bankCols(b).find(c=>c.id===bankColEdit.id); if(!c) return;
-  if(b!=='outreach' && bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
+  if(c.builtin){ alert('This column is used by the planner and can be renamed or moved, but not deleted.'); return; }
+  if(bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
   if(!confirm(`Delete the column “${c.title}”? Its values are removed from every ${B.one}.`)) return;
   state[B.cols] = bankCols(b).filter(x=>x.id!==c.id);
   bankRows(b).forEach(r=>{ delete r[c.id]; });
@@ -2637,16 +2676,18 @@ function renderBankColModal(){
   const e = bankColEdit;
   const cols = bankCols(e.bank);
   const idx = e.id ? cols.findIndex(c=>c.id===e.id) : -1;
+  const col = e.id ? cols.find(c=>c.id===e.id) : null;
+  const locked = !!(col && col.builtin);
   return `
   <div class="modal-overlay" id="pc-overlay" onclick="if(event.target===this) closeBankCol()">
     <div class="modal-box" style="max-width:460px;">
       <h2>${e.id?'Edit column':'New column'}</h2>
       <label>Title</label>
       <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':e.bank==='outreach'?'e.g. Email':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
-      <label>Content type</label>
+      ${locked ? `<input type="hidden" id="pc-type" value="${e.type}"><p style="font-size:12px; color:var(--ink-faint); margin:12px 0 0;">Built-in column: you can rename it${e.type==='select'?', edit its options':''} and move it.</p>` : `<label>Content type</label>
       <select id="pc-type" onchange="bankColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
         ${PLACE_COL_TYPES.map(([v,l])=>`<option value="${v}" ${e.type===v?'selected':''}>${l}</option>`).join('')}
-      </select>
+      </select>`}
       <div id="pc-opt-wrap" style="display:${e.type==='select'?'block':'none'};">
         <label>Dropdown options, one per line</label>
         <textarea id="pc-options" style="min-height:130px;" placeholder="${e.bank==='accounts'?'Instagram&#10;TikTok&#10;YouTube':'Lisbon&#10;Porto&#10;London'}">${escapeHtml(e.options)}</textarea>
@@ -2655,7 +2696,7 @@ function renderBankColModal(){
         <div class="col-move">
           ${e.id?`<button class="btn-ghost" onclick="moveBankCol(-1)" ${idx<=0?'disabled style="opacity:.35;"':''}>◂ Move left</button>
           <button class="btn-ghost" onclick="moveBankCol(1)" ${idx>=cols.length-1?'disabled style="opacity:.35;"':''}>Move right ▸</button>
-          <button class="btn-ghost" style="color:var(--red);" onclick="delBankCol()">Delete column</button>`:''}
+          ${locked?'':`<button class="btn-ghost" style="color:var(--red);" onclick="delBankCol()">Delete column</button>`}`:''}
         </div>
         <div class="col-move">
           <button class="btn-ghost" onclick="closeBankCol()">Cancel</button>
@@ -2678,7 +2719,92 @@ function bankCell(b, r, c){
       <option value="__add">＋ Add option…</option>
     </select>`;
   }
-  return `<input type="text" value="${escapeHtml(v)}" ${ch} placeholder="${escapeHtml(c.title)}">`;
+  return `<input type="text" value="${escapeHtml(v)}" ${ch} oninput="updateBankField('${b}','${r.id}','${c.id}',this.value)" placeholder="${escapeHtml(c.title)}">`;
+}
+
+function bankTh(b, c, extraStyle){
+  return `<th data-col="${c.id}" data-colkey="${b}:${c.id}" draggable="true" ${extraStyle?`style="${extraStyle}"`:''}><button class="pcol-head" onclick="openBankCol('${b}','${c.id}')" title="Click to edit · drag to move">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`;
+}
+let dragColKey = null; // "bank:colId" while a column header is being dragged
+function dropColumn(targetKey, after){
+  if(!dragColKey || dragColKey===targetKey) return;
+  const [b, srcId] = dragColKey.split(':'); const [tb, tgtId] = targetKey.split(':');
+  dragColKey = null;
+  if(b!==tb) return;
+  const cols = bankCols(b);
+  const from = cols.findIndex(c=>c.id===srcId); if(from<0) return;
+  const [moved] = cols.splice(from, 1);
+  let to = cols.findIndex(c=>c.id===tgtId); if(to<0) to = cols.length - 1;
+  cols.splice(after ? to+1 : to, 0, moved);
+  save(); render();
+}
+
+/* ---- filters for Research & Outreach, Bank of Places and Bank of Accounts ---- */
+let tableFilters = {}; // bank -> { q, cols:{ colId:value } }
+function getTF(b){ return tableFilters[b] || (tableFilters[b] = { q:'', cols:{} }); }
+function tfActive(b){ const f = getTF(b); return !!(f.q || Object.values(f.cols).some(Boolean)); }
+function setTableFilter(b, colId, v){ getTF(b).cols[colId] = v; render(); }
+function setTableSearch(b, v){ getTF(b).q = v; applyTableFilter(b); }
+function clearTableFilters(b){ delete tableFilters[b]; render(); }
+function rowPasses(b, r){
+  const f = getTF(b);
+  for(const [id, v] of Object.entries(f.cols)){
+    if(!v) continue;
+    const rv = r[id]===undefined || r[id]===null ? '' : String(r[id]);
+    if(v==='__empty' ? rv!=='' : rv!==v) return false;
+  }
+  if(f.q){
+    const q = f.q.toLowerCase().trim();
+    const hay = bankCols(b).map(c=>String(r[c.id]||'')).join(' ').toLowerCase();
+    if(q && !hay.includes(q)) return false;
+  }
+  return true;
+}
+function noMatchRow(span){ return `<tr class="no-match" style="display:none"><td colspan="${span}" class="empty-block">Nothing matches these filters.</td></tr>`; }
+function tableFilterBar(b){
+  const f = getTF(b), cols = bankCols(b), rows = bankRows(b);
+  if(!rows.length) return '';
+  const sel = c=>{
+    let opts;
+    if(c.type==='status') opts = OUTREACH_STATUS.map(o=>[o,o]);
+    else if(c.type==='priority') opts = [['high','High'],['med','Med'],['low','Low']];
+    else {
+      const set = (c.options||[]).slice();
+      rows.forEach(r=>{ const v = r[c.id]; if(v && !set.includes(v)) set.push(v); });
+      opts = set.map(o=>[o,o]);
+    }
+    const v = f.cols[c.id] || '';
+    return `<select class="${v?'on':''}" onchange="setTableFilter('${b}','${c.id}',this.value)" aria-label="Filter by ${escapeHtml(c.title)}">
+      <option value="">${escapeHtml(c.title)}: all</option>
+      ${opts.map(([o,l])=>`<option value="${escapeHtml(o)}" ${v===o?'selected':''}>${escapeHtml(l)}</option>`).join('')}
+      <option value="__empty" ${v==='__empty'?'selected':''}>No ${escapeHtml(c.title.toLowerCase())}</option>
+    </select>`;
+  };
+  const filterable = cols.filter(c=>c.type==='select' || c.type==='status' || c.type==='priority');
+  return `<div class="filter-bar table-filters">
+    <input type="search" class="table-search ${f.q?'on':''}" placeholder="Search" value="${escapeHtml(f.q)}" oninput="setTableSearch('${b}',this.value)" aria-label="Search">
+    ${filterable.map(sel).join('')}
+    <button class="clear" id="tclear-${b}" onclick="clearTableFilters('${b}')" style="${tfActive(b)?'':'display:none'}">Clear filters</button>
+    <span class="table-count" id="tcount-${b}"></span>
+  </div>`;
+}
+function applyTableFilter(b){
+  const table = document.querySelector(`table[data-filter-bank="${b}"]`); if(!table) return;
+  const byId = new Map(bankRows(b).map(r=>[r.id, r]));
+  let shown = 0, total = 0;
+  table.querySelectorAll('tbody tr[data-bankrow]').forEach(tr=>{
+    const r = byId.get(tr.getAttribute('data-bankrow')); total++;
+    const ok = !r || rowPasses(b, r);
+    tr.style.display = ok ? '' : 'none';
+    if(ok) shown++;
+  });
+  const nm = table.querySelector('tr.no-match'); if(nm) nm.style.display = (total && !shown) ? '' : 'none';
+  const B = BANKS[b];
+  const cnt = document.getElementById('tcount-'+b);
+  if(cnt) cnt.textContent = shown===total ? '' : `${shown} of ${total} ${B.many}`;
+  const clr = document.getElementById('tclear-'+b); if(clr) clr.style.display = tfActive(b) ? '' : 'none';
+  const srch = table.closest('.main') && document.querySelector(`.table-search[oninput*="'${b}'"]`);
+  if(srch) srch.classList.toggle('on', !!getTF(b).q);
 }
 
 function bankView(b){
@@ -2689,7 +2815,7 @@ function bankView(b){
     <tr data-bankrow="${r.id}">
       ${cols.map(c=>`<td>${bankCell(b,r,c)}</td>`).join('')}
       <td class="del-cell"><button class="del-row" data-delbank="${b}:${r.id}">✕</button></td>
-    </tr>`).join('') : `<tr><td colspan="${cols.length+1}" class="empty-block">${B.empty}</td></tr>`;
+    </tr>`).join('') + noMatchRow(cols.length+1) : `<tr><td colspan="${cols.length+1}" class="empty-block">${B.empty}</td></tr>`;
 
   return `
     <div class="topbar">
@@ -2706,9 +2832,10 @@ function bankView(b){
         <button class="add-btn" onclick="addBankRow('${b}')">${B.add}</button>
       </div>
     </div>
-    <div class="table-scroll"><table class="outreach places" data-resize-id="${b}">
+    ${tableFilterBar(b)}
+    <div class="table-scroll"><table class="outreach places" data-resize-id="${b}" data-filter-bank="${b}">
       <thead><tr>
-        ${cols.map(c=>`<th data-col="${c.id}"><button class="pcol-head" onclick="openBankCol('${b}','${c.id}')" title="Edit column">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`).join('')}
+        ${cols.map(c=>bankTh(b, c)).join('')}
         <th class="del-cell" data-col="add" data-noresize="1"><button class="pcol-add" onclick="openBankCol('${b}',null)" title="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
@@ -3049,6 +3176,7 @@ function render(){
   bindEvents();
   applyColumnWidths();
   document.querySelectorAll('input[type=date]').forEach(markDate);
+  document.querySelectorAll('table[data-filter-bank]').forEach(t=>applyTableFilter(t.getAttribute('data-filter-bank')));
   if(focusBankRow){
     const first = document.querySelector(`tr[data-bankrow="${focusBankRow}"] input, tr[data-bankrow="${focusBankRow}"] select`);
     focusBankRow = null;
@@ -3145,6 +3273,28 @@ function bindEvents(){
       }, 0);
     });
     el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); endTaskDrag(); dragCard=null; });
+  });
+  document.querySelectorAll('th[data-colkey]').forEach(th=>{
+    const key = th.getAttribute('data-colkey');
+    const clear = ()=>document.querySelectorAll('th.col-drop-before, th.col-drop-after').forEach(x=>x.classList.remove('col-drop-before','col-drop-after'));
+    th.addEventListener('dragstart', ev=>{
+      if(dragCard) return;
+      dragColKey = key; th.classList.add('col-dragging');
+      if(ev.dataTransfer){ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain', key); }
+    });
+    th.addEventListener('dragend', ()=>{ th.classList.remove('col-dragging'); clear(); dragColKey = null; });
+    th.addEventListener('dragover', ev=>{
+      if(!dragColKey || dragColKey.split(':')[0]!==key.split(':')[0]) return;
+      ev.preventDefault();
+      const r = th.getBoundingClientRect(); const after = ev.clientX > r.left + r.width/2;
+      clear(); if(dragColKey!==key) th.classList.add(after ? 'col-drop-after' : 'col-drop-before');
+    });
+    th.addEventListener('drop', ev=>{
+      if(!dragColKey) return;
+      ev.preventDefault();
+      const after = th.classList.contains('col-drop-after');
+      clear(); dropColumn(key, after);
+    });
   });
   document.querySelectorAll('[data-navgroup]').forEach(el=>{
     el.addEventListener('dragover', ()=>{
