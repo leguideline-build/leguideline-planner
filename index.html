@@ -2179,6 +2179,8 @@ function streamTaskKeys(k){
   if(s.subareas && s.subareas.some(sa=>sa.type==='videoprod')) keys = keys.concat(VIDEO_SERIES.map(([x])=>'video-'+x));
   return keys;
 }
+// Ads dashboard (Instagram + YouTube), hosted on Claude
+const PAID_GROWTH_URL = 'https://claude.ai/artifact/LgWzGTPMZ4nWi1MHmVivFo';
 function renderNav(){
   let html = `<button class="${view.stream==='overview'?'active':''}" data-nav="overview">
     ${icon('<path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1v-9.5"/>')} Overview</button>`;
@@ -2199,6 +2201,8 @@ function renderNav(){
     html += `<div class="nav-item" data-navgroup="${k}"><button class="${view.stream===k?'active':''}" data-nav="${k}" ${first?`data-droptarget="${first}"`:''}>
       ${icon(s.icon)} ${s.label} <span class="count">${open}</span></button>${fly}</div>`;
   });
+  html += `<div class="nav-item"><button data-href="${PAID_GROWTH_URL}" title="Opens the ads dashboard in a new tab">
+    ${icon('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>')} Paid Growth <span class="count">↗</span></button></div>`;
   return html;
 }
 
@@ -3820,6 +3824,9 @@ function bindEvents(){
   });
   document.querySelectorAll('[data-nav]').forEach(el=>{
     el.addEventListener('click', ()=>{ view = { stream: el.getAttribute('data-nav'), subarea:null }; render(); });
+  });
+  document.querySelectorAll('[data-href]').forEach(el=>{
+    el.addEventListener('click', ()=>{ window.open(el.getAttribute('data-href'), '_blank', 'noopener'); });
   });
   document.querySelectorAll('[data-subtab]').forEach(el=>{
     el.addEventListener('click', ()=>{ view = { stream: view.stream, subarea: el.getAttribute('data-subtab') }; render(); });
