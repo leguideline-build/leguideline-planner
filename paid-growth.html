@@ -8,10 +8,36 @@
 <style>body { margin: 0; background: #fff; } #dash-root { container-type: inline-size; container-name: lg; } #dash-root .lg { container-type: normal; } .lg { min-height: 100vh; } .lg-side { position: sticky; top: 0; height: 100vh; align-self: flex-start; } @container lg (max-width: 720px) { .lg-side { position: static; height: auto; } }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
-/* Small stand-in for the dashboard runtime: the data below is the source for every number on the page. */
-window.DASH_DATA = {"ig_monthly": [{"month": "Aug", "period": "Jul 23 – Aug 23", "spend_usd": 237.25, "gross_follows": 1760, "unfollows": 289, "net_follows": 1471, "avg_cost_per_profile_visit_usd": 0.07}, {"month": "Sep", "period": "Aug 23 – Sep 23", "spend_usd": 463.02, "gross_follows": 981, "unfollows": 301, "net_follows": 680, "avg_cost_per_profile_visit_usd": 0.05}, {"month": "Oct", "period": "Sep 23 – Oct 23", "spend_usd": 405.08, "gross_follows": 515, "unfollows": 270, "net_follows": 245, "avg_cost_per_profile_visit_usd": 0.08}], "ig_ads_oct": [{"ad": "Vasco Coelho", "ad_set": "Talks Adv", "campaign": "Account visits · Autumn", "format": "Interview", "objective": "Profile visits", "spend": 60.57, "spend_prev": null, "impressions": 13706, "impressions_prev": null, "reach": 8986, "reach_prev": null, "frequency": 1.53, "results": 574, "results_prev": null, "status": "New"}, {"ad": "Taberna das flores", "ad_set": "Portugal Places", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 56.45, "spend_prev": 7.55, "impressions": 13901, "impressions_prev": 1956, "reach": 8180, "reach_prev": 1610, "frequency": 1.7, "results": 576, "results_prev": 71, "status": "Scaled up"}, {"ad": "Winonabar & Ogata", "ad_set": "Paris Adv", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 46.81, "spend_prev": 13.02, "impressions": 10574, "impressions_prev": 2344, "reach": 7468, "reach_prev": 2052, "frequency": 1.42, "results": 483, "results_prev": 110, "status": "Scaled up"}, {"ad": "Reel", "ad_set": "Prototype · Talking heads · Lookalike", "campaign": "Account visits · Autumn", "format": "Product build", "objective": "Profile visits", "spend": 43.12, "spend_prev": 8.7, "impressions": 13659, "impressions_prev": 2442, "reach": 8591, "reach_prev": 2180, "frequency": 1.59, "results": 640, "results_prev": 112, "status": "Scaled up"}, {"ad": "Airbnb", "ad_set": "Italy", "campaign": "Experimental → account", "format": "Story", "objective": "Profile visits", "spend": 36.6, "spend_prev": 95.56, "impressions": 18222, "impressions_prev": 48893, "reach": 15807, "reach_prev": 30758, "frequency": 1.15, "results": 537, "results_prev": 1639, "status": "Scaled down"}, {"ad": "Beta", "ad_set": "Talking heads", "campaign": "Website traffic", "format": "Product build", "objective": "Landing page views", "spend": 36.49, "spend_prev": null, "impressions": 7072, "impressions_prev": null, "reach": 2720, "reach_prev": null, "frequency": 2.6, "results": 244, "results_prev": null, "status": "New"}, {"ad": "How little info", "ad_set": "Prototype · Talking heads · Lookalike", "campaign": "Account visits · Autumn", "format": "Product build", "objective": "Profile visits", "spend": 31.45, "spend_prev": null, "impressions": 9248, "impressions_prev": null, "reach": 7414, "reach_prev": null, "frequency": 1.25, "results": 484, "results_prev": null, "status": "New"}, {"ad": "Good taste is boring", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 11.76, "spend_prev": 117.33, "impressions": 5212, "impressions_prev": 48105, "reach": 4913, "reach_prev": 36740, "frequency": 1.06, "results": 264, "results_prev": 3181, "status": "Scaled down"}, {"ad": "Gallery (Prague)", "ad_set": "Prague", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 10.81, "spend_prev": 15.0, "impressions": 2300, "impressions_prev": 3100, "reach": 1823, "reach_prev": 2222, "frequency": 1.26, "results": 86, "results_prev": 114, "status": "Scaled down"}, {"ad": "Hidden gems", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 5.35, "spend_prev": 73.58, "impressions": 2798, "impressions_prev": 36397, "reach": 2653, "reach_prev": 27098, "frequency": 1.05, "results": 95, "results_prev": 2232, "status": "Scaled down"}, {"ad": "Cabra", "ad_set": "Portugal Places", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 0.38, "spend_prev": null, "impressions": 187, "impressions_prev": null, "reach": 168, "reach_prev": null, "frequency": 1.11, "results": 7, "results_prev": null, "status": "New"}, {"ad": "Marina Abramovic", "ad_set": "Italy", "campaign": "Experimental → account", "format": "Story", "objective": "Profile visits", "spend": 0.34, "spend_prev": 8.66, "impressions": 111, "impressions_prev": 2792, "reach": 106, "reach_prev": 2578, "frequency": 1.05, "results": 1, "results_prev": 97, "status": "Off"}, {"ad": "Wardrobe", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 0.01, "spend_prev": 13.64, "impressions": 1, "impressions_prev": 7374, "reach": 1, "reach_prev": 6381, "frequency": 1.0, "results": 0, "results_prev": 295, "status": "Off"}, {"ad": "Fismuler", "ad_set": "Places", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 0, "spend_prev": 17.47, "impressions": 0, "impressions_prev": 5126, "reach": 0, "reach_prev": 4370, "frequency": null, "results": 0, "results_prev": 201, "status": "Off"}, {"ad": "Places (talking head)", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 0, "spend_prev": 15.29, "impressions": 0, "impressions_prev": 3950, "reach": 0, "reach_prev": 3807, "frequency": null, "results": 0, "results_prev": 172, "status": "Off"}, {"ad": "Coffee places video", "ad_set": "Places", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 0, "spend_prev": 1.01, "impressions": 0, "impressions_prev": 305, "reach": 0, "reach_prev": 293, "frequency": null, "results": 0, "results_prev": 10, "status": "Off"}], "yt_monthly": [{"month": "Aug", "period": "Jul 23 – Aug 23", "spend_eur": 109.98, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.19, "clicks": null, "subs": 182, "views_30s": 8053}, {"month": "Sep", "period": "Aug 23 – Sep 23", "spend_eur": 149.17, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.09, "clicks": 1613, "subs": 503, "views_30s": 10158}, {"month": "Oct", "period": "Sep 23 – Oct 23", "spend_eur": 104.08, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.23, "clicks": 453, "subs": 144, "views_30s": 24600}], "yt_videos": [{"month": "Aug", "video": "Pedro Pena", "avg_watch_sec": 233, "campaign_goal": "Views"}, {"month": "Aug", "video": "Cecilia", "avg_watch_sec": 34, "campaign_goal": "Views"}, {"month": "Aug", "video": "Ciclo", "avg_watch_sec": 54, "campaign_goal": null}, {"month": "Sep", "video": "Chef Marti", "avg_watch_sec": 98, "campaign_goal": "Views"}, {"month": "Sep", "video": "Alessandra Borsato", "avg_watch_sec": 218, "campaign_goal": "Views"}, {"month": "Sep", "video": "Juliana Penteado", "avg_watch_sec": 155, "campaign_goal": "Subscribers"}, {"month": "Oct", "video": "Lamina", "avg_watch_sec": 73, "campaign_goal": null}, {"month": "Oct", "video": "Garrincha", "avg_watch_sec": 184, "campaign_goal": null}, {"month": "Oct", "video": "Mariana", "avg_watch_sec": 76, "campaign_goal": null}]};
+/* Small stand-in for the dashboard runtime. DASH_BASE is the built-in data; reports added on the
+   "Add a report" page are merged on top (a saved month replaces the built-in month with the same key). */
+window.DASH_BASE = {"ig_monthly": [{"period": "Jun 23 – Jul 23", "spend_usd": 365.64, "gross_follows": 474, "unfollows": 257, "net_follows": 217, "avg_cost_per_profile_visit_usd": 0.07, "key": "2026-07"}, {"period": "Jul 23 – Aug 23", "spend_usd": 237.25, "gross_follows": 1760, "unfollows": 289, "net_follows": 1471, "avg_cost_per_profile_visit_usd": 0.07, "key": "2026-08"}, {"period": "Aug 23 – Sep 23", "spend_usd": 463.02, "gross_follows": 981, "unfollows": 301, "net_follows": 680, "avg_cost_per_profile_visit_usd": 0.05, "key": "2026-09"}, {"period": "Sep 23 – Oct 23", "spend_usd": 405.08, "gross_follows": 515, "unfollows": 270, "net_follows": 245, "avg_cost_per_profile_visit_usd": 0.08, "key": "2026-10"}], "ig_ads_oct": [{"ad": "Vasco Coelho", "ad_set": "Talks Adv", "campaign": "Account visits · Autumn", "format": "Interview", "objective": "Profile visits", "spend": 60.57, "spend_prev": null, "impressions": 13706, "impressions_prev": null, "reach": 8986, "reach_prev": null, "frequency": 1.53, "results": 574, "results_prev": null, "status": "New"}, {"ad": "Taberna das flores", "ad_set": "Portugal Places", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 56.45, "spend_prev": 7.55, "impressions": 13901, "impressions_prev": 1956, "reach": 8180, "reach_prev": 1610, "frequency": 1.7, "results": 576, "results_prev": 71, "status": "Scaled up"}, {"ad": "Winonabar & Ogata", "ad_set": "Paris Adv", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 46.81, "spend_prev": 13.02, "impressions": 10574, "impressions_prev": 2344, "reach": 7468, "reach_prev": 2052, "frequency": 1.42, "results": 483, "results_prev": 110, "status": "Scaled up"}, {"ad": "Reel", "ad_set": "Prototype · Talking heads · Lookalike", "campaign": "Account visits · Autumn", "format": "Product build", "objective": "Profile visits", "spend": 43.12, "spend_prev": 8.7, "impressions": 13659, "impressions_prev": 2442, "reach": 8591, "reach_prev": 2180, "frequency": 1.59, "results": 640, "results_prev": 112, "status": "Scaled up"}, {"ad": "Airbnb", "ad_set": "Italy", "campaign": "Experimental → account", "format": "Story", "objective": "Profile visits", "spend": 36.6, "spend_prev": 95.56, "impressions": 18222, "impressions_prev": 48893, "reach": 15807, "reach_prev": 30758, "frequency": 1.15, "results": 537, "results_prev": 1639, "status": "Scaled down"}, {"ad": "Beta", "ad_set": "Talking heads", "campaign": "Website traffic", "format": "Product build", "objective": "Landing page views", "spend": 36.49, "spend_prev": null, "impressions": 7072, "impressions_prev": null, "reach": 2720, "reach_prev": null, "frequency": 2.6, "results": 244, "results_prev": null, "status": "New"}, {"ad": "How little info", "ad_set": "Prototype · Talking heads · Lookalike", "campaign": "Account visits · Autumn", "format": "Product build", "objective": "Profile visits", "spend": 31.45, "spend_prev": null, "impressions": 9248, "impressions_prev": null, "reach": 7414, "reach_prev": null, "frequency": 1.25, "results": 484, "results_prev": null, "status": "New"}, {"ad": "Good taste is boring", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 11.76, "spend_prev": 117.33, "impressions": 5212, "impressions_prev": 48105, "reach": 4913, "reach_prev": 36740, "frequency": 1.06, "results": 264, "results_prev": 3181, "status": "Scaled down"}, {"ad": "Gallery (Prague)", "ad_set": "Prague", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 10.81, "spend_prev": 15.0, "impressions": 2300, "impressions_prev": 3100, "reach": 1823, "reach_prev": 2222, "frequency": 1.26, "results": 86, "results_prev": 114, "status": "Scaled down"}, {"ad": "Hidden gems", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 5.35, "spend_prev": 73.58, "impressions": 2798, "impressions_prev": 36397, "reach": 2653, "reach_prev": 27098, "frequency": 1.05, "results": 95, "results_prev": 2232, "status": "Scaled down"}, {"ad": "Cabra", "ad_set": "Portugal Places", "campaign": "Account visits · Autumn", "format": "Places guide", "objective": "Profile visits", "spend": 0.38, "spend_prev": null, "impressions": 187, "impressions_prev": null, "reach": 168, "reach_prev": null, "frequency": 1.11, "results": 7, "results_prev": null, "status": "New"}, {"ad": "Marina Abramovic", "ad_set": "Italy", "campaign": "Experimental → account", "format": "Story", "objective": "Profile visits", "spend": 0.34, "spend_prev": 8.66, "impressions": 111, "impressions_prev": 2792, "reach": 106, "reach_prev": 2578, "frequency": 1.05, "results": 1, "results_prev": 97, "status": "Off"}, {"ad": "Wardrobe", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 0.01, "spend_prev": 13.64, "impressions": 1, "impressions_prev": 7374, "reach": 1, "reach_prev": 6381, "frequency": 1.0, "results": 0, "results_prev": 295, "status": "Off"}, {"ad": "Fismuler", "ad_set": "Places", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 0, "spend_prev": 17.47, "impressions": 0, "impressions_prev": 5126, "reach": 0, "reach_prev": 4370, "frequency": null, "results": 0, "results_prev": 201, "status": "Off"}, {"ad": "Places (talking head)", "ad_set": "Talking Heads", "campaign": "Experimental → account", "format": "Talking head", "objective": "Profile visits", "spend": 0, "spend_prev": 15.29, "impressions": 0, "impressions_prev": 3950, "reach": 0, "reach_prev": 3807, "frequency": null, "results": 0, "results_prev": 172, "status": "Off"}, {"ad": "Coffee places video", "ad_set": "Places", "campaign": "Experimental → account", "format": "Places guide", "objective": "Profile visits", "spend": 0, "spend_prev": 1.01, "impressions": 0, "impressions_prev": 305, "reach": 0, "reach_prev": 293, "frequency": null, "results": 0, "results_prev": 10, "status": "Off"}], "yt_monthly": [{"period": "Jun 23 – Jul 23", "spend_eur": 149.32, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.26, "clicks": null, "subs": 189, "views_30s": 11300, "key": "2026-07"}, {"period": "Jul 23 – Aug 23", "spend_eur": 109.98, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.19, "clicks": null, "subs": 182, "views_30s": 8053, "key": "2026-08"}, {"period": "Aug 23 – Sep 23", "spend_eur": 149.17, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.09, "clicks": 1613, "subs": 503, "views_30s": 10158, "key": "2026-09"}, {"period": "Sep 23 – Oct 23", "spend_eur": 104.08, "cost_per_view_eur": 0.01, "cost_per_click_eur": 0.23, "clicks": 453, "subs": 144, "views_30s": 24600, "key": "2026-10"}], "yt_videos": [{"key": "2026-07", "video": "Jose Neves", "avg_watch_sec": 145, "campaign_goal": null}, {"key": "2026-07", "video": "Cecilia", "avg_watch_sec": 77, "campaign_goal": null}, {"video": "Pedro Pena", "avg_watch_sec": 233, "campaign_goal": "Views", "key": "2026-08"}, {"video": "Cecilia", "avg_watch_sec": 34, "campaign_goal": "Views", "key": "2026-08"}, {"video": "Ciclo", "avg_watch_sec": 54, "campaign_goal": null, "key": "2026-08"}, {"video": "Chef Marti", "avg_watch_sec": 98, "campaign_goal": "Views", "key": "2026-09"}, {"video": "Alessandra Borsato", "avg_watch_sec": 218, "campaign_goal": "Views", "key": "2026-09"}, {"video": "Juliana Penteado", "avg_watch_sec": 155, "campaign_goal": "Subscribers", "key": "2026-09"}, {"video": "Lamina", "avg_watch_sec": 73, "campaign_goal": null, "key": "2026-10"}, {"video": "Garrincha", "avg_watch_sec": 184, "campaign_goal": null, "key": "2026-10"}, {"video": "Mariana", "avg_watch_sec": 76, "campaign_goal": null, "key": "2026-10"}], "creatives": [{"key": "2026-07", "creative": "Cynthia", "format": "Other", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Video with chefs", "format": "Interview", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Jose Neves", "format": "Interview", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Arca", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Food spots BCN", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Coffee BCN", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Franca", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Talking video from Greece", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Hotel video Greece", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Olga’s Theory, 1st edition", "format": "Other", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Olga’s Theory, 2nd edition", "format": "Other", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Bou Bous", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Boat Amsterdam", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-07", "creative": "Milos to Santorini", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-07", "creative": "You don’t cook (talking head)", "format": "Talking head", "cost": 0.03, "note": "Cheapest of the month"}, {"key": "2026-07", "creative": "Binnen Amsterdam", "format": "Places guide", "cost": 0.13, "note": "Most expensive of the month"}, {"key": "2026-07", "creative": "Mamma Rua", "format": "Places guide", "cost": 0.13, "note": "Most expensive of the month"}, {"key": "2026-08", "creative": "You don’t cook (talking head)", "format": "Talking head", "cost": 0.03, "note": "Cheapest again"}, {"key": "2026-08", "creative": "Prototype (talking head)", "format": "Product build", "cost": null, "note": "Best performer: shows interest in the product"}, {"key": "2026-08", "creative": "Semantic Collider (talking head)", "format": "Talking head", "cost": null, "note": "199 follows, most of any ad"}, {"key": "2026-08", "creative": "Boat Amsterdam", "format": "Talking head", "cost": 0.12, "note": "Expensive for a talking head"}, {"key": "2026-08", "creative": "Greece hotel", "format": "Places guide", "cost": 0.13, "note": "Most expensive; barely shown"}, {"key": "2026-08", "creative": "Airbnb video", "format": "Story", "cost": null, "note": "1,127 follows (your own reel)"}, {"key": "2026-08", "creative": "Fismuler", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-08", "creative": "Coffee places", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-08", "creative": "Binnen Amsterdam", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-08", "creative": "Lisbon insiders", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-08", "creative": "The first talking head", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-08", "creative": "Talking video from Greece", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Good taste is boring", "format": "Talking head", "cost": 0.03, "note": "Cheapest of the month"}, {"key": "2026-09", "creative": "Hidden gems", "format": "Talking head", "cost": 0.03, "note": "Cheapest of the month"}, {"key": "2026-09", "creative": "Prague carousel", "format": "Places guide", "cost": 0.15, "note": "Most expensive of the month"}, {"key": "2026-09", "creative": "Fismuler", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Coffee places", "format": "Places guide", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Prototype (talking head)", "format": "Product build", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Semantic Collider (talking head)", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Wardrobe", "format": "Talking head", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Marina Abramovic", "format": "Story", "cost": null, "note": ""}, {"key": "2026-09", "creative": "Italian Airbnb", "format": "Story", "cost": null, "note": ""}]};
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+window.mergeData = (base, extra) => {
+  const months = (extra && extra.months) || {};
+  const keys = new Set([...base.ig_monthly.map((r) => r.key), ...base.yt_monthly.map((r) => r.key), ...Object.keys(months)]);
+  const years = new Set([...keys].map((k) => k.slice(0, 4)));
+  const label = (k) => MONTH_SHORT[+k.slice(5, 7) - 1] + (years.size > 1 ? ' ’' + k.slice(2, 4) : '');
+  const pick = (name, field) => {
+    const rows = base[name].filter((r) => !(months[r.key] && months[r.key][field] != null));
+    for (const [k, m] of Object.entries(months)) {
+      const v = m[field];
+      if (v == null) continue;
+      if (Array.isArray(v)) v.forEach((x) => rows.push({ ...x, key: k }));
+      else rows.push({ ...v, key: k, period: m.period });
+    }
+    return rows.map((r) => ({ ...r, month: label(r.key) })).sort((a, b) => a.key.localeCompare(b.key));
+  };
+  return {
+    ig_monthly: pick('ig_monthly', 'ig'), yt_monthly: pick('yt_monthly', 'yt'),
+    yt_videos: pick('yt_videos', 'videos'), creatives: pick('creatives', 'creatives'),
+    ig_ads_oct: base.ig_ads_oct,
+  };
+};
 window.dash = (() => {
-  const files = window.DASH_DATA, calcs = {}, cache = {}, draws = {}, onDataFns = [];
+  let files = window.mergeData(window.DASH_BASE, null);
+  const calcs = {}, draws = {}, onDataFns = [];
+  let cache = {};
   const defaults = { value: 20, conv: 3 };
   let params = { ...defaults };
   const data = (id) => {
@@ -37,6 +63,7 @@ window.dash = (() => {
     setParams: (p) => { Object.assign(params, p); redrawAll(); },
     resetParams: () => { params = { ...defaults }; redrawAll(); },
     setLink: (id) => history.replaceState(null, '', '#' + id),
+    setExtra: (extra) => { files = window.mergeData(window.DASH_BASE, extra); cache = {}; redrawAll(); },
     refresh: () => {}, colors: [],
   };
 })();
@@ -292,6 +319,33 @@ window.dash = (() => {
 .lg-fmtcard .meta { font-size: 10.5px; color: var(--lg-faint); margin-top: 6px; }
 .lg-arrow { color: var(--lg-faint); text-align: center; }
 .f-web { --fc: #9b5cff; }
+
+/* add a report */
+.lg-textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--lg-line); border-radius: 10px; padding: 12px; font: 12.5px/1.5 Helvetica, Arial, sans-serif; color: var(--lg-ink); background: var(--lg-white); resize: vertical; }
+.lg-textarea:focus { outline: none; border-color: var(--lg-ink); }
+.lg-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.lg-row .lg-note { margin: 0; }
+.lg-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); gap: 8px; }
+.lg-field { background: var(--lg-cell); border-radius: 10px; padding: 8px 10px 10px; }
+.lg-field label { display: block; font-size: 10.5px; color: var(--lg-soft); margin-bottom: 4px; }
+.lg-field input, .lg-field select, .lg-line input, .lg-line select { width: 100%; box-sizing: border-box; border: none; border-bottom: 1px solid var(--lg-line); background: transparent; font: 14px Helvetica, Arial, sans-serif; color: var(--lg-ink); padding: 3px 0; }
+.lg-field input:focus, .lg-line input:focus, .lg-line select:focus, .lg-field select:focus { outline: none; border-bottom-color: var(--lg-ink); }
+.lg-field.auto input { color: var(--lg-soft); }
+.lg-line { display: grid; gap: 8px; align-items: end; padding: 4px 0; }
+.lg-line.v { grid-template-columns: 2fr 1fr 24px; }
+.lg-line.c { grid-template-columns: 2fr 1.2fr .8fr 2fr 24px; }
+.lg-line input, .lg-line select { font-size: 12.5px; }
+.lg-x { all: unset; cursor: pointer; color: var(--lg-faint); text-align: center; font-size: 14px; }
+.lg-x:hover { color: var(--lg-pink); }
+.lg-warn { margin: 0 0 12px; padding: 0; list-style: none; }
+.lg-warn li { font-size: 11.5px; color: var(--lg-pink); padding: 2px 0; }
+.lg-hist { font-size: 12px; }
+.lg-hist .it { display: flex; gap: 6px; align-items: baseline; padding: 3px 0; line-height: 1.4; }
+.lg-hist .it b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.lg-hist .n2 { font-size: 10.5px; color: var(--lg-faint); margin-top: 6px; }
+.f-ot { --fc: var(--lg-faint); }
+@container lg (max-width: 720px) { .lg-line.c { grid-template-columns: 1fr 1fr; } }
+
 @container lg (max-width: 980px) { .lg-assume { grid-template-columns: 1fr; } .lg-kpis4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 @container lg (max-width: 980px) {
@@ -330,6 +384,7 @@ window.dash = (() => {
       <button class="lg-tab" data-tab="youtube"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/></svg> YouTube ads <span class="n">€</span></button>
       <button class="lg-tab" data-tab="roi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16v-6"/></svg> Cost &amp; ROI</button>
       <button class="lg-tab" data-tab="strategy"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg> Content strategy</button>
+      <button class="lg-tab" data-tab="add"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add a report</button>
     </div>
     <div class="lg-foot">Paid growth · monthly review<br>Months run 23rd → 23rd<br>Ad detail from <u>Ads Manager</u></div>
   </nav>
@@ -340,38 +395,39 @@ window.dash = (() => {
     <section class="lg-page" id="overview">
       <div class="lg-top">
         <div>
-          <h1>October review</h1>
-          <div class="date">Sep 23 – Oct 23, 2026 · compared with Aug 23 – Sep 23</div>
+          <h1><span data-draw="lastlong">—</span> review</h1>
+          <div class="date" data-draw="periodline">—</div>
         </div>
         <div class="lg-tagline">Instagram spend in USD, YouTube in EUR. Each month is the 23rd to the 23rd.</div>
       </div>
+      <div class="lg-actions"><button class="lg-btn" data-goto="add">Add report</button></div>
 
       <div class="lg-card" id="card-headline">
-        <span class="corner">vs Sep</span>
+        <span class="corner" data-draw="vsprev">—</span>
         <h2>This month</h2>
-        <div class="window">Sep 23 – Oct 23, against Aug 23 – Sep 23 · <button class="lg-golink" data-goto="planner">Plan next month’s budget</button> · <button class="lg-golink" data-goto="make">See what to make</button></div>
-        <p class="lg-takeaway">Same money, less attention: each Instagram follower we kept cost <b data-draw="num" data-source="ig_costs" data-where="month=Oct" data-field="cost_per_net" data-fmt="usd">—</b>, and YouTube brought <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="subs" data-fmt="count">—</b> subscribers, even though people watched our interviews for longer than ever.</p>
+        <div class="window"><span data-draw="periodline">—</span> · <button class="lg-golink" data-goto="planner">Plan next month’s budget</button> · <button class="lg-golink" data-goto="make">See what to make</button></div>
+        <p class="lg-takeaway" data-draw="takeaway"></p>
       </div>
 
       <div class="lg-card" id="kpis">
         <h2>Headline figures</h2>
         <div class="window">The outlined cell is the one to fix first.</div>
         <div class="lg-kpis">
-        <div class="lg-kpi"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_net" data-field="value" data-fmt="count">—</span></div><div class="name">Net new followers</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_net" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_net" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
-        <div class="lg-kpi now"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_cost_net" data-field="value" data-fmt="usd">—</span></div><div class="name">Cost per follower kept</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_cost_net" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_cost_net" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
-        <div class="lg-kpi"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_unfollow_rate" data-field="value" data-fmt="pct">—</span></div><div class="name">New followers lost to unfollows</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_unfollow_rate" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_unfollow_rate" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
-        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_subs" data-field="value" data-fmt="count">—</span></div><div class="name">New subscribers</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_subs" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_subs" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
-        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_cost_sub" data-field="value" data-fmt="eur">—</span></div><div class="name">Cost per subscriber</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_cost_sub" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_cost_sub" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
-        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_views30" data-field="value" data-fmt="compact">—</span></div><div class="name">Ad views past 30 seconds</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_views30" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_views30" data-field="change">—</span><span class="vs">vs Sep</span></div></div>
+        <div class="lg-kpi"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_net" data-field="value" data-fmt="count">—</span></div><div class="name">Net new followers</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_net" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_net" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
+        <div class="lg-kpi now"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_cost_net" data-field="value" data-fmt="usd">—</span></div><div class="name">Cost per follower kept</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_cost_net" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_cost_net" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
+        <div class="lg-kpi"><div class="head"><span class="lg-chan">Instagram</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=ig_unfollow_rate" data-field="value" data-fmt="pct">—</span></div><div class="name">New followers lost to unfollows</div><div class="spark" data-draw="spark" data-source="trend" data-metric="ig_unfollow_rate" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=ig_unfollow_rate" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
+        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_subs" data-field="value" data-fmt="count">—</span></div><div class="name">New subscribers</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_subs" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_subs" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
+        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_cost_sub" data-field="value" data-fmt="eur">—</span></div><div class="name">Cost per subscriber</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_cost_sub" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_cost_sub" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
+        <div class="lg-kpi"><div class="head"><span class="lg-chan">YouTube</span><span class="big" data-draw="num" data-source="kpis" data-where="metric=yt_views30" data-field="value" data-fmt="compact">—</span></div><div class="name">Ad views past 30 seconds</div><div class="spark" data-draw="spark" data-source="trend" data-metric="yt_views30" data-size="mini"></div><div class="foot"><span class="delta" data-draw="delta" data-source="kpis" data-where="metric=yt_views30" data-field="change">—</span><span class="vs" data-draw="vsprev">—</span></div></div>
         </div>
       </div>
 
 
       
             <div class="lg-card" id="card-index">
-        <span class="corner">Aug = 100</span>
-        <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> Three months: spend vs. results</h2>
-        <div class="window">Each line is indexed to August, so they share one scale. Dashed lines are spend, solid lines are what it bought. <button class="lg-golink" data-goto="trends">See every trend</button></div>
+        <span class="corner" data-draw="idxbase">—</span>
+        <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> Every month: spend vs. results</h2>
+        <div class="window">Each line is indexed to the first reported month, so they share one scale. Dashed lines are spend, solid lines are what it bought. <button class="lg-golink" data-goto="trends">See every trend</button></div>
         <div class="lg-chart tall" id="chart-index" data-draw="index" data-source="trend_index"></div>
       </div>
 
@@ -393,13 +449,13 @@ window.dash = (() => {
       </div>
 
       <div class="lg-card" id="card-happened">
-        <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></svg> What happened this month</h2>
-        <div class="window">Read top to bottom: cause, effect, then what it means for each channel.</div>
+        <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></svg> October deep dive</h2>
+        <div class="window">From the Ads Manager export, Sep 23 – Oct 23. Send a new export to refresh this part.</div>
         <ol class="lg-list">
           <li><span class="ix" aria-hidden="true">01</span><span><b>Budget drifted to the expensive format.</b> Talking heads cost <b data-draw="num" data-source="ig_formats" data-where="format=Talking head" data-field="cpv" data-fmt="usd">—</b> per profile visit, the cheapest of any format, but got only <b data-draw="num" data-source="ig_formats" data-where="format=Talking head" data-field="spend" data-fmt="usd">—</b>. Place guides got <b data-draw="num" data-source="ig_formats" data-where="format=Places guide" data-field="spend" data-fmt="usd">—</b> at <b data-draw="num" data-source="ig_formats" data-where="format=Places guide" data-field="cpv" data-fmt="usd">—</b> a visit.<small>Profile-visit ads only, Sep 23 – Oct 23.</small></span></li>
           <li><span class="ix" aria-hidden="true">02</span><span><b>So the same budget bought half the visits.</b> Ads Manager shows <b data-draw="num" data-source="ig_funnel" data-where="window=Sep 1 – Sep 30" data-field="visits" data-fmt="count">—</b> paid profile visits in Sep 1–30 and <b data-draw="num" data-source="ig_funnel" data-where="window=Sep 23 – Oct 23" data-field="visits" data-fmt="count">—</b> in Sep 23 – Oct 23.<small>The September stars, Good taste is boring and Hidden gems, were scaled down by about 90%.</small></span></li>
-          <li><span class="ix" aria-hidden="true">03</span><span><b>Unfollows didn’t move with spend.</b> <b data-draw="num" data-source="ig_monthly" data-where="month=Aug" data-field="unfollows" data-fmt="count">—</b>, <b data-draw="num" data-source="ig_monthly" data-where="month=Sep" data-field="unfollows" data-fmt="count">—</b>, <b data-draw="num" data-source="ig_monthly" data-where="month=Oct" data-field="unfollows" data-fmt="count">—</b> a month: this is churn from the existing audience, not just low-quality ad traffic. It’s a content problem as much as a media one.</span></li>
-          <li><span class="ix" aria-hidden="true">04</span><span><b>YouTube traded subscribers for views.</b> Views past 30 seconds rose to <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="views_30s" data-fmt="count">—</b>, and Garrincha held people for <b data-draw="num" data-source="yt_videos" data-where="month=Oct&amp;video=Garrincha" data-field="avg_watch_sec" data-fmt="mmss">—</b> on average, but cost per click rose to <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="cost_per_click_eur" data-fmt="eur">—</b> and no subscriber campaign was reported.</span></li>
+          <li><span class="ix" aria-hidden="true">03</span><span><b>Unfollows didn’t move with spend.</b> By month: <b data-draw="unflist">—</b>. This is churn from the existing audience, not just low-quality ad traffic: a content problem as much as a media one.</span></li>
+          <li><span class="ix" aria-hidden="true">04</span><span><b>YouTube traded subscribers for views.</b> Views past 30 seconds rose to <b data-draw="num" data-source="yt_monthly" data-where="key=2026-10" data-field="views_30s" data-fmt="count">—</b>, and Garrincha held people for <b data-draw="num" data-source="yt_videos" data-where="key=2026-10&amp;video=Garrincha" data-field="avg_watch_sec" data-fmt="mmss">—</b> on average, but cost per click rose to <b data-draw="num" data-source="yt_monthly" data-where="key=2026-10" data-field="cost_per_click_eur" data-fmt="eur">—</b> and no subscriber campaign was reported.</span></li>
           <li><span class="ix" aria-hidden="true">05</span><span><b>First website test is live.</b> The Beta ad brought <b data-draw="num" data-source="ig_ads_oct" data-where="ad=Beta" data-field="results" data-fmt="count">—</b> landing-page views at <b data-draw="num" data-source="ig_ad_costs" data-where="ad=Beta" data-field="cpr" data-fmt="usd">—</b> each. We can’t yet see what those visitors did on the site.</span></li>
         </ol>
       </div>
@@ -470,7 +526,7 @@ window.dash = (() => {
         </div>
         <div class="lg-card" id="card-plan-fc">
           <h2>Followers kept: history and forecast</h2>
-          <div class="window">Actual Aug–Oct, then three months if you repeat this plan vs. keep October’s mix.</div>
+          <div class="window">Actual months, then three months ahead if you repeat this plan vs. keep October’s mix.</div>
           <div class="lg-legend"><span><i style="background:var(--lg-blue)"></i>Actual</span><span><i style="background:var(--lg-film)"></i>Keep October mix</span><span><i style="background:var(--lg-pink)"></i>Your plan</span></div>
           <div class="lg-chart" id="plan-fc"></div>
           <p class="lg-note" id="plan-fc-note"></p>
@@ -495,7 +551,7 @@ window.dash = (() => {
           <li><span class="ix"></span><span><b>Each format’s cost per visit</b> is what it actually cost across Sep 1–30 and October combined. Spending above the most a format has ever had raises its cost, since bigger audiences are less warm.</span></li>
           <li><span class="ix"></span><span><b>Followers</b> = profile visits × the share that followed in October. <b>Kept</b> = followers minus unfollows, which have stayed flat whatever we spend.</span></li>
           <li><span class="ix"></span><span><b>YouTube</b> uses September’s costs for the subscriber campaign and October’s for views campaigns.</span></li>
-          <li><span class="ix"></span><span><b>Boosted posts</b> aren’t included; plan them on top. A forecast from three months is a direction, not a promise: check it against November’s report.</span></li>
+          <li><span class="ix"></span><span><b>Boosted posts</b> aren’t included; plan them on top. A forecast from a few months of data is a direction, not a promise: check it against each new report.</span></li>
         </ol>
       </div>
     </section>
@@ -514,6 +570,25 @@ window.dash = (() => {
         <h2>By format</h2>
         <div class="window">Cost per profile visit, Sep 1–30 → October, and what to produce next.</div>
         <div class="lg-cols" id="make-formats"></div>
+      </div>
+      <div class="lg-card" id="card-make-history">
+        <span class="corner">All months</span>
+        <h2>Creative history</h2>
+        <div class="window">Every creative named in the monthly reports, with cost per click where the report gave one. October comes from the Ads Manager export.</div>
+        <p class="lg-be" data-draw="histline"></p>
+        <div class="lg-cols" data-draw="histcols"></div>
+        <div class="lg-tablewrap" style="margin-top:16px">
+          <table class="lg-table">
+            <thead><tr>
+              <th><button tabindex="-1">Month</button></th>
+              <th><button tabindex="-1">Creative</button></th>
+              <th><button tabindex="-1">Format</button></th>
+              <th class="r"><button tabindex="-1">Cost / click</button></th>
+              <th><button tabindex="-1">Note</button></th>
+            </tr></thead>
+            <tbody data-draw="histrows"></tbody>
+          </table>
+        </div>
       </div>
       <div class="lg-card" id="card-make-ads">
         <h2>Every piece, ranked</h2>
@@ -541,15 +616,15 @@ window.dash = (() => {
       <div class="lg-top">
         <div>
           <h1>Trends</h1>
-          <div class="date">Jul 23 – Oct 23, 2026 · three reporting months</div>
+          <div class="date" data-draw="span">—</div>
         </div>
-        <div class="lg-tagline">Every metric from the monthly reports across all three months. The change on each card is August to October; the line under it says whether the direction held.</div>
+        <div class="lg-tagline">Every metric from the monthly reports, across every reported month. The change on each card is first month to latest; the line under it says whether the direction held.</div>
       </div>
 
       <div class="lg-card" id="card-trend-ig">
         <span class="corner">USD</span>
         <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/></svg> Instagram</h2>
-        <div class="window">Aug · Sep · Oct. Green means moving the right way since August, red the wrong way.</div>
+        <div class="window">Every reported month. Green means moving the right way since the first month, red the wrong way.</div>
         <div class="lg-smalls">
           <div class="lg-small" id="trend-ig_spend"><div class="head"><span class="lg-chan">Instagram</span><span class="chg" data-draw="tchg" data-source="trend_summary" data-where="metric=ig_spend" data-field="change">—</span></div><h3>Spend</h3><div class="lg-chart small" data-draw="spark" data-source="trend" data-metric="ig_spend" data-size="small"></div><div class="verdict" data-draw="num" data-source="trend_summary" data-where="metric=ig_spend" data-field="verdict" data-fmt="text">—</div></div>
           <div class="lg-small" id="trend-ig_gross"><div class="head"><span class="lg-chan">Instagram</span><span class="chg" data-draw="tchg" data-source="trend_summary" data-where="metric=ig_gross" data-field="change">—</span></div><h3>Followers gained</h3><div class="lg-chart small" data-draw="spark" data-source="trend" data-metric="ig_gross" data-size="small"></div><div class="verdict" data-draw="num" data-source="trend_summary" data-where="metric=ig_gross" data-field="verdict" data-fmt="text">—</div></div>
@@ -564,7 +639,7 @@ window.dash = (() => {
       <div class="lg-card" id="card-trend-yt">
         <span class="corner">EUR</span>
         <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/></svg> YouTube</h2>
-        <div class="window">Aug · Sep · Oct. Clicks are left out because August didn’t report them.</div>
+        <div class="window">Every reported month. Clicks are left out because not every report has them.</div>
         <div class="lg-smalls">
           <div class="lg-small" id="trend-yt_spend"><div class="head"><span class="lg-chan">YouTube</span><span class="chg" data-draw="tchg" data-source="trend_summary" data-where="metric=yt_spend" data-field="change">—</span></div><h3>Spend</h3><div class="lg-chart small" data-draw="spark" data-source="trend" data-metric="yt_spend" data-size="small"></div><div class="verdict" data-draw="num" data-source="trend_summary" data-where="metric=yt_spend" data-field="verdict" data-fmt="text">—</div></div>
           <div class="lg-small" id="trend-yt_subs"><div class="head"><span class="lg-chan">YouTube</span><span class="chg" data-draw="tchg" data-source="trend_summary" data-where="metric=yt_subs" data-field="change">—</span></div><h3>New subscribers</h3><div class="lg-chart small" data-draw="spark" data-source="trend" data-metric="yt_subs" data-size="small"></div><div class="verdict" data-draw="num" data-source="trend_summary" data-where="metric=yt_subs" data-field="verdict" data-fmt="text">—</div></div>
@@ -577,22 +652,77 @@ window.dash = (() => {
 
       <div class="lg-card" id="card-trend-table">
         <h2>Month by month</h2>
-        <div class="window">The same figures as a table, with the change from August to October.</div>
+        <div class="window">The same figures as a table, with the change from the first month to the latest.</div>
         <div class="lg-tablewrap">
           <table class="lg-table" id="trend-table" data-source="trend_summary" data-row-key="metric">
-            <thead><tr>
+            <thead data-draw="trendhead"><tr>
               <th data-field="label"><button tabindex="-1"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>Metric</button></th>
               <th data-field="channel"><button tabindex="-1"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Channel</button></th>
-              <th data-field="aug" class="r"><button tabindex="-1">Aug</button></th>
-              <th data-field="sep" class="r"><button tabindex="-1">Sep</button></th>
-              <th data-field="oct" class="r"><button tabindex="-1">Oct</button></th>
-              <th data-field="change" class="r"><button tabindex="-1">Aug → Oct</button></th>
+              
               <th data-field="verdict"><button tabindex="-1"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2 4 2 4H6"/></svg>Direction</button></th>
             </tr></thead>
             <tbody data-draw="trendrows"></tbody>
           </table>
         </div>
         <p class="lg-note">Rates change in points; everything else in percent. Spend has no good or bad direction, so it stays grey.</p>
+      </div>
+    </section>
+
+    <!-- ============ ADD A REPORT ============ -->
+    <section class="lg-page" id="add" hidden>
+      <div class="lg-top">
+        <div>
+          <h1>Add a report</h1>
+          <div class="date">Paste a monthly report and the whole dashboard updates</div>
+        </div>
+        <div class="lg-tagline">Saved reports sync through your planner’s sync code, so they show on every device where the planner is connected.</div>
+      </div>
+
+      <div class="lg-card" id="card-add-paste">
+        <span class="corner" id="add-sync">—</span>
+        <h2>1. Paste the report</h2>
+        <div class="window">The monthly text report, as it’s sent (Instagram and YouTube parts). Nothing is saved until step 2.</div>
+        <textarea id="add-text" class="lg-textarea" rows="12" placeholder="🔹Инстаграм:&#10;&#10;В период с 23 октября по 23 ноября мы потратили …"></textarea>
+        <div class="lg-row"><button class="lg-btn" id="add-read">Read report</button><button class="lg-golink" id="add-blank">or fill in by hand</button><span class="lg-note" id="add-status"></span></div>
+      </div>
+
+      <div class="lg-card" id="card-add-form" hidden>
+        <h2>2. Check the numbers</h2>
+        <div class="window">Fix anything that was read wrong, then save. Commas or dots both work.</div>
+        <ul class="lg-warn" id="add-warn"></ul>
+        <div class="lg-form">
+          <div class="lg-field"><label for="f-key">Report month (month the period ends)</label><input id="f-key" type="month"></div>
+          <div class="lg-field"><label for="f-period">Period</label><input id="f-period" type="text" placeholder="Oct 23 – Nov 23"></div>
+        </div>
+        <div class="lg-colhead c-montage" style="margin-top:16px"><h3>Instagram</h3><span class="n">USD</span></div>
+        <div class="lg-form" id="f-ig"></div>
+        <div class="lg-colhead c-publish" style="margin-top:16px"><h3>YouTube</h3><span class="n">EUR · leave empty if none</span></div>
+        <div class="lg-form" id="f-yt"></div>
+        <div class="lg-colhead c-ink" style="margin-top:16px"><h3>YouTube watch time</h3><button class="lg-golink" id="f-add-video">+ Add video</button></div>
+        <div id="f-videos"></div>
+        <div class="lg-colhead c-film" style="margin-top:16px"><h3>Creatives</h3><button class="lg-golink" id="f-add-creative">+ Add creative</button></div>
+        <div id="f-creatives"></div>
+        <div class="lg-row" style="margin-top:18px"><button class="lg-btn" id="add-save">Save to dashboard</button><button class="lg-golink" id="add-cancel">Cancel</button><span class="lg-note" id="add-save-status"></span></div>
+      </div>
+
+      <div class="lg-card" id="card-add-list">
+        <h2>Reports in the dashboard</h2>
+        <div class="window">Built-in months came with the dashboard. A saved month replaces a built-in month with the same date.</div>
+        <div class="lg-tablewrap">
+          <table class="lg-table">
+            <thead><tr>
+              <th><button tabindex="-1">Month</button></th>
+              <th><button tabindex="-1">Period</button></th>
+              <th class="r"><button tabindex="-1">Instagram</button></th>
+              <th class="r"><button tabindex="-1">Kept</button></th>
+              <th class="r"><button tabindex="-1">YouTube</button></th>
+              <th><button tabindex="-1">Source</button></th>
+              <th></th>
+            </tr></thead>
+            <tbody id="add-list"></tbody>
+          </table>
+        </div>
+        <p class="lg-note"><button class="lg-golink" id="add-export">Download all data (JSON)</button> · keep it as a backup.</p>
       </div>
     </section>
 
@@ -673,7 +803,7 @@ window.dash = (() => {
       <div class="lg-top">
         <div>
           <h1>YouTube ads</h1>
-          <div class="date">Three reporting months, Jul 23 – Oct 23, 2026</div>
+          <div class="date" data-draw="span">—</div>
         </div>
         <div class="lg-tagline">Interviews run on views, talking heads on subscribers. October’s campaign goals weren’t reported.</div>
       </div>
@@ -695,7 +825,7 @@ window.dash = (() => {
         </div>
         <div class="lg-card" id="card-ytwatch">
           <h2>Average watch time per video</h2>
-          <div class="window">Minutes:seconds. October in color.</div>
+          <div class="window">Minutes:seconds. The latest month in magenta.</div>
           <div class="lg-chart tall" id="chart-ytwatch" data-draw="ytwatch" data-source="yt_videos"></div>
         </div>
       </div>
@@ -780,20 +910,20 @@ window.dash = (() => {
             <li>Ship two new talking-head hooks a week. Hidden gems went from <span data-draw="num" data-source="ig_ad_costs" data-where="ad=Hidden gems" data-field="cpr_prev" data-fmt="usd">—</span> to <span data-draw="num" data-source="ig_ad_costs" data-where="ad=Hidden gems" data-field="cpr" data-fmt="usd">—</span> a visit as it wore out.</li>
             <li>Keep place guides as a small fixed test, run as Reels with you on camera rather than as galleries.</li>
           </ul>
-          <div class="kpi">Watch: cost per profile visit, now <b data-draw="num" data-source="ig_monthly" data-where="month=Oct" data-field="avg_cost_per_profile_visit_usd" data-fmt="usd">—</b>, target <b data-draw="target" data-target="cpv">—</b></div>
+          <div class="kpi">Watch: cost per profile visit, now <b data-draw="num" data-source="ig_monthly" data-where="month=@last" data-field="avg_cost_per_profile_visit_usd" data-fmt="usd">—</b>, target <b data-draw="target" data-target="cpv">—</b></div>
         </div>
 
         <div class="lg-card lg-pillar" id="pillar-retention">
           <div class="lg-colhead c-montage"><h3>Retention</h3><span class="n">Instagram</span></div>
           <div class="lg-colsub">Give people a reason to stay</div>
-          <p class="signal">Unfollows stay near <b data-draw="num" data-source="ig_monthly" data-where="month=Oct" data-field="unfollows" data-fmt="count">—</b> a month whatever we spend, so we kept only <b data-draw="num" data-source="ig_costs" data-where="month=Oct" data-field="kept_share" data-fmt="pct">—</b> of October’s new followers (<b data-draw="num" data-source="ig_costs" data-where="month=Aug" data-field="kept_share" data-fmt="pct">—</b> in August).</p>
+          <p class="signal">Unfollows stay near <b data-draw="num" data-source="ig_monthly" data-where="month=@last" data-field="unfollows" data-fmt="count">—</b> a month whatever we spend, so we kept only <b data-draw="num" data-source="ig_costs" data-where="month=@last" data-field="kept_share" data-fmt="pct">—</b> of the latest month’s new followers. Only August, with your viral Airbnb reel, broke the pattern.</p>
           <ul>
             <li>Turn the best formats into numbered series (Hidden gems #4, Prototype diary #2) so following feels like subscribing to something.</li>
             <li>Post on a fixed rhythm, and use Stories polls and question boxes to pull new followers into a first interaction within a week.</li>
             <li>Note unfollow spikes by day in Insights and match them to posts; drop the topics that trigger them.</li>
             <li>Retarget profile visitors and engagers with talking heads rather than cold audiences.</li>
           </ul>
-          <div class="kpi">Watch: share of new followers kept, now <b data-draw="num" data-source="ig_costs" data-where="month=Oct" data-field="kept_share" data-fmt="pct">—</b>, target <b data-draw="target" data-target="kept">—</b></div>
+          <div class="kpi">Watch: share of new followers kept, now <b data-draw="num" data-source="ig_costs" data-where="month=@last" data-field="kept_share" data-fmt="pct">—</b>, target <b data-draw="target" data-target="kept">—</b></div>
         </div>
 
         <div class="lg-card lg-pillar" id="pillar-credibility">
@@ -811,14 +941,14 @@ window.dash = (() => {
         <div class="lg-card lg-pillar" id="pillar-reputation">
           <div class="lg-colhead c-ink"><h3>Reputation</h3><span class="n">YouTube · Instagram</span></div>
           <div class="lg-colsub">Let the interviews build the name</div>
-          <p class="signal">Garrincha held viewers for <b data-draw="num" data-source="yt_videos" data-where="month=Oct&amp;video=Garrincha" data-field="avg_watch_sec" data-fmt="mmss">—</b> and views past 30 seconds hit <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="views_30s" data-fmt="count">—</b>, but only <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="subs" data-fmt="count">—</b> people subscribed.</p>
+          <p class="signal">Garrincha held viewers for <b data-draw="num" data-source="yt_videos" data-where="key=2026-10&amp;video=Garrincha" data-field="avg_watch_sec" data-fmt="mmss">—</b> and views past 30 seconds hit <b data-draw="num" data-source="yt_monthly" data-where="key=2026-10" data-field="views_30s" data-fmt="count">—</b>, but only <b data-draw="num" data-source="yt_monthly" data-where="month=@last" data-field="subs" data-fmt="count">—</b> people subscribed.</p>
           <ul>
             <li>Quote thumbnails and titles on every interview, as planned in August.</li>
             <li>A spoken subscribe ask in the first 30 seconds, plus end screens to the next interview.</li>
             <li>Cut each interview into a Reel; the Vasco Coelho clip brought <span data-draw="num" data-source="ig_ads_oct" data-where="ad=Vasco Coelho" data-field="results" data-fmt="count">—</span> profile visits on Instagram.</li>
             <li>Keep one subscriber campaign running with the best talking head.</li>
           </ul>
-          <div class="kpi">Watch: cost per subscriber, now <b data-draw="num" data-source="yt_costs" data-where="month=Oct" data-field="cost_per_sub" data-fmt="eur">—</b>, target <b data-draw="target" data-target="yt_sub">—</b></div>
+          <div class="kpi">Watch: cost per subscriber, now <b data-draw="num" data-source="yt_costs" data-where="month=@last" data-field="cost_per_sub" data-fmt="eur">—</b>, target <b data-draw="target" data-target="yt_sub">—</b></div>
         </div>
       </div>
 
@@ -846,7 +976,7 @@ dash.calc('ig_costs', {
   title: 'Instagram cost per follower',
   description: 'Spend ÷ followers gained, spend ÷ followers kept, and the share of new followers kept, per month.',
   fn: (ig_monthly) => ig_monthly.map((m) => ({
-    month: m.month,
+    month: m.month, key: m.key,
     cost_per_gross: m.spend_usd / m.gross_follows,
     cost_per_net: m.spend_usd / m.net_follows,
     unfollow_rate: m.unfollows / m.gross_follows,
@@ -859,7 +989,7 @@ dash.calc('yt_costs', {
   title: 'YouTube cost per result',
   description: 'Spend ÷ new subscribers and spend ÷ views past 30 seconds, per month.',
   fn: (yt_monthly) => yt_monthly.map((m) => ({
-    month: m.month,
+    month: m.month, key: m.key,
     cost_per_sub: m.spend_eur / m.subs,
     cost_per_view30: m.spend_eur / m.views_30s,
   })),
@@ -867,7 +997,7 @@ dash.calc('yt_costs', {
 
 dash.calc('kpis', {
   inputs: ['ig_monthly', 'ig_costs', 'yt_monthly', 'yt_costs'],
-  title: 'Headline figures, Oct vs Sep',
+  title: 'Headline figures, latest vs previous month',
   description: 'Latest reporting month against the one before; rates change in points, everything else in percent.',
   fn: (ig_monthly, ig_costs, yt_monthly, yt_costs) => {
     const last = (rows, key) => [rows[rows.length - 1][key], rows[rows.length - 2][key]];
@@ -938,7 +1068,7 @@ dash.calc('ig_conversion', {
   description: 'October gross follows ÷ paid profile visits from profile-visit ads (organic follows are included in the top line).',
   fn: (ig_ads_oct, ig_monthly) => {
     const visits = ig_ads_oct.filter((a) => a.objective === 'Profile visits').reduce((s, a) => s + a.results, 0);
-    const oct = ig_monthly.find((m) => m.month === 'Oct');
+    const oct = ig_monthly.find((m) => m.key === '2026-10');
     return [{ month: 'Oct', visits, gross_follows: oct.gross_follows, visit_to_follow: oct.gross_follows / visits }];
   },
 });
@@ -965,7 +1095,7 @@ dash.calc('trend', {
       ['yt_cost_view30', 'YouTube', 'Cost per 30-second view', 'eur3', 'down', yt_costs, 'cost_per_view30'],
     ];
     return defs.flatMap(([metric, channel, label, fmt, better, rows, key]) =>
-      rows.map((r) => ({ metric, channel, label, fmt, better, month: r.month, value: r[key] })));
+      rows.filter((r) => r[key] != null).map((r) => ({ metric, channel, label, fmt, better, month: r.month, key: r.key, value: r[key] })));
   },
 });
 
@@ -977,20 +1107,23 @@ dash.calc('trend_summary', {
     const out = [];
     for (const metric of [...new Set(trend.map((r) => r.metric))]) {
       const rows = trend.filter((r) => r.metric === metric);
-      const v = (m) => (rows.find((r) => r.month === m) || {}).value;
-      const [a, b, c] = [v('Aug'), v('Sep'), v('Oct')];
       const r0 = rows[0];
+      const vals = rows.map((r) => r.value);
+      const a = vals[0], c = vals[vals.length - 1], b = vals.length > 1 ? vals[vals.length - 2] : a, b0 = vals.length > 2 ? vals[vals.length - 3] : b;
       const rate = r0.fmt === 'pct';
       const change = rate ? c - a : (c - a) / a;
       const sign = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
       const want = r0.better === 'up' ? 1 : r0.better === 'down' ? -1 : 0;
-      const steps = [sign(b - a), sign(c - b)];
+      const steps = [sign(b - b0), sign(c - b)];
+      const lastM = rows[rows.length - 1].month;
       let verdict;
-      if (!want) verdict = steps[0] === steps[1] ? (steps[0] > 0 ? 'Up two months running' : 'Down two months running') : (steps[1] > 0 ? 'Up again in October' : 'Down in October');
+      if (!want) verdict = steps[0] === steps[1] && steps[0] ? (steps[0] > 0 ? 'Up two months running' : 'Down two months running') : (steps[1] > 0 ? 'Up again in ' + lastM : 'Down in ' + lastM);
+      else if (steps[1] === 0) verdict = 'Flat in ' + lastM;
       else if (steps.every((x) => x === want)) verdict = 'Better two months running';
       else if (steps.every((x) => x === -want)) verdict = 'Worse two months running';
-      else verdict = steps[1] === want ? 'Recovered in October' : 'Turned worse in October';
-      out.push({ metric, channel: r0.channel, label: r0.label, fmt: r0.fmt, better: r0.better, aug: a, sep: b, oct: c,
+      else verdict = steps[1] === want ? 'Recovered in ' + lastM : 'Turned worse in ' + lastM;
+      const byMonth = Object.fromEntries(rows.map((r) => [r.month, r.value]));
+      out.push({ metric, channel: r0.channel, label: r0.label, fmt: r0.fmt, better: r0.better, ...byMonth, first_month: rows[0].month, last_month: lastM,
         change, change_kind: rate ? 'points' : 'percent', direction: !want ? 'none' : sign(c - a) === want ? 'good' : 'bad', verdict });
     }
     return out;
@@ -999,12 +1132,12 @@ dash.calc('trend_summary', {
 
 dash.calc('trend_index', {
   inputs: ['trend'],
-  title: 'Spend vs results, Aug = 100',
-  description: 'Spend and results on both channels, each divided by its August value and multiplied by 100.',
+  title: 'Spend vs results, first month = 100',
+  description: 'Spend and results on both channels, each divided by its first month’s value and multiplied by 100.',
   fn: (trend) => {
     const keep = ['ig_spend', 'ig_net', 'yt_spend', 'yt_subs', 'yt_views30'];
     return trend.filter((r) => keep.includes(r.metric)).map((r) => {
-      const base = trend.find((x) => x.metric === r.metric && x.month === 'Aug').value;
+      const base = trend.find((x) => x.metric === r.metric).value;
       return { metric: r.metric, label: r.label, channel: r.channel, month: r.month, value: r.value, index: (r.value / base) * 100 };
     });
   },
@@ -1092,7 +1225,7 @@ const bars = (el, rows, o) => {
     .attr('x1', m.l).attr('x2', W - m.r).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
   svg.append('line').attr('class', 'axis').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - m.b).attr('y2', H - m.b);
   const bw = Math.min(32, x1.bandwidth());
-  const showVals = bw >= 24;
+  const showVals = bw >= 16;
   for (const s of o.series) {
     const g = svg.append('g');
     g.selectAll('rect').data(rows).join('rect')
@@ -1178,6 +1311,11 @@ dash.draw('num', (el) => {
   if (!st.data) return hold(el, st);
   const rows = st.data[0];
   const w = parseWhere(el.dataset.where);
+  for (const [k, v] of Object.entries(w)) {
+    if (v === '@last') w[k] = String(rows[rows.length - 1][k]);
+    if (v === '@prev') w[k] = String(rows[rows.length - 2][k]);
+    if (v === '@first') w[k] = String(rows[0][k]);
+  }
   const row = rows.find((r) => Object.entries(w).every(([k, v]) => String(r[k]) === v));
   const v = row ? row[el.dataset.field] : null;
   el.textContent = v == null ? '—' : f[el.dataset.fmt](v);
@@ -1305,21 +1443,60 @@ dash.draw('ytwatch', (el) => {
   hbars(el, st.data[0], {
     rowH: 30,
     label: (r) => r.video + ' · ' + r.month, value: (r) => r.avg_watch_sec, valText: (r) => f.mmss(r.avg_watch_sec),
-    color: (r) => r.month === 'Oct' ? 'var(--lg-pink)' : 'var(--lg-film)',
+    color: (r) => r.key === dash.data('yt_videos').data.slice(-1)[0].key ? 'var(--lg-pink)' : 'var(--lg-film)',
     tip: (r) => [[null, 'Average watch', f.mmss(r.avg_watch_sec)], [null, 'Campaign goal', r.campaign_goal || 'not reported']],
   });
 });
 
 
+
+/* ---------- month-aware labels ---------- */
+const igRows = () => dash.data('ig_monthly').data;
+const longOf = (r) => MONTH_LONG[+r.key.slice(5, 7) - 1];
+dash.draw('lastlong', (el) => { const r = igRows(); el.textContent = r.length ? longOf(r[r.length - 1]) : '—'; });
+dash.draw('periodline', (el) => {
+  const r = igRows(); if (r.length < 2) { el.textContent = r.length ? r[0].period : '—'; return; }
+  el.textContent = r[r.length - 1].period + ' · compared with ' + r[r.length - 2].period;
+});
+dash.draw('vsprev', (el) => { const r = igRows(); el.textContent = r.length > 1 ? 'vs ' + r[r.length - 2].month : ''; });
+dash.draw('idxbase', (el) => { const r = igRows(); el.textContent = r.length ? r[0].month + ' = 100' : ''; });
+dash.draw('span', (el) => {
+  const r = igRows(); if (!r.length) { el.textContent = '—'; return; }
+  el.textContent = r[0].period.split('–')[0].trim() + ' – ' + r[r.length - 1].period.split('–')[1].trim() + ' · ' + r.length + ' reporting months';
+});
+dash.draw('unflist', (el) => { el.textContent = igRows().map((r) => r.month + ' ' + f.count(r.unfollows)).join(' · '); });
+dash.draw('takeaway', (el) => {
+  const st = state('ig_costs', 'yt_monthly');
+  if (!st.data) return hold(el, st);
+  const [igc, ytm] = st.data;
+  const L = igc[igc.length - 1], P = igc[igc.length - 2];
+  const yL = ytm[ytm.length - 1], yP = ytm[ytm.length - 2];
+  const lo = igc.reduce((a, b) => (b.cost_per_net < a.cost_per_net ? b : a)), hi = igc.reduce((a, b) => (b.cost_per_net > a.cost_per_net ? b : a));
+  const b = (t) => { const x = document.createElement('b'); x.textContent = t; return x; };
+  const parts = ['In ' + MONTH_LONG[+L.key.slice(5, 7) - 1] + ', each Instagram follower we kept cost ', b(f.usd(L.cost_per_net))];
+  if (P) parts.push((L.cost_per_net > P.cost_per_net ? ', up from ' : ', down from '), b(f.usd(P.cost_per_net)), ' in ' + P.month);
+  parts.push('. ');
+  if (yL) { parts.push('YouTube brought ', b(f.count(yL.subs)), ' subscribers'); if (yP) parts.push(yL.subs < yP.subs ? ', down from ' : ', up from ', b(f.count(yP.subs))); parts.push('. '); }
+  parts.push('Across ' + igc.length + ' months, a kept follower has cost between ', b(f.usd(lo.cost_per_net)), ' (' + lo.month + ') and ', b(f.usd(hi.cost_per_net)), ' (' + hi.month + ').');
+  el.replaceChildren(...parts);
+});
+dash.draw('trendhead', (el) => {
+  const r = igRows();
+  const tr = document.createElement('tr');
+  const th = (t, cls) => { const h = document.createElement('th'); if (cls) h.className = cls; const bt = document.createElement('button'); bt.tabIndex = -1; bt.textContent = t; h.append(bt); return h; };
+  tr.append(th('Metric'), th('Channel'), ...r.map((m) => th(m.month, 'r')), th(r.length ? r[0].month + ' → ' + r[r.length - 1].month : 'Change', 'r'), th('Direction'));
+  el.replaceChildren(tr);
+});
+
 /* ---------- dynamics ---------- */
 const fmtOf = (k) => f[k] || f.count;
 const chgText = (r) => r.change_kind === 'points' ? f.signedPts(r.change) : f.signedPct(r.change);
-const MONTHS = ['Aug', 'Sep', 'Oct'];
+const monthsOf = (rows) => [...new Set(rows.map((r) => r.month))];
 
 dash.draw('spark', (el) => {
   const st = state('trend');
   if (!st.data) return hold(el, st);
-  const rows = MONTHS.map((m) => st.data[0].find((r) => r.metric === el.dataset.metric && r.month === m)).filter(Boolean);
+  const rows = st.data[0].filter((r) => r.metric === el.dataset.metric);
   if (!rows.length) { el.replaceChildren('—'); return; }
   const fmt = fmtOf(rows[0].fmt);
   const mini = el.dataset.size === 'mini';
@@ -1343,7 +1520,9 @@ dash.draw('spark', (el) => {
     .attr('r', (r, i) => (i === rows.length - 1 ? (mini ? 3 : 4) : (mini ? 0 : 2.5)))
     .style('fill', (r, i) => (i === rows.length - 1 ? tone : 'var(--lg-blue)'));
   if (!mini) {
-    svg.append('g').selectAll('text').data(rows).join('text').attr('class', (r, i) => (i === rows.length - 1 ? 'v' : ''))
+    const vmin = d3.min(rows, (r) => r.value), vmax = d3.max(rows, (r) => r.value);
+    const keepLab = (r, i) => rows.length <= 4 || i === 0 || i === rows.length - 1 || r.value === vmin || r.value === vmax;
+    svg.append('g').selectAll('text').data(rows.map((r, i) => ({ ...r, _i: i })).filter((r) => keepLab(r, r._i))).join('text').attr('class', (r) => (r._i === rows.length - 1 ? 'v' : ''))
       .attr('text-anchor', 'middle').attr('x', (r) => x(r.month)).attr('y', (r) => y(r.value) - 7).text((r) => fmt(r.value));
     svg.append('g').selectAll('text.mo').data(rows).join('text').attr('class', 'mo').attr('text-anchor', 'middle')
       .attr('x', (r) => x(r.month)).attr('y', H - 4).text((r) => r.month);
@@ -1374,7 +1553,7 @@ dash.draw('trendrows', (el) => {
     const fmt = fmtOf(r.fmt);
     const tr = document.createElement('tr');
     tr.dataset.key = r.metric;
-    tr.append(td(r.label), td(r.channel, 'muted'), td(fmt(r.aug), 'r'), td(fmt(r.sep), 'r'), td(fmt(r.oct), 'r'),
+    tr.append(td(r.label), td(r.channel, 'muted'), ...igRows().map((m) => td(r[m.month] != null ? fmt(r[m.month]) : '—', 'r')),
       td(chgText(r), 'r ' + (r.direction === 'none' ? 'muted' : r.direction === 'good' ? 'up' : 'down')), td(r.verdict, 'muted'));
     return tr;
   }));
@@ -1391,6 +1570,7 @@ dash.draw('index', (el) => {
   const st = state('trend_index');
   if (!st.data) return hold(el, st);
   const all = st.data[0];
+  const MONTHS = monthsOf(all);
   const series = Object.keys(INDEX_STYLE).map((k) => ({ key: k, ...INDEX_STYLE[k], rows: MONTHS.map((mo) => all.find((r) => r.metric === k && r.month === mo)).filter(Boolean) })).filter((s) => s.rows.length);
   const W = Math.max(280, el.clientWidth), H = 280;
   const svg = svgIn(el, W, H);
@@ -1399,6 +1579,7 @@ dash.draw('index', (el) => {
   const rw = narrow ? 34 : measure(svg, series.map(endText)) + 14;
   const m = { t: 16, r: rw, b: 26, l: 30 };
   const x = d3.scalePoint(MONTHS, [m.l + 10, W - m.r]);
+  const LASTM = MONTHS[MONTHS.length - 1], FIRSTM = MONTHS[0];
   const y = d3.scaleLinear([0, d3.max(all, (r) => r.index) * 1.08], [H - m.b, m.t]).nice();
   svg.append('g').selectAll('line').data(y.ticks(5)).join('line').attr('class', 'grid')
     .attr('x1', m.l).attr('x2', W - m.r + 6).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
@@ -1421,13 +1602,13 @@ dash.draw('index', (el) => {
   const over = ends.length ? ends[ends.length - 1].y - (H - m.b) : 0;
   if (over > 0) for (const e of ends) e.y -= over;
   svg.append('g').selectAll('text').data(ends).join('text').attr('class', (e) => (e.s.dash ? '' : 'v'))
-    .attr('x', x('Oct') + 8).attr('y', (e) => e.y).attr('dy', '0.35em').style('fill', (e) => e.s.color)
+    .attr('x', x(LASTM) + 8).attr('y', (e) => e.y).attr('dy', '0.35em').style('fill', (e) => e.s.color)
     .text((e) => (narrow ? Math.round(e.s.rows[e.s.rows.length - 1].index) : endText(e.s)));
   const tip = tipFor(el);
   const step = x.step();
   svg.append('g').selectAll('rect').data(MONTHS).join('rect')
     .attr('x', (d) => x(d) - step / 2).attr('width', step).attr('y', 0).attr('height', H).style('fill', 'transparent')
-    .on('pointermove', (ev, mo) => tip.show(ev, mo + ' · Aug = 100', series.map((s) => {
+    .on('pointermove', (ev, mo) => tip.show(ev, mo + ' · ' + FIRSTM + ' = 100', series.map((s) => {
       const r = s.rows.find((q) => q.month === mo);
       return [s.color, s.name, r ? Math.round(r.index) + '  (' + (s.key.endsWith('spend') ? (s.key.startsWith('ig') ? f.usd(r.value) : f.eur(r.value)) : f.count(r.value)) + ')' : '—'];
     })))
@@ -1443,13 +1624,13 @@ dash.draw('param', (el) => {
 dash.draw('breakeven', (el) => {
   const st = state('ig_costs');
   if (!st.data) return hold(el, st);
-  const oct = st.data[0].find((r) => r.month === 'Oct');
-  const sep = st.data[0].find((r) => r.month === 'Sep');
+  const oct = st.data[0][st.data[0].length - 1];
+  const sep = st.data[0][st.data[0].length - 2];
   const { value } = P();
   el.replaceChildren();
   const b = (t) => { const x = document.createElement('b'); x.textContent = t; return x; };
-  el.append('At a customer value of ', b(String(value)), ', October’s Instagram spend pays back only if ', b(f.pct(oct.cost_per_net / value)),
-    ' of the followers we kept become customers. In September that bar was ', b(f.pct(sep.cost_per_net / value)), '.');
+  el.append('At a customer value of ', b(String(value)), ', ' + MONTH_LONG[+oct.key.slice(5, 7) - 1] + '’s Instagram spend pays back only if ', b(f.pct(oct.cost_per_net / value)),
+    ' of the followers we kept become customers. In ' + MONTH_LONG[+sep.key.slice(5, 7) - 1] + ' that bar was ', b(f.pct(sep.cost_per_net / value)), '.');
 });
 dash.draw('roirows', (el) => {
   const st = state('ig_monthly', 'ig_costs', 'yt_monthly', 'yt_costs');
@@ -1514,14 +1695,14 @@ const planData = () => {
   if (!st.data) return null;
   const [base, igm, ads, ytm, ytc] = st.data;
   const B = Object.fromEntries(base.map((b) => [b.format, b]));
-  const oct = igm.find((m) => m.month === 'Oct');
+  const oct = igm.find((m) => m.key === '2026-10');
   const pv = ads.filter((a) => a.objective === 'Profile visits');
   const octVisits = pv.reduce((s, a) => s + a.results, 0);
   const octSpend = ads.reduce((s, a) => s + a.spend, 0);
   const octMix = Object.fromEntries(PLAN_FORMATS.map((k) => [k, B[k] ? B[k].spend : 0]));
   const sepMix = Object.fromEntries(PLAN_FORMATS.map((k) => [k, B[k] ? B[k].spend_prev : 0]));
-  const ytO = ytm.find((m) => m.month === 'Oct'), ytS = ytm.find((m) => m.month === 'Sep');
-  const ytcO = ytc.find((m) => m.month === 'Oct'), ytcS = ytc.find((m) => m.month === 'Sep');
+  const ytO = ytm.find((m) => m.key === '2026-10'), ytS = ytm.find((m) => m.key === '2026-09');
+  const ytcO = ytc.find((m) => m.key === '2026-10'), ytcS = ytc.find((m) => m.key === '2026-09');
   return { B, oct, octVisits, octSpend, octMix, sepMix, igm, ytO, ytS, ytcO, ytcS,
     octFollowRate: oct.gross_follows / octVisits, octKept: oct.net_follows, octUnf: oct.unfollows };
 };
@@ -1693,10 +1874,14 @@ const drawMix = (el, D, F) => {
 };
 
 const drawFc = (el, D, F) => {
-  const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+  const actual = D.igm;
+  const lastKey = actual[actual.length - 1].key;
+  const nextLabels = [1, 2, 3].map((i) => { const mi = (+lastKey.slice(5, 7) - 1 + i) % 12; return MONTH_SHORT[mi]; });
+  const months = [...actual.map((a) => a.month), ...nextLabels];
+  const nA = actual.length;
   const rows = months.map((m, i) => {
-    if (i < 3) return { m, actual: D.igm.find((x) => x.month === m).net_follows };
-    const fi = i - 3;
+    if (i < nA) return { m, actual: actual[i].net_follows };
+    const fi = i - nA;
     return { m, mix: forecast(D, D.octSpend, D.octMix, fi, PLAN.fresh).kept, plan: forecast(D, PLAN.budget, PLAN.w, fi, PLAN.fresh).kept };
   });
   const keys = [['actual', 'var(--lg-blue)', 'Actual'], ['mix', 'var(--lg-film)', 'Keep October mix'], ['plan', 'var(--lg-pink)', 'Your plan']];
@@ -1707,9 +1892,10 @@ const drawFc = (el, D, F) => {
   const x0 = d3.scaleBand(months, [m.l, W - m.r]).paddingInner(0.25).paddingOuter(0.05);
   svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('class', 'grid').attr('x1', m.l).attr('x2', W - m.r).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
   svg.append('line').attr('class', 'axis').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0));
-  svg.append('line').attr('x1', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2).attr('x2', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2).attr('y1', m.t - 10).attr('y2', H - m.b)
+  const sepX = (x0(months[nA - 1]) + x0.bandwidth() + x0(months[nA])) / 2;
+  svg.append('line').attr('x1', sepX).attr('x2', sepX).attr('y1', m.t - 10).attr('y2', H - m.b)
     .style('stroke', 'var(--lg-faint)').style('stroke-dasharray', '2 3');
-  svg.append('text').attr('x', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2 + 6).attr('y', m.t - 4).text('Forecast →');
+  svg.append('text').attr('x', sepX + 6).attr('y', m.t - 4).text('Forecast →');
   const tip = tipFor(el);
   rows.forEach((r) => {
     const ks = keys.filter(([k]) => r[k] != null);
@@ -1725,8 +1911,8 @@ const drawFc = (el, D, F) => {
       .on('pointermove', (ev) => tip.show(ev, r.m + (r.actual != null ? ' · actual' : ' · forecast'), ks.map(([k, c, l]) => [c, l, f.count(Math.round(r[k]))])))
       .on('pointerleave', () => tip.hide());
   });
-  const sum = (key) => rows.slice(3).reduce((s, r) => s + r[key], 0);
-  document.getElementById('plan-fc-note').textContent = 'Over Nov–Jan: about ' + f.count(Math.round(sum('plan'))) + ' followers kept with your plan, against ' + f.count(Math.round(sum('mix'))) + ' if October’s mix continues.';
+  const sum = (key) => rows.slice(nA).reduce((s, r) => s + r[key], 0);
+  document.getElementById('plan-fc-note').textContent = 'Over ' + nextLabels[0] + '–' + nextLabels[2] + ': about ' + f.count(Math.round(sum('plan'))) + ' followers kept with your plan, against ' + f.count(Math.round(sum('mix'))) + ' if October’s mix continues.';
 };
 
 dash.draw('planner', (el) => {
@@ -1802,6 +1988,61 @@ dash.draw('make', (el) => {
   }));
 });
 
+/* =================== CREATIVE HISTORY =================== */
+FMT_CLASS.Other = 'f-ot';
+const histLog = () => {
+  const cr = dash.data('creatives').data;
+  const ads = dash.data('ig_ads_oct').data;
+  const igm = dash.data('ig_monthly').data;
+  const lbl = Object.fromEntries(igm.map((m) => [m.key, m.month]));
+  const rows = cr.map((c) => ({ ...c, month: c.month || lbl[c.key] || c.key }));
+  if (!rows.some((r) => r.key === '2026-10')) {
+    for (const a of ads) {
+      if (a.spend < 1) continue;
+      rows.push({ key: '2026-10', month: lbl['2026-10'] || 'Oct', creative: a.ad, format: a.objective === 'Landing page views' ? 'Website' : a.format,
+        cost: a.results ? a.spend / a.results : null, note: adVerdict(a)[0] });
+    }
+  }
+  return rows.sort((a, b) => b.key.localeCompare(a.key) || ((a.cost ?? 9) - (b.cost ?? 9)));
+};
+const byMonth = (rows) => { const m = new Map(); for (const r of [...rows].sort((a, b) => a.key.localeCompare(b.key))) { if (!m.has(r.key)) m.set(r.key, []); m.get(r.key).push(r); } return m; };
+dash.draw('histline', (el) => {
+  const rows = histLog();
+  const cheap = [...byMonth(rows)].map(([k, list]) => { const c = list.filter((r) => r.cost != null && r.format !== 'Website').sort((a, b) => a.cost - b.cost)[0]; return c ? { month: list[0].month, format: c.format } : null; }).filter(Boolean);
+  const th = cheap.filter((c) => c.format === 'Talking head').map((c) => c.month);
+  const b = (t) => { const x = document.createElement('b'); x.textContent = t; return x; };
+  if (th.length === cheap.length && cheap.length) el.replaceChildren('Talking heads were the cheapest creative in ', b('every month'), ' with costs reported: ' + th.join(', ') + '.');
+  else el.replaceChildren('Talking heads were the cheapest creative in ', b(th.length + ' of ' + cheap.length), ' months with costs reported' + (th.length ? ' (' + th.join(', ') + ')' : '') + '.');
+});
+dash.draw('histcols', (el) => {
+  const rows = histLog();
+  el.replaceChildren(...[...byMonth(rows)].map(([k, list]) => {
+    const d = document.createElement('div'); d.className = 'lg-hist';
+    const h = document.createElement('div'); h.className = 'lg-colhead c-ink';
+    const h3 = document.createElement('h3'); h3.textContent = MONTH_LONG[+k.slice(5, 7) - 1];
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = list.length + ' creatives';
+    h.append(h3, n); d.append(h);
+    const costed = list.filter((r) => r.cost != null && r.format !== 'Website').sort((a, b) => a.cost - b.cost);
+    const item = (r, cls) => { const it = document.createElement('div'); it.className = 'it'; const dot = document.createElement('span'); dot.className = 'lg-dot ' + cls; const nm = document.createElement('span'); nm.textContent = r.creative; const v = document.createElement('b'); v.textContent = f.usd3(r.cost); it.append(dot, nm, v); return it; };
+    if (costed.length) { d.append(item(costed[0], 'ok')); if (costed.length > 1) d.append(item(costed[costed.length - 1], 'hi')); }
+    const notes = list.filter((r) => r.cost == null && r.note && /follow|best/i.test(r.note));
+    for (const r of notes.slice(0, 2)) { const it = document.createElement('div'); it.className = 'it'; const dot = document.createElement('span'); dot.className = 'lg-dot mid'; const nm = document.createElement('span'); nm.textContent = r.creative + ': ' + r.note; it.append(dot, nm); d.append(it); }
+    const fm = {}; list.forEach((r) => { fm[r.format] = (fm[r.format] || 0) + 1; });
+    const n2 = document.createElement('div'); n2.className = 'n2'; n2.textContent = Object.entries(fm).sort((a, b) => b[1] - a[1]).map(([k2, v]) => v + ' ' + k2.toLowerCase()).join(' · ');
+    d.append(n2);
+    return d;
+  }));
+});
+dash.draw('histrows', (el) => {
+  const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; return c; };
+  el.replaceChildren(...histLog().map((r) => {
+    const tr = document.createElement('tr');
+    const fc = document.createElement('td'); const p = document.createElement('span'); p.className = 'lg-fmt ' + (FMT_CLASS[r.format] || 'f-ot'); p.textContent = r.format; fc.append(p);
+    tr.append(td(r.month, 'muted'), td(r.creative), fc, td(r.cost != null ? f.usd3(r.cost) : '—', 'r'), td(r.note || '', 'muted'));
+    return tr;
+  }));
+});
+
 </script>
 
 <script>
@@ -1866,6 +2107,292 @@ dash.onData(() => {
 </script>
 
 </div>
+<script>
+/* =================== ADD A REPORT + SYNC =================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAXXEOmtCuo7GIkfOqjiRZwrvxiGeQAeKQ",
+  authDomain: "leguideline-planner.firebaseapp.com",
+  projectId: "leguideline-planner",
+  storageBucket: "leguideline-planner.firebasestorage.app",
+  messagingSenderId: "791454085610",
+  appId: "1:791454085610:web:4900404e49d2f164b68293"
+};
+/* ---------- report parser (Russian monthly report template) ---------- */
+const RU_MONTHS = ['январ', 'феврал', 'март', 'апрел', 'ма', 'июн', 'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'];
+const EN_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const ruMonth = (w) => {
+  w = (w || '').toLowerCase();
+  // check longer stems first so "ма" (май/мая) doesn't swallow "март"
+  const order = RU_MONTHS.map((s, i) => [s, i]).sort((a, b) => b[0].length - a[0].length);
+  for (const [s, i] of order) if (w.startsWith(s)) return i;
+  return -1;
+};
+const num = (s) => { if (s == null) return null; const v = parseFloat(String(s).replace(/\s/g, '').replace(',', '.')); return isNaN(v) ? null : v; };
+const int = (s) => { if (s == null) return null; const d = String(s).replace(/[^\d]/g, ''); return d ? parseInt(d, 10) : null; };
+const grab = (txt, re) => { const m = txt.match(re); return m ? m[1] : null; };
+const guessFormat = (name) => {
+  const n = name.toLowerCase();
+  if (/prototype|прототип|beta|бета|сайт|site/.test(n)) return 'Product build';
+  if (/talking|говорящ/.test(n)) return 'Talking head';
+  if (/airbnb|story|истори/.test(n)) return 'Story';
+  if (/interview|интервью|talk\b|chef|шеф/.test(n)) return 'Interview';
+  if (/place|spot|coffee|coffe|food|hotel|отел|карусел|bcn|amst|lisbon|prague|праг|greece|грец|santorini|binnen|fismuler|arca|franca|mamma/.test(n)) return 'Places guide';
+  return 'Other';
+};
+function parseReport(text, today) {
+  today = today || new Date();
+  const t = text.replace(/\r/g, '').replace(/\u00a0/g, ' ');
+  const ytAt = t.search(/YouTube|Ютуб/i);
+  const ig = ytAt > 0 ? t.slice(0, ytAt) : t;
+  const yt = ytAt > 0 ? t.slice(ytAt) : '';
+  const out = { key: null, period: null, ig: {}, yt: {}, videos: [], creatives: [], warnings: [] };
+  // period
+  const pm = t.match(/с\s+(\d{1,2})\s+([а-яё]+)\s+по\s+(\d{1,2})\s+([а-яё]+)/i);
+  if (pm) {
+    const m1 = ruMonth(pm[2]), m2 = ruMonth(pm[4]);
+    if (m2 >= 0) {
+      let year = today.getFullYear();
+      if (m2 > today.getMonth()) year -= 1;
+      out.key = year + '-' + String(m2 + 1).padStart(2, '0');
+      out.period = (m1 >= 0 ? EN_SHORT[m1] + ' ' + pm[1] : pm[1]) + ' – ' + EN_SHORT[m2] + ' ' + pm[3];
+    }
+  } else out.warnings.push('Couldn’t find the period (“с … по …”). Pick the month below.');
+  // Instagram
+  const total = grab(ig, /в общей сложности:?\s*([\d\s.,]+)\s*\$/i);
+  const spent = grab(ig, /потратили\s*([\d\s.,]+?)\s*\$/i);
+  out.ig.spend_usd = num(total) ?? num(spent);
+  out.ig.gross_follows = int(grab(ig, /прирост\s*[—–-]\s*([\d\s]+)/i));
+  out.ig.unfollows = int(grab(ig, /([\d][\d\s]*)\s*отпис/i));
+  out.ig.net_follows = int(grab(ig, /чистыми:?\s*([\d\s]+)/i));
+  if (out.ig.net_follows == null && out.ig.gross_follows != null && out.ig.unfollows != null) out.ig.net_follows = out.ig.gross_follows - out.ig.unfollows;
+  out.ig.avg_cost_per_profile_visit_usd = num(grab(ig, /переход в профиль[^\n]*?[–—-]\s*([\d]+[.,]\d+)\s*\$/i));
+  // creatives: bullet lines
+  for (const line of ig.split('\n')) {
+    const b = line.match(/^\s*[•\-*·]\s*(.+?)\s*$/);
+    if (!b) continue;
+    let name = b[1];
+    const cost = num(grab(name, /(\d+[.,]\d+)\s*\$/));
+    const follows = grab(name, /[—–-]\s*(\d[\d\s]*)\s*$/);
+    let note = follows ? int(follows) + ' follows' : '';
+    if (/🔥/.test(name)) note = note ? note + ', strong' : 'Strong';
+    if (/👎/.test(name)) note = note ? note + ', weak' : 'Weak';
+    name = name.replace(/\(.*?\)/g, (m) => (/talking head/i.test(m) ? ' (talking head)' : ''))
+      .replace(/\d+[.,]\d+\s*\$.*$/, '').replace(/[—–-]\s*\d[\d\s]*$/, '').replace(/дал[^—–-]*$/i, '')
+      .replace(/[🔥👎👍⭐️]/gu, '').replace(/\s+/g, ' ').trim();
+    if (name) out.creatives.push({ creative: name, format: guessFormat(name), cost, note });
+  }
+  // YouTube
+  if (yt) {
+    out.yt.spend_eur = num(grab(yt, /потраченный бюджет:?\s*([\d\s.,]+?)\s*€/i));
+    out.yt.cost_per_view_eur = num(grab(yt, /цена за просмотр:?\s*([\d]+[.,]?\d*)/i));
+    out.yt.cost_per_click_eur = num(grab(yt, /цена за клик:?\s*([\d]+[.,]?\d*)/i));
+    out.yt.clicks = int(grab(yt, /количество кликов:?\s*([\d\s]+)/i));
+    out.yt.subs = int(grab(yt, /прирост подписчиков:?\s*([\d\s]+)/i));
+    out.yt.views_30s = int(grab(yt, /30 секунд\s*[—–-]?\s*([\d\s.,]+)/i));
+    const wi = yt.search(/продолжительность/i);
+    if (wi >= 0) {
+      for (const line of yt.slice(wi).split('\n').slice(1)) {
+        const m = line.match(/^\s*(.+?)\s*[:\-–—]\s*(\d{1,2}):(\d{2})/);
+        if (m) out.videos.push({ video: m[1].trim(), avg_watch_sec: parseInt(m[2], 10) * 60 + parseInt(m[3], 10) });
+      }
+    }
+  }
+  const NICE = { spend_usd: 'spend', gross_follows: 'new followers', unfollows: 'unfollows', net_follows: 'kept followers', avg_cost_per_profile_visit_usd: 'average cost per profile visit',
+    spend_eur: 'spend', cost_per_view_eur: 'cost per view', cost_per_click_eur: 'cost per click', subs: 'new subscribers', views_30s: 'views past 30 seconds' };
+  for (const [k, v] of Object.entries(out.ig)) if (v == null) out.warnings.push('Instagram: the report doesn’t give ' + NICE[k] + '. Type it in below if you have it.');
+  if (yt) for (const [k, v] of Object.entries(out.yt)) if (v == null && k !== 'clicks') out.warnings.push('YouTube: the report doesn’t give ' + NICE[k] + '. Type it in below if you have it.');
+  return out;
+}
+
+(() => {
+  const PG_KEY = 'leguideline-paidgrowth';
+  const SYNC_KEY = 'leguideline-sync-code';
+  const PG = { extra: { months: {} }, status: 'local', ref: null, setDoc: null };
+  try { PG.extra = JSON.parse(localStorage.getItem(PG_KEY)) || PG.extra; } catch (e) {}
+  if (!PG.extra.months) PG.extra.months = {};
+  const live = () => ({ months: Object.fromEntries(Object.entries(PG.extra.months).filter(([, m]) => !m.deleted)) });
+  const apply = () => { dash.setExtra(live()); renderList(); };
+  const $ = (id) => document.getElementById(id);
+  const fmtN = (v) => (v == null ? '' : String(v));
+  const syncLabel = () => {
+    const el = $('add-sync'); if (!el) return;
+    el.textContent = PG.status === 'synced' ? 'Synced with planner' : PG.status === 'error' ? 'Sync failed · saved on this device' : PG.status === 'connecting' ? 'Connecting…' : 'This device only';
+    el.title = PG.status === 'local' ? 'Set up sync in the planner to share reports across devices.' : '';
+  };
+  const mergeMonths = (a, b) => {
+    const out = { ...a };
+    for (const [k, m] of Object.entries(b || {})) if (!out[k] || (m.savedAt || 0) > (out[k].savedAt || 0)) out[k] = m;
+    return out;
+  };
+  const push = async () => {
+    try { localStorage.setItem(PG_KEY, JSON.stringify(PG.extra)); } catch (e) {}
+    if (!PG.ref) return;
+    try { await PG.setDoc(PG.ref, { json: JSON.stringify(PG.extra), updatedAt: Date.now() }); PG.status = 'synced'; }
+    catch (e) { PG.status = 'error'; }
+    syncLabel();
+  };
+  const connect = async () => {
+    const code = localStorage.getItem(SYNC_KEY);
+    if (!code) { PG.status = 'local'; syncLabel(); return; }
+    PG.status = 'connecting'; syncLabel();
+    try {
+      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+      const { getFirestore, doc, setDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+      PG.ref = doc(getFirestore(app), 'leguideline-planner', code + '__paidgrowth');
+      PG.setDoc = setDoc;
+      let first = true;
+      onSnapshot(PG.ref, (snap) => {
+        const remote = snap.exists() && snap.data().json ? JSON.parse(snap.data().json) : { months: {} };
+        const merged = { months: mergeMonths(remote.months || {}, PG.extra.months) };
+        const changedLocal = JSON.stringify(merged) !== JSON.stringify(PG.extra);
+        const changedRemote = JSON.stringify(merged.months) !== JSON.stringify(remote.months || {});
+        PG.extra = merged; PG.status = 'synced'; syncLabel();
+        if (changedLocal) { try { localStorage.setItem(PG_KEY, JSON.stringify(PG.extra)); } catch (e) {} apply(); }
+        if (first && changedRemote) push();
+        first = false;
+      }, () => { PG.status = 'error'; syncLabel(); });
+    } catch (e) { PG.status = 'error'; syncLabel(); }
+  };
+
+  /* ---------- form ---------- */
+  const IG_FIELDS = [['spend_usd', 'Spend, incl. boosted posts ($)'], ['gross_follows', 'New followers (gained)'], ['unfollows', 'Unfollows'], ['net_follows', 'Kept (net) · auto if empty'], ['avg_cost_per_profile_visit_usd', 'Avg cost per profile visit ($)']];
+  const YT_FIELDS = [['spend_eur', 'Spend (€)'], ['cost_per_view_eur', 'Cost per view (€)'], ['cost_per_click_eur', 'Cost per click (€)'], ['clicks', 'Clicks'], ['subs', 'New subscribers'], ['views_30s', 'Views past 30 seconds']];
+  const FMTS = ['Talking head', 'Product build', 'Story', 'Places guide', 'Interview', 'Website', 'Other'];
+  let editingKey = null;
+  const field = (box, id, label, val) => {
+    const d = document.createElement('div'); d.className = 'lg-field' + (id === 'net_follows' ? ' auto' : '');
+    const l = document.createElement('label'); l.textContent = label; l.htmlFor = 'f-' + box + '-' + id;
+    const i = document.createElement('input'); i.type = 'text'; i.inputMode = 'decimal'; i.id = 'f-' + box + '-' + id; i.value = fmtN(val);
+    d.append(l, i); return d;
+  };
+  const videoLine = (v) => {
+    const d = document.createElement('div'); d.className = 'lg-line v';
+    const n = document.createElement('input'); n.placeholder = 'Video'; n.value = v.video || ''; n.className = 'vn';
+    const t = document.createElement('input'); t.placeholder = 'm:ss'; t.className = 'vt';
+    t.value = v.avg_watch_sec != null ? Math.floor(v.avg_watch_sec / 60) + ':' + String(v.avg_watch_sec % 60).padStart(2, '0') : '';
+    const x = document.createElement('button'); x.className = 'lg-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Remove video'); x.onclick = () => d.remove();
+    d.append(n, t, x); return d;
+  };
+  const creativeLine = (c) => {
+    const d = document.createElement('div'); d.className = 'lg-line c';
+    const n = document.createElement('input'); n.placeholder = 'Creative'; n.value = c.creative || ''; n.className = 'cn';
+    const s = document.createElement('select'); s.className = 'cf'; for (const fm of FMTS) s.append(new Option(fm, fm)); s.value = FMTS.includes(c.format) ? c.format : 'Other';
+    const k = document.createElement('input'); k.placeholder = '$ / click'; k.className = 'cc'; k.inputMode = 'decimal'; k.value = c.cost != null ? String(c.cost) : '';
+    const o = document.createElement('input'); o.placeholder = 'Note'; o.className = 'co'; o.value = c.note || '';
+    const x = document.createElement('button'); x.className = 'lg-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Remove creative'); x.onclick = () => d.remove();
+    d.append(n, s, k, o, x); return d;
+  };
+  const knownFormats = () => {
+    const m = {};
+    for (const c of dash.data('creatives').data) m[c.creative.toLowerCase()] = c.format;
+    for (const a of dash.data('ig_ads_oct').data) m[a.ad.toLowerCase()] = a.objective === 'Landing page views' ? 'Website' : a.format;
+    return m;
+  };
+  const fillForm = (r) => {
+    editingKey = r.key || null;
+    $('f-key').value = r.key || '';
+    $('f-period').value = r.period || '';
+    $('f-ig').replaceChildren(...IG_FIELDS.map(([id, l]) => field('ig', id, l, (r.ig || {})[id])));
+    $('f-yt').replaceChildren(...YT_FIELDS.map(([id, l]) => field('yt', id, l, (r.yt || {})[id])));
+    $('f-videos').replaceChildren(...(r.videos || []).map(videoLine));
+    const known = knownFormats();
+    $('f-creatives').replaceChildren(...(r.creatives || []).map((c) => creativeLine({ ...c, format: known[(c.creative || '').toLowerCase()] || c.format })));
+    $('add-warn').replaceChildren(...(r.warnings || []).map((w) => { const li = document.createElement('li'); li.textContent = w; return li; }));
+    $('add-save-status').textContent = '';
+    $('card-add-form').hidden = false;
+    $('card-add-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const readForm = () => {
+    const errs = [];
+    const key = $('f-key').value;
+    if (!/^\d{4}-\d{2}$/.test(key)) errs.push('Pick the report month.');
+    const ig = {}; for (const [id] of IG_FIELDS) { const v = num($('f-ig-' + id).value); ig[id] = id === 'spend_usd' || id.startsWith('avg') ? v : (v == null ? null : Math.round(v)); }
+    if (ig.net_follows == null && ig.gross_follows != null && ig.unfollows != null) ig.net_follows = ig.gross_follows - ig.unfollows;
+    for (const [id, l] of IG_FIELDS.slice(0, 3)) if (ig[id] == null) errs.push('Instagram: ' + l.toLowerCase() + ' is needed.');
+    const yt = {}; for (const [id] of YT_FIELDS) { const v = num($('f-yt-' + id).value); yt[id] = ['clicks', 'subs', 'views_30s'].includes(id) ? (v == null ? null : Math.round(v)) : v; }
+    const hasYt = Object.values(yt).some((v) => v != null);
+    if (hasYt && (yt.spend_eur == null || yt.subs == null || yt.views_30s == null)) errs.push('YouTube: spend, new subscribers and views past 30 seconds are needed (or leave YouTube empty).');
+    const videos = [...$('f-videos').querySelectorAll('.lg-line')].map((d) => {
+      const name = d.querySelector('.vn').value.trim(); const m = d.querySelector('.vt').value.trim().match(/^(\d{1,2}):(\d{2})$/);
+      return name && m ? { video: name, avg_watch_sec: +m[1] * 60 + +m[2], campaign_goal: null } : null;
+    }).filter(Boolean);
+    const creatives = [...$('f-creatives').querySelectorAll('.lg-line')].map((d) => {
+      const name = d.querySelector('.cn').value.trim();
+      return name ? { creative: name, format: d.querySelector('.cf').value, cost: num(d.querySelector('.cc').value), note: d.querySelector('.co').value.trim() } : null;
+    }).filter(Boolean);
+    return { errs, key, month: { period: $('f-period').value.trim() || key, ig, yt: hasYt ? yt : null, videos, creatives, savedAt: Date.now() } };
+  };
+
+  /* ---------- list ---------- */
+  const renderList = () => {
+    const tb = $('add-list'); if (!tb) return;
+    const igm = dash.data('ig_monthly').data, ytm = dash.data('yt_monthly').data;
+    const baseKeys = new Set(window.DASH_BASE.ig_monthly.map((r) => r.key));
+    const saved = live().months;
+    const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; return c; };
+    tb.replaceChildren(...[...igm].reverse().map((r) => {
+      const tr = document.createElement('tr');
+      const y = ytm.find((x) => x.key === r.key);
+      const src = saved[r.key] ? (baseKeys.has(r.key) ? 'Saved · replaces built-in' : 'Saved') : 'Built in';
+      const act = document.createElement('td'); act.className = 'r';
+      const ed = document.createElement('button'); ed.className = 'lg-golink'; ed.textContent = 'Edit';
+      ed.onclick = () => {
+        const s = saved[r.key];
+        if (s) fillForm({ key: r.key, ...s });
+        else fillForm({ key: r.key, period: r.period, ig: r, yt: y || {}, videos: dash.data('yt_videos').data.filter((v) => v.key === r.key), creatives: dash.data('creatives').data.filter((c) => c.key === r.key) });
+      };
+      act.append(ed);
+      if (saved[r.key]) {
+        const del = document.createElement('button'); del.className = 'lg-golink'; del.style.marginLeft = '10px';
+        del.textContent = baseKeys.has(r.key) ? 'Revert' : 'Delete';
+        del.onclick = () => {
+          if (!confirm((baseKeys.has(r.key) ? 'Go back to the built-in numbers for ' : 'Delete the saved report for ') + MONTH_LONG[+r.key.slice(5, 7) - 1] + '?')) return;
+          PG.extra.months[r.key] = { deleted: true, savedAt: Date.now() }; apply(); push();
+        };
+        act.append(del);
+      }
+      tr.append(td(MONTH_LONG[+r.key.slice(5, 7) - 1] + ' ' + r.key.slice(0, 4)), td(r.period, 'muted'), td('$' + r.spend_usd.toFixed(2), 'r'),
+        td(String(r.net_follows), 'r'), td(y ? '€' + y.spend_eur.toFixed(2) : '—', 'r'), td(src, src === 'Built in' ? 'muted' : ''), act);
+      return tr;
+    }));
+  };
+
+  /* ---------- wire up ---------- */
+  $('add-read').onclick = () => {
+    const t = $('add-text').value.trim();
+    if (!t) { $('add-status').textContent = 'Paste a report first.'; return; }
+    const r = parseReport(t, new Date());
+    const found = Object.values(r.ig).filter((v) => v != null).length + Object.values(r.yt).filter((v) => v != null).length;
+    $('add-status').textContent = 'Read ' + found + ' numbers, ' + r.videos.length + ' videos and ' + r.creatives.length + ' creatives. Check them below.';
+    if (r.key && live().months[r.key]) r.warnings.unshift('There’s already a saved report for this month; saving will replace it.');
+    fillForm(r);
+  };
+  $('add-blank').onclick = () => fillForm({ ig: {}, yt: {}, videos: [], creatives: [] });
+  $('add-cancel').onclick = () => { $('card-add-form').hidden = true; };
+  $('f-add-video').onclick = () => $('f-videos').append(videoLine({}));
+  $('f-add-creative').onclick = () => $('f-creatives').append(creativeLine({ format: 'Other' }));
+  $('add-save').onclick = () => {
+    const { errs, key, month } = readForm();
+    if (errs.length) { $('add-warn').replaceChildren(...errs.map((w) => { const li = document.createElement('li'); li.textContent = w; return li; })); return; }
+    if (editingKey && editingKey !== key && PG.extra.months[editingKey] && !PG.extra.months[editingKey].deleted) PG.extra.months[editingKey] = { deleted: true, savedAt: Date.now() };
+    PG.extra.months[key] = month;
+    apply(); push();
+    $('add-warn').replaceChildren();
+    $('add-save-status').textContent = 'Saved ' + MONTH_LONG[+key.slice(5, 7) - 1] + '. Every page now includes it.';
+    $('add-text').value = '';
+  };
+  $('add-export').onclick = () => {
+    const all = { exported: new Date().toISOString(), ig_monthly: dash.data('ig_monthly').data, yt_monthly: dash.data('yt_monthly').data, yt_videos: dash.data('yt_videos').data, creatives: dash.data('creatives').data, ig_ads_oct: dash.data('ig_ads_oct').data, saved_reports: PG.extra };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' }));
+    a.download = 'paid-growth-data.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  dash.setExtra(live());
+  renderList(); syncLabel();
+  connect();
+})();
+</script>
 <script>
 (() => {
   const redraw = () => window.__dashRedraw();
