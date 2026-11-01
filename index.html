@@ -2181,6 +2181,8 @@ function streamTaskKeys(k){
 }
 // Ads dashboard (Instagram + YouTube), hosted on Claude
 const PAID_GROWTH_URL = 'paid-growth.html';
+// Google Ads account (YouTube ads); opens in a new tab, needs a signed-in Google account with access
+const GOOGLE_ADS_URL = 'https://ads.google.com/aw/overview?ocid=8127701515&__u=7700691325&__c=7810661235&authuser=0';
 function renderNav(){
   let html = `<button class="${view.stream==='overview'?'active':''}" data-nav="overview">
     ${icon('<path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1v-9.5"/>')} Overview</button>`;
@@ -2203,6 +2205,8 @@ function renderNav(){
   });
   html += `<div class="nav-item"><button data-href="${PAID_GROWTH_URL}" title="Instagram and YouTube ads dashboard">
     ${icon('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>')} Paid Growth</button></div>`;
+  html += `<div class="nav-item"><button data-ext="${GOOGLE_ADS_URL}" title="Opens Google Ads in a new tab">
+    ${icon('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/>')} Google Ads <span class="count">↗</span></button></div>`;
   return html;
 }
 
@@ -3824,6 +3828,9 @@ function bindEvents(){
   });
   document.querySelectorAll('[data-nav]').forEach(el=>{
     el.addEventListener('click', ()=>{ view = { stream: el.getAttribute('data-nav'), subarea:null }; render(); });
+  });
+  document.querySelectorAll('[data-ext]').forEach(el=>{
+    el.addEventListener('click', ()=>{ window.open(el.getAttribute('data-ext'), '_blank', 'noopener'); });
   });
   document.querySelectorAll('[data-href]').forEach(el=>{
     el.addEventListener('click', ()=>{ location.href = el.getAttribute('data-href'); });
