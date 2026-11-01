@@ -770,14 +770,20 @@
   .pub-carry-head span{ color:var(--ink-soft); font-size:11px; }
   .pub-carry-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:8px; }
   .pub-series b{ color:var(--ink); font-weight:700; }
+
+  /* jump to a task from the Overview */
+  .modal-box .actions .goto-btn{ margin-right:auto; color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+  .task.flash, tr.flash{ animation:taskflash 2.2s ease; }
+  @keyframes taskflash{ 0%,40%{ box-shadow:0 0 0 2px #2c20d0; background:#eef0ff; } 100%{ box-shadow:0 0 0 0 transparent; } }
+  @media (prefers-reduced-motion: reduce){ .task.flash, tr.flash{ animation:none; box-shadow:0 0 0 2px #2c20d0; } }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '01.11-l';
-const APP_BUILD = 202611012500; // bigger = newer; the page only ever reloads to a bigger build
+const APP_VERSION = '01.11-n';
+const APP_BUILD = 202611012700; // bigger = newer; the page only ever reloads to a bigger build
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -2046,6 +2052,28 @@ let editingTask = null; // {taskKey, id} of the task card currently in edit mode
 let expandedNotes = new Set(); // task ids whose long notes are currently expanded
 function toggleNotes(id){ if(expandedNotes.has(id)) expandedNotes.delete(id); else expandedNotes.add(id); render(); }
 function startEditTask(taskKey,id){ editingTask = {taskKey, id}; render(); }
+/* ---- jump from anywhere (e.g. the Overview) to the task on its own tab, scrolled to and highlighted ---- */
+function goToTask(k, id){
+  editingTask = null; editingIdeaId = null;
+  if(k==='ideas') view = { stream:'content', subarea:'ideas' };
+  else {
+    const m = TASKKEY_META[k]; if(!m) return;
+    view = { stream:m.stream, subarea:m.subarea };
+    if(m.series) videoSeries = m.series;
+  }
+  render();
+  const find = ()=> document.querySelector(`[data-dragtask="${k}:${id}"]`) || ((document.querySelector(`[data-deltask="${k}:${id}"]`)||{}).closest ? document.querySelector(`[data-deltask="${k}:${id}"]`).closest('tr') : null);
+  let el = find();
+  if(!el){ // hidden by a filter on that board: clear them and look again
+    Object.keys(boardFilters).forEach(key=>{ if(key.startsWith(k) || key.startsWith('video-')) delete boardFilters[key]; });
+    render(); el = find();
+  }
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'), 2200);
+}
+function goToLabel(k){ return k==='ideas' ? 'Bank of Ideas' : boardLabel(k); }
 function cancelEditTask(){ editingTask = null; render(); }
 
 /* ---- outreach ---- */
@@ -2275,7 +2303,8 @@ function publishItems(){
 }
 // where a post stands, seen from publish day
 function pubState(e){
-  if(e.t.status==='done') return { cls:'live', label:'Live' };
+  // Done in Video Prod means the video is finished; it's only Live once its publish day has come
+  if(e.t.status==='done') return e.date <= todayStr() ? { cls:'live', label:'Live' } : { cls:'ready', label:'Ready' };
   if(e.date < todayStr()) return { cls:'missed', label:'Missed: not published' };
   const open = videoMilestones(e.t).filter(m=>m.doneKey && m.date && !m.done).map(m=>m.label.toLowerCase());
   if(!open.length) return { cls:'ready', label:'Ready' };
@@ -3250,6 +3279,7 @@ function renderEditModal(){
       <label>Platform <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
       ${pickChips('platform', t)}`:''}
       <div class="actions">
+        <button class="btn-ghost goto-btn" onclick="goToTask('${taskKey}','${id}')" title="Open the tab this task lives on">Show in ${escapeHtml(goToLabel(taskKey))} ›</button>
         <button class="btn-ghost" onclick="cancelEditTask()">Cancel</button>
         <button class="btn-solid" id="e-save">Save</button>
       </div>
@@ -3292,6 +3322,7 @@ function renderIdeaEditModal(){
         </div>
       </div>
       <div class="actions">
+        <button class="btn-ghost goto-btn" onclick="goToTask('ideas','${i.id}')" title="Open the tab this idea lives on">Show in Bank of Ideas ›</button>
         <button class="btn-ghost" onclick="cancelEditIdea()">Cancel</button>
         <button class="btn-solid" id="ei-save">Save</button>
       </div>
