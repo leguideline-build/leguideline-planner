@@ -581,17 +581,23 @@
   }
 
   /* ---------- move a card to another tab: sidebar drop targets ---------- */
-  .sidebar{ position:sticky; top:0; height:100vh; align-self:flex-start; overflow-y:auto; }
-  .nav-drop-hint{ display:none; font-size:10.5px; color:var(--ink-faint); padding:0 10px 8px; }
-  .nav-drops{ display:none; }
-  body.task-dragging .nav-drop-hint{ display:block; }
-  body.task-dragging .nav-drops{ display:flex; flex-wrap:wrap; gap:4px; padding:0 0 10px 35px; }
+  .sidebar{ position:sticky; top:0; height:100vh; align-self:flex-start; overflow:visible; z-index:20; }
+  .nav-item{ position:relative; }
+  .nav-item > button{ width:100%; box-sizing:border-box; }
+  .nav-drops{
+    display:none; position:absolute; left:100%; top:-6px; z-index:60; width:230px;
+    flex-wrap:wrap; gap:5px; padding:10px 12px 12px; background:var(--white);
+    border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.14);
+  }
+  body.task-dragging .nav-item.drag-open .nav-drops{ display:flex; }
   .nav-drops .grp{ width:100%; font-size:10.5px; color:var(--ink-faint); margin:4px 0 0; }
+  .nav-drops .grp:first-child{ margin-top:0; color:var(--ink-soft); }
+  .nav-drop{ cursor:copy; }
   .nav-drop{
     font-size:11px; color:var(--ink-soft); border:1px dashed var(--ink-faint); border-radius:999px;
     padding:3px 9px; line-height:1.3; transition:background .1s ease, color .1s ease;
   }
-  body.task-dragging .nav button[data-droptarget]:not(.is-source){ background:var(--line-soft); }
+  body.task-dragging .nav button[data-droptarget]:not(.is-source){ outline:1px dashed var(--ink-faint); outline-offset:-2px; border-radius:6px; }
   body.task-dragging .subtab-btn[data-droptarget]:not(.is-source){ border-bottom:2px dashed var(--ink-faint); }
   .nav-drop.over, .nav button[data-droptarget].over{ background:var(--ink) !important; color:var(--white); border-color:var(--ink); border-style:solid; }
   .nav button[data-droptarget].over .count{ color:var(--white); }
@@ -599,15 +605,44 @@
   .nav-drop.is-source{ opacity:.35; }
   @media (max-width:720px){
     .sidebar{ position:static; height:auto; overflow:visible; }
-    body.task-dragging .nav-drops, body.task-dragging .nav-drop-hint{ display:none; }
+    .nav-item{ flex-shrink:0; }
+    body.task-dragging .nav-drops{ display:none !important; }
   }
+
+  /* empty dates: no dd/mm/yyyy, just a faint calendar icon */
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit,
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit-fields-wrapper,
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit-text,
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit-day-field,
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit-month-field,
+  input[type=date].is-empty:not(:focus)::-webkit-datetime-edit-year-field{ color:transparent; }
+  input[type=date].is-empty::-webkit-calendar-picker-indicator{ opacity:.3; }
+  @-moz-document url-prefix(){ input[type=date].is-empty:not(:focus){ color:transparent; } }
+
+  /* Research & Outreach: Agreed stands out like an active filter */
+  table.outreach select.status-agreed{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-color:#2c20d0; color:#ffffff; border-color:#2c20d0; border-radius:999px; font-weight:700;
+    padding:5px 26px 5px 12px; width:auto; max-width:100%;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 9px center; background-size:10px 10px;
+  }
+  table.outreach select.status-agreed:hover, table.outreach select.status-agreed:focus{ background-color:#2c20d0; border-color:#2c20d0; }
+  table.outreach select.status-agreed option{ color:var(--ink); background:var(--white); font-weight:400; }
+
+  /* "move to…" on cards */
+  .task .row-actions select.move-to{
+    appearance:none; -webkit-appearance:none; border:none; background:transparent; cursor:pointer;
+    font-family:inherit; font-size:10px; color:var(--ink-soft); padding:2px 6px; letter-spacing:.02em; max-width:80px;
+  }
+  .task .row-actions select.move-to:hover, .task .row-actions select.move-to:focus{ color:var(--ink); outline:none; }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '01.11-move';
+const APP_VERSION = '01.11-b';
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -659,14 +694,14 @@ const STREAM_DEF = {
   },
   content: {
     label:'Content',
-    tagline:'Research, outreach, video production and the banks of ideas, places and people.',
+    tagline:'Research, outreach, video production and the banks of ideas, places and accounts.',
     icon:'<rect x="4.5" y="5" width="15" height="14" rx="2"/><path d="M12 5v14"/>',
     subareas:[
       {key:'outreach', label:'Research & Outreach', type:'outreach'},
       {key:'video', label:'Video Prod', type:'videoprod'},
       {key:'ideas', label:'Bank of Ideas', type:'ideas'},
       {key:'places', label:'Bank of Places', type:'places'},
-      {key:'accounts', label:'Bank of People', type:'accounts'}
+      {key:'accounts', label:'Bank of Accounts', type:'accounts'}
     ]
   },
   maintenance: {
@@ -817,6 +852,7 @@ function patchState(){
   state.ideas = state.ideas || [];
   state.places = state.places || [];
   if(!Array.isArray(state.accounts)) state.accounts = [];
+  if(!Array.isArray(state.outreachColumns)) state.outreachColumns = [];
   if(!Array.isArray(state.accountColumns) || !state.accountColumns.length) state.accountColumns = defaultAccountColumns();
   state.subareaOrder = state.subareaOrder || {};
   (state.ideas || []).forEach(i=>{
@@ -874,7 +910,7 @@ function contentCount(s){
 }
 function contentSummary(s){
   const t = Object.values((s&&s.tasks)||{}).reduce((n,a)=>n+(a||[]).length,0);
-  return `${t} tasks · ${(s.outreach||[]).length} contacts · ${(s.ideas||[]).length} ideas · ${(s.places||[]).length} places · ${(s.accounts||[]).length} people`;
+  return `${t} tasks · ${(s.outreach||[]).length} contacts · ${(s.ideas||[]).length} ideas · ${(s.places||[]).length} places · ${(s.accounts||[]).length} accounts`;
 }
 
 // three-way merge: base = last agreed state, l = this device, r = cloud
@@ -1826,6 +1862,12 @@ function relocate(srcK, id, dstK){
   }
   return base;
 }
+function moveToSelect(k, id){
+  return `<select class="move-to" title="Move to another tab" aria-label="Move to another tab" onchange="if(this.value) moveToBoard('${k}','${id}',this.value)">
+    <option value="" selected>move to…</option>
+    ${Object.keys(TASKKEY_META).concat(['ideas']).filter(x=>x!==k).map(x=>`<option value="${x}">${escapeHtml(boardLabel(x))}</option>`).join('')}
+  </select>`;
+}
 function moveToBoard(srcK, id, dstK){
   if(!relocate(srcK, id, dstK)) return;
   save(); render();
@@ -1920,14 +1962,16 @@ function renderNav(){
     if(k==='content') open += state.outreach.filter(r=>r.status!=='Agreed' && r.status!=='Declined').length;
     const t = navDropTargets(k);
     const single = t.plain.length===1 && !t.groups.length ? t.plain[0][0] : '';
-    html += `<button class="${view.stream===k?'active':''}" data-nav="${k}" ${single?`data-droptarget="${single}"`:''}>
-      ${icon(s.icon)} ${s.label} <span class="count">${open}</span></button>`;
+    const first = single || (t.plain[0]||[])[0] || '';
+    let fly = '';
     if(!single && (t.plain.length || t.groups.length)){
       const chip = ([key,label])=>`<span class="nav-drop" data-droptarget="${key}">${escapeHtml(label)}</span>`;
-      html += `<div class="nav-drops">${t.plain.map(chip).join('')}${t.groups.map(g=>`<span class="grp">${escapeHtml(g.label)}</span>${g.items.map(chip).join('')}`).join('')}</div>`;
+      fly = `<div class="nav-drops"><span class="grp">Move to ${escapeHtml(s.label)}</span>${t.plain.map(chip).join('')}${t.groups.map(g=>`<span class="grp">${escapeHtml(g.label)}</span>${g.items.map(chip).join('')}`).join('')}</div>`;
     }
+    html += `<div class="nav-item" data-navgroup="${k}"><button class="${view.stream===k?'active':''}" data-nav="${k}" ${first?`data-droptarget="${first}"`:''}>
+      ${icon(s.icon)} ${s.label} <span class="count">${open}</span></button>${fly}</div>`;
   });
-  return `<div class="nav-drop-hint">Drop on a tab to move it there</div>` + html;
+  return html;
 }
 
 // where a dragged card can go inside each sidebar tab
@@ -2083,12 +2127,13 @@ function taskCard(taskKey, t, isVideo, seriesLabel){
         : (t.due?`<span class="due ${overdue?'overdue':''}">${overdue?'overdue · ':''}${fmtDate(t.due)}</span>`:'')}
       ${whoTag(t.assignee)}
       ${seriesLabel?`<span class="series-tag">${seriesLabel}</span>`:''}
-      </div>${isVideo?statusSelect(taskKey, t):''}
+      </div>
     </div>
     <div class="row-actions">
       ${status!=='backlog'?`<button data-move="${taskKey}:${t.id}:-1">◂ move</button>`:''}
       ${status!=='done'?`<button data-move="${taskKey}:${t.id}:1">move ▸</button>`:''}
       <button onclick="startEditTask('${taskKey}','${t.id}')">edit</button>
+      ${moveToSelect(taskKey, t.id)}
       <span class="spacer"></span>
       <button class="del" data-deltask="${taskKey}:${t.id}">delete</button>
     </div>
@@ -2295,7 +2340,6 @@ function kanbanBoard(taskKey, label, tagline, isVideo, allSeries){
         </select>
         ${isVideo?'':`<input type="date" id="f-due-${taskKey}" aria-label="Due date" />`}
         <select id="f-who-${taskKey}" aria-label="Assigned to" onchange="personPick(this)">${personOptions('')}</select>
-        ${isVideo?`<select id="f-status-${taskKey}" aria-label="Status">${VIDEO_STATUS_PICK.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`:''}
       </div>
       ${isVideo?`<div class="date-fields">
         <label class="mini-field step-film">Film <input type="date" id="f-film-${taskKey}"></label>
@@ -2329,6 +2373,7 @@ function videoProdView(){
 
 function outreachView(){
   const rows = state.outreach;
+  const extra = bankCols('outreach');
   const body = rows.length ? rows.map(r=>`
     <tr>
       <td><input type="text" value="${escapeHtml(r.name)}" onchange="updateOutreachField('${r.id}','name',this.value)" placeholder="Name"></td>
@@ -2339,7 +2384,7 @@ function outreachView(){
         </select>
       </td>
       <td>
-        <select onchange="updateOutreachField('${r.id}','status',this.value); render();">
+        <select class="${r.status==='Agreed'?'status-agreed':''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
           ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
         </select>
       </td>
@@ -2353,9 +2398,10 @@ function outreachView(){
       <td><input type="date" value="${r.lastContact||''}" onchange="updateOutreachField('${r.id}','lastContact',this.value)"></td>
       <td><input type="date" value="${r.followUp||''}" onchange="updateOutreachField('${r.id}','followUp',this.value)"></td>
       <td><input type="text" value="${escapeHtml(r.notes)}" onchange="updateOutreachField('${r.id}','notes',this.value)" placeholder="Notes"></td>
+      ${extra.map(c=>`<td>${bankCell('outreach', r, c)}</td>`).join('')}
       <td><button class="del-row" data-deloutreach="${r.id}">✕</button></td>
     </tr>
-  `).join('') : `<tr><td colspan="9" class="empty-block">No contacts yet — add the first chef or blogger below.</td></tr>`;
+  `).join('') : `<tr><td colspan="${9+extra.length}" class="empty-block">No contacts yet — add the first chef or blogger below.</td></tr>`;
 
   return `
     <div class="topbar">
@@ -2367,7 +2413,10 @@ function outreachView(){
     </div>
     <div class="board-head">
       <span></span>
-      <button class="add-btn" data-outreachtoggle="1">Add contact</button>
+      <div class="board-actions">
+        <button class="add-btn outline" onclick="openBankCol('outreach',null)">Add column</button>
+        <button class="add-btn" data-outreachtoggle="1">Add contact</button>
+      </div>
     </div>
     <div class="add-panel ${outreachFormOpen?'open':''}">
       <div class="row">
@@ -2393,7 +2442,7 @@ function outreachView(){
     <div class="table-scroll"><table class="outreach" data-resize-id="outreach">
       <thead><tr>
         <th data-col="name" style="width:13%">Name</th><th data-col="venue" style="width:12%">Venue</th><th data-col="type" style="width:8%">Type</th><th data-col="status" style="width:11%">Status</th><th data-col="priority" style="width:7%">Priority</th>
-        <th data-col="last" style="width:10%">Last contact</th><th data-col="follow" style="width:10%">Follow up</th><th data-col="notes">Notes</th><th data-col="del" data-noresize="1" style="width:24px"></th>
+        <th data-col="last" style="width:10%">Last contact</th><th data-col="follow" style="width:10%">Follow up</th><th data-col="notes">Notes</th>${extra.map(c=>`<th data-col="${c.id}"><button class="pcol-head" onclick="openBankCol('outreach','${c.id}')" title="Edit column">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`).join('')}<th data-col="del" data-noresize="1" style="width:28px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
@@ -2430,6 +2479,7 @@ function ideasOnlyView(){
         ${i.status!=='backlog'?`<button onclick="moveIdea('${i.id}',-1)">◂ move</button>`:''}
         ${i.status!=='done'?`<button onclick="moveIdea('${i.id}',1)">move ▸</button>`:''}
         <button onclick="startEditIdea('${i.id}')">edit</button>
+        ${moveToSelect('ideas', i.id)}
         <span class="spacer"></span>
         <button class="del" onclick="delIdea('${i.id}')">delete</button>
       </div>
@@ -2505,12 +2555,13 @@ const BANKS = {
   places: { rows:'places', cols:'placeColumns', defaults:()=>defaultPlaceColumns(), title:'Bank of Places', one:'place', many:'places', add:'Add place',
     tagline:'Potential places to visit for route cards. Click a column title to rename it, change its type or delete it.',
     empty:'No places yet — add somewhere worth visiting.' },
-  accounts: { rows:'accounts', cols:'accountColumns', defaults:()=>defaultAccountColumns(), title:'Bank of People', one:'person', many:'people', add:'Add person',
+  outreach: { rows:'outreach', cols:'outreachColumns', defaults:()=>[], title:'Research & Outreach', one:'contact', many:'contacts', add:'Add contact', tagline:'', empty:'' },
+  accounts: { rows:'accounts', cols:'accountColumns', defaults:()=>defaultAccountColumns(), title:'Bank of Accounts', one:'account', many:'accounts', add:'Add account',
     tagline:'People and accounts worth following, featuring or reaching out to. Click a column title to rename it, change its type or delete it.',
-    empty:'No one yet — add a person or account worth keeping track of.' }
+    empty:'No accounts yet — add a person or account worth keeping track of.' }
 };
 function bankRows(b){ const B = BANKS[b]; return Array.isArray(state[B.rows]) ? state[B.rows] : (state[B.rows] = []); }
-function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || !state[B.cols].length) state[B.cols] = B.defaults(); return state[B.cols]; }
+function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || (!state[B.cols].length && b!=='outreach')) state[B.cols] = B.defaults(); return state[B.cols]; }
 
 let focusBankRow = null;
 let bankColEdit = null; // { bank, id|null, title, type, options }
@@ -2564,7 +2615,7 @@ function saveBankCol(){
 function delBankCol(){
   const b = bankColEdit.bank, B = BANKS[b];
   const c = bankCols(b).find(c=>c.id===bankColEdit.id); if(!c) return;
-  if(bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
+  if(b!=='outreach' && bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
   if(!confirm(`Delete the column “${c.title}”? Its values are removed from every ${B.one}.`)) return;
   state[B.cols] = bankCols(b).filter(x=>x.id!==c.id);
   bankRows(b).forEach(r=>{ delete r[c.id]; });
@@ -2591,7 +2642,7 @@ function renderBankColModal(){
     <div class="modal-box" style="max-width:460px;">
       <h2>${e.id?'Edit column':'New column'}</h2>
       <label>Title</label>
-      <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
+      <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':e.bank==='outreach'?'e.g. Email':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
       <label>Content type</label>
       <select id="pc-type" onchange="bankColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
         ${PLACE_COL_TYPES.map(([v,l])=>`<option value="${v}" ${e.type===v?'selected':''}>${l}</option>`).join('')}
@@ -2759,10 +2810,6 @@ function renderEditModal(){
           <label>Assigned to</label>
           <select id="e-who" onchange="personPick(this)">${personOptions(t.assignee||'')}</select>
         </div>
-        ${isVideo?`<div>
-          <label>Status</label>
-          <select id="e-status">${statusOptions(t.status)}</select>
-        </div>`:''}
         <div>
           <label>Board</label>
           <select id="e-board">${boardOptions(taskKey, true)}</select>
@@ -2973,6 +3020,8 @@ function startColResize(ev, table, th){
   document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', up);
 }
 
+function markDate(el){ el.classList.toggle('is-empty', !el.value); }
+['input','change','blur'].forEach(ev=>document.addEventListener(ev, e=>{ if(e.target && e.target.type==='date') markDate(e.target); }, true));
 function render(){
   if(state && autoPromote()) save();
   document.body.classList.remove('task-dragging');
@@ -2999,6 +3048,7 @@ function render(){
   `;
   bindEvents();
   applyColumnWidths();
+  document.querySelectorAll('input[type=date]').forEach(markDate);
   if(focusBankRow){
     const first = document.querySelector(`tr[data-bankrow="${focusBankRow}"] input, tr[data-bankrow="${focusBankRow}"] select`);
     focusBankRow = null;
@@ -3048,6 +3098,7 @@ function render(){
 let dragCard = null; // {k, id}
 function endTaskDrag(){
   document.body.classList.remove('task-dragging');
+  document.querySelectorAll('.nav-item.drag-open').forEach(x=>x.classList.remove('drag-open'));
   document.querySelectorAll('[data-droptarget].over, [data-droptarget].is-source').forEach(x=>x.classList.remove('over','is-source'));
 }
 function clearDropMarks(){
@@ -3094,6 +3145,13 @@ function bindEvents(){
       }, 0);
     });
     el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); endTaskDrag(); dragCard=null; });
+  });
+  document.querySelectorAll('[data-navgroup]').forEach(el=>{
+    el.addEventListener('dragover', ()=>{
+      if(!dragCard || el.classList.contains('drag-open')) return;
+      document.querySelectorAll('.nav-item.drag-open').forEach(x=>x.classList.remove('drag-open'));
+      el.classList.add('drag-open');
+    });
   });
   document.querySelectorAll('[data-droptarget]').forEach(el=>{
     const dst = el.getAttribute('data-droptarget');
