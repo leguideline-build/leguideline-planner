@@ -579,13 +579,35 @@
       transform:scale(.5); transform-origin:0 0; pointer-events:none;
     }
   }
+
+  /* ---------- move a card to another tab: sidebar drop targets ---------- */
+  .sidebar{ position:sticky; top:0; height:100vh; align-self:flex-start; overflow-y:auto; }
+  .nav-drop-hint{ display:none; font-size:10.5px; color:var(--ink-faint); padding:0 10px 8px; }
+  .nav-drops{ display:none; }
+  body.task-dragging .nav-drop-hint{ display:block; }
+  body.task-dragging .nav-drops{ display:flex; flex-wrap:wrap; gap:4px; padding:0 0 10px 35px; }
+  .nav-drops .grp{ width:100%; font-size:10.5px; color:var(--ink-faint); margin:4px 0 0; }
+  .nav-drop{
+    font-size:11px; color:var(--ink-soft); border:1px dashed var(--ink-faint); border-radius:999px;
+    padding:3px 9px; line-height:1.3; transition:background .1s ease, color .1s ease;
+  }
+  body.task-dragging .nav button[data-droptarget]:not(.is-source){ background:var(--line-soft); }
+  body.task-dragging .subtab-btn[data-droptarget]:not(.is-source){ border-bottom:2px dashed var(--ink-faint); }
+  .nav-drop.over, .nav button[data-droptarget].over{ background:var(--ink) !important; color:var(--white); border-color:var(--ink); border-style:solid; }
+  .nav button[data-droptarget].over .count{ color:var(--white); }
+  .subtab-btn.over{ color:var(--ink); border-bottom:2px solid var(--ink) !important; }
+  .nav-drop.is-source{ opacity:.35; }
+  @media (max-width:720px){
+    .sidebar{ position:static; height:auto; overflow:visible; }
+    body.task-dragging .nav-drops, body.task-dragging .nav-drop-hint{ display:none; }
+  }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '29.10-auto';
+const APP_VERSION = '01.11-move';
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -637,13 +659,14 @@ const STREAM_DEF = {
   },
   content: {
     label:'Content',
-    tagline:'Research, outreach, video production and the ideas bank.',
+    tagline:'Research, outreach, video production and the banks of ideas, places and people.',
     icon:'<rect x="4.5" y="5" width="15" height="14" rx="2"/><path d="M12 5v14"/>',
     subareas:[
       {key:'outreach', label:'Research & Outreach', type:'outreach'},
       {key:'video', label:'Video Prod', type:'videoprod'},
       {key:'ideas', label:'Bank of Ideas', type:'ideas'},
-      {key:'places', label:'Bank of Places', type:'places'}
+      {key:'places', label:'Bank of Places', type:'places'},
+      {key:'accounts', label:'Bank of People', type:'accounts'}
     ]
   },
   maintenance: {
@@ -717,8 +740,10 @@ function defaultState(){
     outreach: [],
     ideas: [],
     places: [],
+    accounts: [],
     people: [],
     placeColumns: defaultPlaceColumns(),
+    accountColumns: defaultAccountColumns(),
     subareaOrder: {},
     recurring: {
       daily: [
@@ -791,6 +816,8 @@ function patchState(){
   if(!Array.isArray(state.placeColumns) || !state.placeColumns.length) state.placeColumns = defaultPlaceColumns();
   state.ideas = state.ideas || [];
   state.places = state.places || [];
+  if(!Array.isArray(state.accounts)) state.accounts = [];
+  if(!Array.isArray(state.accountColumns) || !state.accountColumns.length) state.accountColumns = defaultAccountColumns();
   state.subareaOrder = state.subareaOrder || {};
   (state.ideas || []).forEach(i=>{
     if(i.due===undefined) i.due='';
@@ -843,11 +870,11 @@ function contentCount(s){
   if(!s) return 0;
   let n = 0;
   Object.values(s.tasks||{}).forEach(a=>{ n += (a||[]).length; });
-  return n + (s.outreach||[]).length + (s.ideas||[]).length + (s.places||[]).length;
+  return n + (s.outreach||[]).length + (s.ideas||[]).length + (s.places||[]).length + (s.accounts||[]).length;
 }
 function contentSummary(s){
   const t = Object.values((s&&s.tasks)||{}).reduce((n,a)=>n+(a||[]).length,0);
-  return `${t} tasks · ${(s.outreach||[]).length} contacts · ${(s.ideas||[]).length} ideas · ${(s.places||[]).length} places`;
+  return `${t} tasks · ${(s.outreach||[]).length} contacts · ${(s.ideas||[]).length} ideas · ${(s.places||[]).length} places · ${(s.accounts||[]).length} people`;
 }
 
 // three-way merge: base = last agreed state, l = this device, r = cloud
@@ -1675,8 +1702,9 @@ function startDumpMic(){
   updateMicBtn();
   const n=document.getElementById('dump-interim'); if(n && dump.listening){ n.textContent='Listening…'; n.dataset.live='1'; }
 }
-function boardOptions(sel){
-  return Object.entries(TASKKEY_META).map(([k,m])=>`<option value="${k}" ${k===sel?'selected':''}>${escapeHtml((STREAM_DEF[m.stream]||{}).label && m.stream==='product' ? 'Product · '+m.label : m.label)}</option>`).join('');
+function boardOptions(sel, withIdeas){
+  return Object.entries(TASKKEY_META).map(([k,m])=>`<option value="${k}" ${k===sel?'selected':''}>${escapeHtml(boardLabel(k))}</option>`).join('')
+    + (withIdeas ? `<option value="ideas" ${sel==='ideas'?'selected':''}>Bank of Ideas</option>` : '');
 }
 function renderDumpModal(){
   if(!dump) return '';
@@ -1766,6 +1794,43 @@ function setTaskStatus(taskKey,id,status){
   const t=(state.tasks[taskKey]||[]).find(t=>t.id===id); if(!t) return;
   t.status=status; keepInIdeas(t); save(); render();
 }
+/* ---- move a task to another board (any tab), keeping its details ---- */
+function boardLabel(k){
+  if(k==='ideas') return 'Bank of Ideas';
+  const m = TASKKEY_META[k]; if(!m) return k;
+  return (m.stream==='product' ? 'Product · ' : '') + m.label;
+}
+// takes the item out of srcK and puts it at the end of dstK; 'ideas' is the Bank of Ideas
+function relocate(srcK, id, dstK){
+  if(!dstK || srcK===dstK) return null;
+  if(dstK!=='ideas' && !TASKKEY_META[dstK]) return null;
+  let item;
+  if(srcK==='ideas'){
+    item = state.ideas.find(i=>i.id===id); if(!item) return null;
+    state.ideas = state.ideas.filter(i=>i.id!==id);
+  } else {
+    item = findTask(srcK, id); if(!item) return null;
+    state.tasks[srcK] = state.tasks[srcK].filter(t=>t.id!==id);
+  }
+  const status = colOf(item.status || 'backlog');
+  const base = Object.assign({}, item, { status, priority:item.priority||'med', notes:item.notes||'', due:item.due||'', assignee:item.assignee||'' });
+  if(dstK==='ideas'){
+    base.done = status==='done';
+    state.ideas.push(base);
+  } else {
+    delete base.done; delete base.text;
+    base.rank = nextRank(dstK);
+    if(dstK.startsWith('video-')){ if(base.filmDue===undefined) base.filmDue=''; if(base.editDue===undefined) base.editDue=''; }
+    if(!state.tasks[dstK]) state.tasks[dstK] = [];
+    state.tasks[dstK].push(base);
+  }
+  return base;
+}
+function moveToBoard(srcK, id, dstK){
+  if(!relocate(srcK, id, dstK)) return;
+  save(); render();
+  toast('Moved to ' + boardLabel(dstK));
+}
 function delTask(taskKey,id){ state.tasks[taskKey]=state.tasks[taskKey].filter(t=>t.id!==id); save(); render(); }
 function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
@@ -1773,12 +1838,10 @@ function updateTask(taskKey,id,data){
   t.assignee = data.assignee||'';
   if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; }
   if(data.status) t.status=data.status;
-  // video moved to another series
-  if(data.series && taskKey.startsWith('video-') && 'video-'+data.series!==taskKey && state.tasks['video-'+data.series]){
-    state.tasks[taskKey] = state.tasks[taskKey].filter(x=>x.id!==id);
-    state.tasks['video-'+data.series].push(t);
-  }
+  // moved to another board (another tab, or another video series)
+  const moved = data.board && data.board!==taskKey && relocate(taskKey, id, data.board);
   save(); editingTask=null; render();
+  if(moved) toast('Moved to ' + boardLabel(data.board));
 }
 let editingTask = null; // {taskKey, id} of the task card currently in edit mode
 let expandedNotes = new Set(); // task ids whose long notes are currently expanded
@@ -1817,7 +1880,9 @@ function delIdea(id){ state.ideas=state.ideas.filter(i=>i.id!==id); save(); rend
 function updateIdea(id, data){
   const i=state.ideas.find(i=>i.id===id); if(!i) return;
   i.title=data.title; i.notes=data.notes||''; i.priority=data.priority||'med'; i.due=data.due||''; i.assignee=data.assignee||'';
+  const moved = data.board && data.board!=='ideas' && relocate('ideas', id, data.board);
   save(); editingIdeaId=null; render();
+  if(moved) toast('Moved to ' + boardLabel(data.board));
 }
 function startEditIdea(id){ editingIdeaId=id; render(); }
 function cancelEditIdea(){ editingIdeaId=null; render(); }
@@ -1853,10 +1918,36 @@ function renderNav(){
     let open = 0;
     keys.forEach(tk=>{ if(state.tasks[tk]) open += state.tasks[tk].filter(t=>t.status!=='done').length; });
     if(k==='content') open += state.outreach.filter(r=>r.status!=='Agreed' && r.status!=='Declined').length;
-    html += `<button class="${view.stream===k?'active':''}" data-nav="${k}">
+    const t = navDropTargets(k);
+    const single = t.plain.length===1 && !t.groups.length ? t.plain[0][0] : '';
+    html += `<button class="${view.stream===k?'active':''}" data-nav="${k}" ${single?`data-droptarget="${single}"`:''}>
       ${icon(s.icon)} ${s.label} <span class="count">${open}</span></button>`;
+    if(!single && (t.plain.length || t.groups.length)){
+      const chip = ([key,label])=>`<span class="nav-drop" data-droptarget="${key}">${escapeHtml(label)}</span>`;
+      html += `<div class="nav-drops">${t.plain.map(chip).join('')}${t.groups.map(g=>`<span class="grp">${escapeHtml(g.label)}</span>${g.items.map(chip).join('')}`).join('')}</div>`;
+    }
   });
-  return html;
+  return `<div class="nav-drop-hint">Drop on a tab to move it there</div>` + html;
+}
+
+// where a dragged card can go inside each sidebar tab
+function navDropTargets(k){
+  const s = STREAM_DEF[k];
+  const plain = [], groups = [];
+  if(!s.subareas){ if(s.taskKey) plain.push([s.taskKey, s.label]); return { plain, groups }; }
+  getOrderedSubareas(k).forEach(sa=>{
+    if(sa.taskKey) plain.push([sa.taskKey, sa.label]);
+    else if(sa.type==='ideas') plain.push(['ideas', sa.label]);
+    else if(sa.type==='videoprod') groups.push({ label:sa.label, items:VIDEO_SERIES.map(([x,l])=>['video-'+x, l]) });
+  });
+  return { plain, groups };
+}
+// a sub-tab that can take a dropped card
+function subtabDropTarget(sa){
+  if(sa.taskKey) return sa.taskKey;
+  if(sa.type==='ideas') return 'ideas';
+  if(sa.type==='videoprod' && videoSeries!=='all') return 'video-'+videoSeries;
+  return '';
 }
 
 function ritualCard(period,title,windowLabel,cornerTag){
@@ -2327,7 +2418,7 @@ function ideasOnlyView(){
       notesHtml = `<div class="notes">${escapeHtml(shown)}${isLong?` <button class="notes-toggle" onclick="toggleNotes('${i.id}')">${isExpanded?'show less':'show more'}</button>`:''}</div>`;
     }
     return `
-    <div class="task">
+    <div class="task" draggable="true" data-dragtask="ideas:${i.id}">
       <div class="title">${escapeHtml(i.title)}</div>
       ${notesHtml}
       <div class="meta">
@@ -2347,7 +2438,7 @@ function ideasOnlyView(){
   const ideaCols = COLS.map(([status,colLabel])=>{
     const items = state.ideas.filter(i=>(i.status||'backlog')===status);
     const cards = items.length ? items.map(ideaCard).join('') : `<div class="empty-col">Nothing here yet.</div>`;
-    return `<div class="col"><div class="col-head"><h4>${colLabel}</h4><span class="n">${items.length}</span></div>${cards}</div>`;
+    return `<div class="col" data-dropcol="${status}"><div class="col-head"><h4>${colLabel}</h4><span class="n">${items.length}</span></div>${cards}</div>`;
   }).join('');
 
   return `
@@ -2398,114 +2489,139 @@ const COLTYPE_ICON = {
   select: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 10.5l3.5 3.5 3.5-3.5"/>',
   date: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M9 3.5v4M15 3.5v4"/>'
 };
-let focusPlaceId = null;
-let placeColEdit = null; // { id|null, title, type, options }
-function addPlaceRow(){
+/* ---- bank of people / accounts: same editable table as places ---- */
+const ACCOUNT_PLATFORMS = ['Instagram','TikTok','YouTube','Website','Substack','Other'];
+const ACCOUNT_CATEGORIES = ['Chef','Food writer','Blogger','Creator','Restaurant','Brand','PR','Other'];
+function defaultAccountColumns(){
+  return [
+    { id:'name', title:'Name', type:'text' },
+    { id:'handle', title:'Account', type:'text' },
+    { id:'platform', title:'Platform', type:'select', options:ACCOUNT_PLATFORMS.slice() },
+    { id:'category', title:'Category', type:'select', options:ACCOUNT_CATEGORIES.slice() },
+    { id:'notes', title:'Notes', type:'text' }
+  ];
+}
+const BANKS = {
+  places: { rows:'places', cols:'placeColumns', defaults:()=>defaultPlaceColumns(), title:'Bank of Places', one:'place', many:'places', add:'Add place',
+    tagline:'Potential places to visit for route cards. Click a column title to rename it, change its type or delete it.',
+    empty:'No places yet — add somewhere worth visiting.' },
+  accounts: { rows:'accounts', cols:'accountColumns', defaults:()=>defaultAccountColumns(), title:'Bank of People', one:'person', many:'people', add:'Add person',
+    tagline:'People and accounts worth following, featuring or reaching out to. Click a column title to rename it, change its type or delete it.',
+    empty:'No one yet — add a person or account worth keeping track of.' }
+};
+function bankRows(b){ const B = BANKS[b]; return Array.isArray(state[B.rows]) ? state[B.rows] : (state[B.rows] = []); }
+function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || !state[B.cols].length) state[B.cols] = B.defaults(); return state[B.cols]; }
+
+let focusBankRow = null;
+let bankColEdit = null; // { bank, id|null, title, type, options }
+function addBankRow(b){
   const row = { id:uid() };
-  state.placeColumns.forEach(c=>{ row[c.id] = ''; });
-  state.places.push(row);
-  focusPlaceId = row.id;
+  bankCols(b).forEach(c=>{ row[c.id] = ''; });
+  bankRows(b).push(row);
+  focusBankRow = row.id;
   save(); render();
 }
-function updatePlaceField(id, field, value){
-  const row = state.places.find(p=>p.id===id); if(!row) return;
+function updateBankField(b, id, field, value){
+  const row = bankRows(b).find(p=>p.id===id); if(!row) return;
   row[field] = value; save();
 }
-function delPlace(id){ state.places = state.places.filter(p=>p.id!==id); save(); render(); }
-function placeSelectChange(rowId, colId, el){
-  if(el.value!=='__add'){ updatePlaceField(rowId, colId, el.value); return; }
-  const col = state.placeColumns.find(c=>c.id===colId);
+function delBankRow(b, id){ const B = BANKS[b]; state[B.rows] = bankRows(b).filter(p=>p.id!==id); save(); render(); }
+function bankSelectChange(b, rowId, colId, el){
+  if(el.value!=='__add'){ updateBankField(b, rowId, colId, el.value); return; }
+  const col = bankCols(b).find(c=>c.id===colId);
   const v = (prompt(`New option for “${col ? col.title : 'this column'}”`) || '').trim();
   if(v && col){
     col.options = col.options || [];
     if(!col.options.includes(v)) col.options.push(v);
-    updatePlaceField(rowId, colId, v);
+    updateBankField(b, rowId, colId, v);
   }
   render();
 }
-function openPlaceCol(id){
-  const c = id ? state.placeColumns.find(c=>c.id===id) : null;
-  placeColEdit = c ? { id:c.id, title:c.title, type:c.type, options:(c.options||[]).join('\n') }
-                   : { id:null, title:'', type:'text', options:'' };
+function openBankCol(b, id){
+  const c = id ? bankCols(b).find(c=>c.id===id) : null;
+  bankColEdit = c ? { bank:b, id:c.id, title:c.title, type:c.type, options:(c.options||[]).join('\n') }
+                  : { bank:b, id:null, title:'', type:'text', options:'' };
   render();
   setTimeout(()=>{ const i=document.getElementById('pc-title'); if(i){ i.focus(); i.select(); } },30);
 }
-function closePlaceCol(){ placeColEdit = null; render(); }
-function savePlaceCol(){
+function closeBankCol(){ bankColEdit = null; render(); }
+function saveBankCol(){
+  const b = bankColEdit.bank;
   const title = document.getElementById('pc-title').value.trim();
   const type = document.getElementById('pc-type').value;
   if(!title){ document.getElementById('pc-title').focus(); return; }
   const options = [...new Set(document.getElementById('pc-options').value.split('\n').map(x=>x.trim()).filter(Boolean))];
-  if(placeColEdit.id){
-    const c = state.placeColumns.find(c=>c.id===placeColEdit.id);
+  if(bankColEdit.id){
+    const c = bankCols(b).find(c=>c.id===bankColEdit.id);
     if(c){ c.title = title; c.type = type; if(type==='select') c.options = options; else delete c.options; }
   } else {
     const c = { id:'c_'+uid(), title, type };
     if(type==='select') c.options = options;
-    state.placeColumns.push(c);
+    bankCols(b).push(c);
   }
-  placeColEdit = null; save(); render();
+  bankColEdit = null; save(); render();
 }
-function delPlaceCol(){
-  const c = state.placeColumns.find(c=>c.id===placeColEdit.id); if(!c) return;
-  if(state.placeColumns.length<=1){ alert('Keep at least one column.'); return; }
-  if(!confirm(`Delete the column “${c.title}”? Its values are removed from every place.`)) return;
-  state.placeColumns = state.placeColumns.filter(x=>x.id!==c.id);
-  state.places.forEach(r=>{ delete r[c.id]; });
-  placeColEdit = null; save(); render();
+function delBankCol(){
+  const b = bankColEdit.bank, B = BANKS[b];
+  const c = bankCols(b).find(c=>c.id===bankColEdit.id); if(!c) return;
+  if(bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
+  if(!confirm(`Delete the column “${c.title}”? Its values are removed from every ${B.one}.`)) return;
+  state[B.cols] = bankCols(b).filter(x=>x.id!==c.id);
+  bankRows(b).forEach(r=>{ delete r[c.id]; });
+  bankColEdit = null; save(); render();
 }
-function movePlaceCol(dir){
-  const cols = state.placeColumns;
-  const i = cols.findIndex(c=>c.id===placeColEdit.id), j = i+dir;
+function moveBankCol(dir){
+  const cols = bankCols(bankColEdit.bank);
+  const i = cols.findIndex(c=>c.id===bankColEdit.id), j = i+dir;
   if(i<0 || j<0 || j>=cols.length) return;
   // keep what's typed in the dialog
-  placeColEdit.title = document.getElementById('pc-title').value;
-  placeColEdit.type = document.getElementById('pc-type').value;
-  placeColEdit.options = document.getElementById('pc-options').value;
+  bankColEdit.title = document.getElementById('pc-title').value;
+  bankColEdit.type = document.getElementById('pc-type').value;
+  bankColEdit.options = document.getElementById('pc-options').value;
   [cols[i], cols[j]] = [cols[j], cols[i]];
   save(); render();
 }
-function renderPlaceColModal(){
-  if(!placeColEdit) return '';
-  const e = placeColEdit;
-  const cols = state.placeColumns;
+function renderBankColModal(){
+  if(!bankColEdit) return '';
+  const e = bankColEdit;
+  const cols = bankCols(e.bank);
   const idx = e.id ? cols.findIndex(c=>c.id===e.id) : -1;
   return `
-  <div class="modal-overlay" id="pc-overlay" onclick="if(event.target===this) closePlaceCol()">
+  <div class="modal-overlay" id="pc-overlay" onclick="if(event.target===this) closeBankCol()">
     <div class="modal-box" style="max-width:460px;">
       <h2>${e.id?'Edit column':'New column'}</h2>
       <label>Title</label>
-      <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="e.g. City" onkeydown="if(event.key==='Enter'){savePlaceCol();}">
+      <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
       <label>Content type</label>
-      <select id="pc-type" onchange="placeColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
+      <select id="pc-type" onchange="bankColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
         ${PLACE_COL_TYPES.map(([v,l])=>`<option value="${v}" ${e.type===v?'selected':''}>${l}</option>`).join('')}
       </select>
       <div id="pc-opt-wrap" style="display:${e.type==='select'?'block':'none'};">
         <label>Dropdown options, one per line</label>
-        <textarea id="pc-options" style="min-height:130px;" placeholder="Lisbon&#10;Porto&#10;London">${escapeHtml(e.options)}</textarea>
+        <textarea id="pc-options" style="min-height:130px;" placeholder="${e.bank==='accounts'?'Instagram&#10;TikTok&#10;YouTube':'Lisbon&#10;Porto&#10;London'}">${escapeHtml(e.options)}</textarea>
       </div>
       <div class="actions" style="justify-content:space-between; flex-wrap:wrap;">
         <div class="col-move">
-          ${e.id?`<button class="btn-ghost" onclick="movePlaceCol(-1)" ${idx<=0?'disabled style="opacity:.35;"':''}>◂ Move left</button>
-          <button class="btn-ghost" onclick="movePlaceCol(1)" ${idx>=cols.length-1?'disabled style="opacity:.35;"':''}>Move right ▸</button>
-          <button class="btn-ghost" style="color:var(--red);" onclick="delPlaceCol()">Delete column</button>`:''}
+          ${e.id?`<button class="btn-ghost" onclick="moveBankCol(-1)" ${idx<=0?'disabled style="opacity:.35;"':''}>◂ Move left</button>
+          <button class="btn-ghost" onclick="moveBankCol(1)" ${idx>=cols.length-1?'disabled style="opacity:.35;"':''}>Move right ▸</button>
+          <button class="btn-ghost" style="color:var(--red);" onclick="delBankCol()">Delete column</button>`:''}
         </div>
         <div class="col-move">
-          <button class="btn-ghost" onclick="closePlaceCol()">Cancel</button>
-          <button class="btn-solid" onclick="savePlaceCol()">${e.id?'Save':'Add column'}</button>
+          <button class="btn-ghost" onclick="closeBankCol()">Cancel</button>
+          <button class="btn-solid" onclick="saveBankCol()">${e.id?'Save':'Add column'}</button>
         </div>
       </div>
     </div>
   </div>`;
 }
-function placeCell(r, c){
+function bankCell(b, r, c){
   const v = r[c.id]===undefined ? '' : String(r[c.id]);
-  const ch = `onchange="updatePlaceField('${r.id}','${c.id}',this.value)"`;
+  const ch = `onchange="updateBankField('${b}','${r.id}','${c.id}',this.value)"`;
   if(c.type==='date') return `<input type="date" value="${/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}" ${ch}>`;
   if(c.type==='select'){
     const opts = (c.options||[]).slice();
     if(v && !opts.includes(v)) opts.push(v);
-    return `<select onchange="placeSelectChange('${r.id}','${c.id}',this)">
+    return `<select onchange="bankSelectChange('${b}','${r.id}','${c.id}',this)">
       <option value="" ${v===''?'selected':''}>—</option>
       ${opts.map(o=>`<option value="${escapeHtml(o)}" ${o===v?'selected':''}>${escapeHtml(o)}</option>`).join('')}
       <option value="__add">＋ Add option…</option>
@@ -2514,34 +2630,35 @@ function placeCell(r, c){
   return `<input type="text" value="${escapeHtml(v)}" ${ch} placeholder="${escapeHtml(c.title)}">`;
 }
 
-function placesView(){
-  const rows = state.places || (state.places = []);
-  const cols = state.placeColumns;
+function bankView(b){
+  const B = BANKS[b];
+  const rows = bankRows(b);
+  const cols = bankCols(b);
   const body = rows.length ? rows.map(r=>`
-    <tr data-placerow="${r.id}">
-      ${cols.map(c=>`<td>${placeCell(r,c)}</td>`).join('')}
-      <td class="del-cell"><button class="del-row" data-delplace="${r.id}">✕</button></td>
-    </tr>`).join('') : `<tr><td colspan="${cols.length+1}" class="empty-block">No places yet — add somewhere worth visiting.</td></tr>`;
+    <tr data-bankrow="${r.id}">
+      ${cols.map(c=>`<td>${bankCell(b,r,c)}</td>`).join('')}
+      <td class="del-cell"><button class="del-row" data-delbank="${b}:${r.id}">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="${cols.length+1}" class="empty-block">${B.empty}</td></tr>`;
 
   return `
     <div class="topbar">
       <div>
-        <h1>Bank of Places</h1>
-        <div class="date">${rows.length} place${rows.length===1?'':'s'}</div>
+        <h1>${B.title}</h1>
+        <div class="date">${rows.length} ${rows.length===1?B.one:B.many}</div>
       </div>
-      <div class="stream-tagline">Potential places to visit for route cards. Click a column title to rename it, change its type or delete it.</div>
+      <div class="stream-tagline">${B.tagline}</div>
     </div>
     <div class="board-head">
       <span></span>
       <div class="board-actions">
-        <button class="add-btn outline" onclick="openPlaceCol(null)">Add column</button>
-        <button class="add-btn" onclick="addPlaceRow()">Add place</button>
+        <button class="add-btn outline" onclick="openBankCol('${b}',null)">Add column</button>
+        <button class="add-btn" onclick="addBankRow('${b}')">${B.add}</button>
       </div>
     </div>
-    <div class="table-scroll"><table class="outreach places" data-resize-id="places">
+    <div class="table-scroll"><table class="outreach places" data-resize-id="${b}">
       <thead><tr>
-        ${cols.map(c=>`<th data-col="${c.id}"><button class="pcol-head" onclick="openPlaceCol('${c.id}')" title="Edit column">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`).join('')}
-        <th class="del-cell" data-col="add" data-noresize="1"><button class="pcol-add" onclick="openPlaceCol(null)" title="Add column">＋</button></th>
+        ${cols.map(c=>`<th data-col="${c.id}"><button class="pcol-head" onclick="openBankCol('${b}','${c.id}')" title="Edit column">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}</button></th>`).join('')}
+        <th class="del-cell" data-col="add" data-noresize="1"><button class="pcol-add" onclick="openBankCol('${b}',null)" title="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
@@ -2567,6 +2684,7 @@ function onSubtabDragStart(key, event){
   }
 }
 function onSubtabDrop(streamKey, targetKey){
+  if(dragCard) return; // a task card is being dropped here, not a tab
   if(!dragSubtabKey || dragSubtabKey===targetKey) return;
   const order = getOrderedSubareas(streamKey).map(sa=>sa.key);
   const srcIdx = order.indexOf(dragSubtabKey);
@@ -2591,7 +2709,7 @@ function mainContent(){
     const ordered = getOrderedSubareas(view.stream);
     const active = view.subarea || ordered[0].key;
     subtabsHtml = `<div class="subtabs">${ordered.map(sa=>`
-      <div class="subtab-btn ${active===sa.key?'active':''}" data-subtab="${sa.key}"
+      <div class="subtab-btn ${active===sa.key?'active':''}" data-subtab="${sa.key}" ${subtabDropTarget(sa)?`data-droptarget="${subtabDropTarget(sa)}"`:''}
         draggable="true"
         ondragstart="onSubtabDragStart('${sa.key}', event)"
         ondragover="event.preventDefault()"
@@ -2600,7 +2718,8 @@ function mainContent(){
     const sa = ordered.find(x=>x.key===active);
     if(sa.type==='outreach') body = outreachView();
     else if(sa.type==='ideas') body = ideasOnlyView();
-    else if(sa.type==='places') body = placesView();
+    else if(sa.type==='places') body = bankView('places');
+    else if(sa.type==='accounts') body = bankView('accounts');
     else if(sa.type==='videoprod') body = videoProdView();
     else body = kanbanBoard(sa.taskKey, sa.label, s.tagline);
   } else {
@@ -2643,11 +2762,11 @@ function renderEditModal(){
         ${isVideo?`<div>
           <label>Status</label>
           <select id="e-status">${statusOptions(t.status)}</select>
-        </div>
-        <div>
-          <label>Series</label>
-          <select id="e-series">${VIDEO_SERIES.map(([k,l])=>`<option value="${k}" ${'video-'+k===taskKey?'selected':''}>${l}</option>`).join('')}</select>
         </div>`:''}
+        <div>
+          <label>Board</label>
+          <select id="e-board">${boardOptions(taskKey, true)}</select>
+        </div>
       </div>
       ${isVideo?`<div class="row">
         <div><label class="step-label step-film">Film</label><input type="date" id="e-film" value="${t.filmDue||''}"></div>
@@ -2690,6 +2809,10 @@ function renderIdeaEditModal(){
         <div>
           <label>Assigned to</label>
           <select id="ei-who" onchange="personPick(this)">${personOptions(i.assignee||'')}</select>
+        </div>
+        <div>
+          <label>Board</label>
+          <select id="ei-board">${boardOptions('ideas', true)}</select>
         </div>
       </div>
       <div class="actions">
@@ -2852,6 +2975,7 @@ function startColResize(ev, table, th){
 
 function render(){
   if(state && autoPromote()) save();
+  document.body.classList.remove('task-dragging');
   const root = document.getElementById('root');
   root.style.padding = '0'; root.style.color = '';
   root.innerHTML = `
@@ -2871,13 +2995,13 @@ function render(){
     ${renderSyncModal()}
     ${renderBackupsModal()}
     ${renderDumpModal()}
-    ${renderPlaceColModal()}
+    ${renderBankColModal()}
   `;
   bindEvents();
   applyColumnWidths();
-  if(focusPlaceId){
-    const first = document.querySelector(`tr[data-placerow="${focusPlaceId}"] input, tr[data-placerow="${focusPlaceId}"] select`);
-    focusPlaceId = null;
+  if(focusBankRow){
+    const first = document.querySelector(`tr[data-bankrow="${focusBankRow}"] input, tr[data-bankrow="${focusBankRow}"] select`);
+    focusBankRow = null;
     if(first) first.focus();
   }
   const saveBtn = document.getElementById('e-save');
@@ -2890,7 +3014,7 @@ function render(){
         due: document.getElementById('e-due').value,
         priority: document.getElementById('e-priority').value,
         status: (document.getElementById('e-status')||{}).value,
-        series: (document.getElementById('e-series')||{}).value,
+        board: (document.getElementById('e-board')||{}).value,
         assignee: document.getElementById('e-who').value,
         filmDue: (document.getElementById('e-film')||{}).value,
         editDue: (document.getElementById('e-edit')||{}).value
@@ -2909,7 +3033,8 @@ function render(){
         notes: document.getElementById('ei-notes').value,
         due: document.getElementById('ei-due').value,
         assignee: document.getElementById('ei-who').value,
-        priority: document.getElementById('ei-priority').value
+        priority: document.getElementById('ei-priority').value,
+        board: (document.getElementById('ei-board')||{}).value
       });
     });
   }
@@ -2921,6 +3046,10 @@ function render(){
 
 /* ---- drag cards up/down within a column, or across columns ---- */
 let dragCard = null; // {k, id}
+function endTaskDrag(){
+  document.body.classList.remove('task-dragging');
+  document.querySelectorAll('[data-droptarget].over, [data-droptarget].is-source').forEach(x=>x.classList.remove('over','is-source'));
+}
 function clearDropMarks(){
   document.querySelectorAll('.drop-marker').forEach(m=>m.remove());
   document.querySelectorAll('.col.drop-target').forEach(c=>c.classList.remove('drop-target'));
@@ -2928,6 +3057,11 @@ function clearDropMarks(){
 function findTask(k,id){ return (state.tasks[k]||[]).find(t=>t.id===id); }
 function dropCard(status, beforeKeyId){
   if(!dragCard) return;
+  if(dragCard.k==='ideas'){
+    const i = state.ideas.find(x=>x.id===dragCard.id);
+    if(i && (i.status||'backlog')!==status){ i.status = status; i.done = status==='done'; keepInIdeas(i); }
+    dragCard = null; save(); render(); return;
+  }
   const t = findTask(dragCard.k, dragCard.id); if(!t) return;
   const sameCol = colOf(t.status)===status;
   if((boardColSort[status]||'manual')==='manual'){
@@ -2952,8 +3086,31 @@ function bindEvents(){
       dragCard = {k,id};
       el.classList.add('dragging');
       if(ev.dataTransfer){ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain', id); }
+      // after the browser has taken its drag image: open the sidebar drop targets
+      setTimeout(()=>{
+        if(!dragCard) return;
+        document.body.classList.add('task-dragging');
+        document.querySelectorAll(`[data-droptarget="${k}"]`).forEach(x=>x.classList.add('is-source'));
+      }, 0);
     });
-    el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); dragCard=null; });
+    el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); clearDropMarks(); endTaskDrag(); dragCard=null; });
+  });
+  document.querySelectorAll('[data-droptarget]').forEach(el=>{
+    const dst = el.getAttribute('data-droptarget');
+    el.addEventListener('dragover', ev=>{
+      if(!dragCard || dragCard.k===dst) return;
+      ev.preventDefault();
+      if(ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+      el.classList.add('over');
+    });
+    el.addEventListener('dragleave', ev=>{ if(!el.contains(ev.relatedTarget)) el.classList.remove('over'); });
+    el.addEventListener('drop', ev=>{
+      if(!dragCard || dragCard.k===dst) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const {k,id} = dragCard; dragCard = null;
+      endTaskDrag();
+      moveToBoard(k, id, dst);
+    });
   });
   document.querySelectorAll('[data-dropcol]').forEach(col=>{
     col.addEventListener('dragover', ev=>{
@@ -3050,8 +3207,8 @@ function bindEvents(){
       placeFormOpen=false;
     });
   });
-  document.querySelectorAll('[data-delplace]').forEach(el=>{
-    el.addEventListener('click', ()=>{ delPlace(el.getAttribute('data-delplace')); });
+  document.querySelectorAll('[data-delbank]').forEach(el=>{
+    el.addEventListener('click', ()=>{ const [b,id]=el.getAttribute('data-delbank').split(':'); delBankRow(b,id); });
   });
 }
 
