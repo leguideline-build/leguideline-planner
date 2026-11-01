@@ -776,14 +776,56 @@
   .task.flash, tr.flash{ animation:taskflash 2.2s ease; }
   @keyframes taskflash{ 0%,40%{ box-shadow:0 0 0 2px #2c20d0; background:#eef0ff; } 100%{ box-shadow:0 0 0 0 transparent; } }
   @media (prefers-reduced-motion: reduce){ .task.flash, tr.flash{ animation:none; box-shadow:0 0 0 2px #2c20d0; } }
+
+  /* Going live: formats and platforms as tags, never cut off */
+  .pub-tags{ display:flex; flex-wrap:wrap; gap:3px; margin:0 0 6px; }
+  .pub-tag{ font-size:9.5px; line-height:1; padding:3px 6px; border-radius:999px; white-space:nowrap; }
+  .pub-tag.fmt{ border:1px solid var(--ink); color:var(--ink); }
+  .pub-tag.plat{ background:var(--line); color:var(--ink); }
+  .pub-post.live .pub-tag{ opacity:.5; }
+
+  /* tags in the Talks list */
+  .pt{ font-size:9.5px; line-height:1; padding:3px 6px; border-radius:999px; white-space:nowrap; }
+  .pt.f{ border:1px solid var(--ink); color:var(--ink); }
+  .pt.p{ background:var(--line); color:var(--ink-soft); }
+  .pub-post.live .pt{ opacity:.55; }
+  .pub-series{ white-space:normal; }
+
+  /* Talks & projects */
+  .proj-card{ padding:18px 18px 16px; margin-bottom:14px; }
+  .proj-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .proj-pill{ all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:6px 12px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); }
+  .proj-pill:hover{ color:var(--ink); border-color:var(--ink-faint); }
+  .proj-pill.on{ background:var(--ink); border-color:var(--ink); color:var(--white); font-weight:700; }
+  .proj-pill .n{ font-size:10.5px; opacity:.6; font-weight:400; }
+  .proj-x{ opacity:0; font-size:13px; padding-left:2px; }
+  .proj-pill:hover .proj-x{ opacity:.6; }
+  .proj-x:hover{ opacity:1 !important; }
+  .proj-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px 24px; }
+  @media (max-width:900px){ .proj-grid{ grid-template-columns:1fr; } }
+  .proj-sec-head{ font-size:10.5px; color:var(--ink-faint); letter-spacing:.06em; text-transform:uppercase; margin:0 0 4px; }
+  .proj-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:8px 4px; border-radius:6px; cursor:pointer; border-bottom:1px solid var(--line-soft); }
+  .proj-row:hover{ background:var(--line-soft); }
+  .proj-main{ min-width:0; flex:1; }
+  .proj-title{ font-size:12.5px; line-height:1.35; }
+  .proj-meta{ font-size:10.5px; color:var(--ink-faint); margin:2px 0 4px; }
+  .proj-row .pub-tags{ margin:0; }
+  .proj-state{ font-size:10.5px; font-weight:700; color:var(--ink); white-space:nowrap; padding-top:2px; }
+  .proj-state.s-pending{ box-shadow:inset 3px 0 0 #39ff14; padding-left:7px; }
+  .proj-state.s-missed{ box-shadow:inset 3px 0 0 var(--publish); padding-left:7px; }
+  .proj-state.s-ready{ box-shadow:inset 3px 0 0 var(--ink); padding-left:7px; }
+  .proj-state.s-live, .proj-state.s-nodate{ color:var(--ink-faint); }
+  .proj-state.c-agreed{ background:#2c20d0; color:#fff; padding:2px 8px; border-radius:999px; }
+  .proj-state.c-filmed{ background:#00b209; color:#fff; padding:2px 8px; border-radius:999px; }
+  .proj-state.c-reached{ background:#f4c70f; color:#000; padding:2px 8px; border-radius:999px; }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '01.11-n';
-const APP_BUILD = 202611012700; // bigger = newer; the page only ever reloads to a bigger build
+const APP_VERSION = '01.11-q';
+const APP_BUILD = 202611013000; // bigger = newer; the page only ever reloads to a bigger build
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -2041,7 +2083,7 @@ function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
   t.assignee = data.assignee||'';
-  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.formats = data.formats||[]; delete t.format; t.platforms = data.platforms||[]; delete t.platform; }
+  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.formats = data.formats||[]; delete t.format; t.platforms = data.platforms||[]; delete t.platform; t.projects = data.projects||[]; }
   if(data.status) t.status=data.status;
   // moved to another board (another tab, or another video series)
   const moved = data.board && data.board!==taskKey && relocate(taskKey, id, data.board);
@@ -2255,7 +2297,8 @@ const PUB_FORMATS_DEFAULT = ['Reel','Post','YouTube Long','YouTube Short','Websi
 // both lists are yours to edit (add / delete in the video's Edit dialog) and sync across devices
 const CHIP_KINDS = {
   format:   { stateKey:'pubFormats',   defaults:PUB_FORMATS_DEFAULT,   field:'formats',   legacy:'format',   wrap:'e-formats',   noun:'format',   eg:'e.g. TikTok or Newsletter' },
-  platform: { stateKey:'pubPlatforms', defaults:PUB_PLATFORMS_DEFAULT, field:'platforms', legacy:'platform', wrap:'e-platforms', noun:'platform', eg:'e.g. LinkedIn or Pinterest' }
+  platform: { stateKey:'pubPlatforms', defaults:PUB_PLATFORMS_DEFAULT, field:'platforms', legacy:'platform', wrap:'e-platforms', noun:'platform', eg:'e.g. LinkedIn or Pinterest' },
+  project:  { stateKey:'pubProjects',  defaults:[],                    field:'projects',  legacy:'project',  wrap:'e-projects',  noun:'talk',     eg:'e.g. Orla or Amago' }
 };
 function chipList(kind){ const K = CHIP_KINDS[kind]; if(!Array.isArray(state[K.stateKey])) state[K.stateKey] = K.defaults.slice(); return state[K.stateKey]; }
 function formatList(){ return chipList('format'); }
@@ -2316,10 +2359,13 @@ function pubSteps(t){
 }
 function pubPost(e, withDate){
   const st = pubState(e);
-  const kind = [taskFormats(e.t).join(', '), taskPlatforms(e.t).join(', ')].filter(Boolean).join(' · ');
+  // what you picked in the Edit dialog, shown in full on every card the same way
+  const fm = taskFormats(e.t), pl = taskPlatforms(e.t);
+  const tags = fm.map(f=>`<span class="pub-tag fmt">${escapeHtml(f)}</span>`).join('') + pl.map(f=>`<span class="pub-tag plat">${escapeHtml(f)}</span>`).join('');
   return `<div class="pub-post ${st.cls}" draggable="true" data-pubpost="${e.k}:${e.t.id}" onclick="startEditTask('${e.k}','${e.t.id}')" title="Click to edit · drag to another day to reschedule">
-    <div class="pub-series">${withDate?`<b>${fmtDate(e.date)}</b> · `:''}${escapeHtml(e.series)}${kind?` <span>· ${escapeHtml(kind)}</span>`:''}</div>
+    <div class="pub-series">${withDate?`<b>${fmtDate(e.date)}</b> · `:''}${escapeHtml(e.series)}</div>
     <div class="pub-title">${escapeHtml(e.t.title)}</div>
+    ${tags?`<div class="pub-tags">${tags}</div>`:''}
     <div class="pub-foot"><span class="pub-state">${st.label}</span></div>
   </div>`;
 }
@@ -2395,6 +2441,95 @@ function bindPublishPlan(){
   });
 }
 
+/* ---- Talks & projects: everything done for one talk or guest (videos, contacts, tasks, ideas) ---- */
+let projSel = null;
+function projectList(){ return chipList('project'); }
+function projectItems(name){
+  const n = name.toLowerCase();
+  const has = s => String(s||'').toLowerCase().includes(n);
+  const videos = [], tasks = [], contacts = [], ideas = [];
+  Object.keys(state.tasks||{}).forEach(k=>(state.tasks[k]||[]).forEach(t=>{
+    const tagged = taskChips(t, 'project').includes(name);
+    if(tagged || has(t.title) || has(t.notes)) (k.startsWith('video-') ? videos : tasks).push({ k, t });
+  }));
+  (state.outreach||[]).forEach(r=>{ if(has(r.name) || has(r.venue) || has(r.notes)) contacts.push(r); });
+  (state.ideas||[]).forEach(i=>{ if(has(i.title) || has(i.notes)) ideas.push(i); });
+  const byDate = (a,b)=>(a.t.due||'9999').localeCompare(b.t.due||'9999');
+  videos.sort(byDate); tasks.sort(byDate);
+  return { videos, tasks, contacts, ideas, total: videos.length + tasks.length + contacts.length + ideas.length };
+}
+function selectProject(i){ const p = projectList()[i]; projSel = (projSel===p) ? null : p; render(); }
+function addProject(){
+  const name = (prompt('Name of the talk, guest or project, e.g. Orla or Amago') || '').trim(); if(!name) return;
+  if(!projectList().includes(name)){ projectList().push(name); save(); }
+  projSel = name; render();
+}
+function removeProject(i, ev){
+  if(ev) ev.stopPropagation();
+  const p = projectList()[i]; if(!p) return;
+  if(!confirm(`Remove “${p}” from this list? Nothing else is deleted.`)) return;
+  state.pubProjects = projectList().filter(x=>x!==p);
+  Object.values(state.tasks||{}).forEach(a=>(a||[]).forEach(t=>{ if(Array.isArray(t.projects)) t.projects = t.projects.filter(x=>x!==p); }));
+  if(projSel===p) projSel = null;
+  save(); render();
+}
+function openContact(name){ tableFilters.outreach = { q:name, cols:{} }; view = { stream:'content', subarea:'outreach' }; render(); }
+function pubTags(t){
+  const f = taskFormats(t), p = taskPlatforms(t);
+  if(!f.length && !p.length) return '';
+  return `<div class="pub-tags">${f.map(x=>`<span class="pub-tag fmt">${escapeHtml(x)}</span>`).join('')}${p.map(x=>`<span class="pub-tag plat">${escapeHtml(x)}</span>`).join('')}</div>`;
+}
+function projectCard(){
+  const list = projectList();
+  if(projSel && !list.includes(projSel)) projSel = null;
+  const pills = list.map((p,i)=>{
+    const n = projectItems(p).total;
+    return `<button class="proj-pill ${projSel===p?'on':''}" onclick="selectProject(${i})">${escapeHtml(p)} <span class="n">${n}</span><span class="proj-x" title="Remove from list" onclick="removeProject(${i}, event)">×</span></button>`;
+  }).join('');
+  let body = '';
+  if(!list.length){
+    body = `<div class="empty-block">Add a talk or guest (e.g. Orla, Amago) to see every video, contact, task and idea for it in one place.</div>`;
+  } else if(!projSel){
+    body = `<div class="empty-block">Pick a talk above to see everything done for it.</div>`;
+  } else {
+    const it = projectItems(projSel);
+    const t0 = todayStr();
+    const sec = (title, rows)=> rows.length ? `<div class="proj-sec"><div class="proj-sec-head">${title} · ${rows.length}</div>${rows.join('')}</div>` : '';
+    const vRows = it.videos.map(({k,t})=>{
+      const series = (VIDEO_SERIES.find(([s])=>'video-'+s===k)||[])[1]||'';
+      const st = t.due ? pubState({ k, t, date:t.due, series }) : { cls:'nodate', label: t.status==='done' ? 'Done · no publish date' : 'No publish date yet' };
+      return `<div class="proj-row" onclick="startEditTask('${k}','${t.id}')">
+        <div class="proj-main"><div class="proj-title">${escapeHtml(t.title)}</div>
+          <div class="proj-meta">${escapeHtml(series)}${t.due?` · publish ${fmtDate(t.due)}`:''}</div>${pubTags(t)}</div>
+        <span class="proj-state s-${st.cls}">${st.label}</span></div>`;
+    });
+    const tRows = it.tasks.map(({k,t})=>`<div class="proj-row" onclick="startEditTask('${k}','${t.id}')">
+        <div class="proj-main"><div class="proj-title">${escapeHtml(t.title)}</div>
+          <div class="proj-meta">${escapeHtml(boardLabel(k))}${t.due?` · due ${fmtDate(t.due)}`:''}</div></div>
+        <span class="proj-state ${t.status==='done'?'s-live':''}">${(COLS.find(([v])=>v===colOf(t.status))||[,''])[1]}</span></div>`);
+    const cRows = it.contacts.map(r=>`<div class="proj-row" onclick="openContact(${escapeHtml(JSON.stringify(r.name||''))})">
+        <div class="proj-main"><div class="proj-title">${escapeHtml(r.name||'Untitled contact')}</div>
+          <div class="proj-meta">Research & Outreach${r.venue?' · '+escapeHtml(r.venue):''}${r.followUp?` · ${r.followUp>=t0?'next':'was'} ${fmtDate(r.followUp)}`:''}</div></div>
+        <span class="proj-state c-${(OUTREACH_STATUS_CLASS[r.status]||'').replace('status-','')}">${escapeHtml(r.status||'')}</span></div>`);
+    const iRows = it.ideas.map(i=>`<div class="proj-row" onclick="startEditIdea('${i.id}')">
+        <div class="proj-main"><div class="proj-title">${escapeHtml(i.title)}</div><div class="proj-meta">Bank of Ideas${i.due?' · '+fmtDate(i.due):''}</div></div>
+        <span class="proj-state">${(COLS.find(([v])=>v===(i.status||'backlog'))||[,''])[1]}</span></div>`);
+    body = it.total ? `<div class="proj-grid">${sec('Videos', vRows)}${sec('Contacts', cRows)}${sec('Tasks', tRows)}${sec('Ideas', iRows)}</div>`
+      : `<div class="empty-block">Nothing mentions “${escapeHtml(projSel)}” yet. Tag a video with it in the video’s Edit dialog, or use the name in a title.</div>`;
+  }
+  return `
+  <div class="card proj-card">
+    <div class="pub-head">
+      <div>
+        <h2>Talks & projects</h2>
+        <div class="pub-sub">Everything for one talk or guest: videos tagged with it, plus any contact, task or idea that mentions the name.</div>
+      </div>
+    </div>
+    <div class="proj-pills">${pills}<button class="fmt-add" onclick="addProject()">＋ Add talk</button></div>
+    ${body}
+  </div>`;
+}
+
 function overviewHtml(){
   const w = state.completions.weekly.weekStart;
   const wEnd = new Date(w+'T00:00:00'); wEnd.setDate(wEnd.getDate()+6);
@@ -2410,6 +2545,7 @@ function overviewHtml(){
     </div>
     <div class="board-head"><span></span><button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
     ${publishPlanCard()}
+    ${projectCard()}
     <div class="rituals-grid">
       ${ritualCard('daily', 'Today', new Date().toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}), 'daily')}
       ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
@@ -2741,7 +2877,6 @@ function outreachView(){
     <div class="board-head">
       <span></span>
       <div class="board-actions">
-        <button class="add-btn outline" onclick="openBankCol('outreach',null)">Add column</button>
         <button class="add-btn" data-outreachtoggle="1">Add contact</button>
       </div>
     </div>
@@ -3155,7 +3290,6 @@ function bankView(b){
     <div class="board-head">
       <span></span>
       <div class="board-actions">
-        <button class="add-btn outline" onclick="openBankCol('${b}',null)">Add column</button>
         <button class="add-btn" onclick="addBankRow('${b}')">${B.add}</button>
       </div>
     </div>
@@ -3274,6 +3408,8 @@ function renderEditModal(){
         <div><label class="step-label step-montage">Montage</label><input type="date" id="e-edit" value="${t.editDue||''}"></div>
         <div><label class="step-label step-publish">Publish</label><input type="date" id="e-due" value="${t.due||''}"></div>
       </div>
+      <label>Talk / project <span style="text-transform:none; letter-spacing:0;">· groups it on the Overview</span></label>
+      ${pickChips('project', t)}
       <label>Format <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
       ${pickChips('format', t)}
       <label>Platform <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
@@ -3534,7 +3670,8 @@ function render(){
         filmDue: (document.getElementById('e-film')||{}).value,
         editDue: (document.getElementById('e-edit')||{}).value,
         formats: pickedChips('format'),
-        platforms: pickedChips('platform')
+        platforms: pickedChips('platform'),
+        projects: pickedChips('project')
       });
     });
   }
