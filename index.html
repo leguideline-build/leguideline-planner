@@ -652,14 +652,99 @@
   .table-search:focus{ outline:none; border-color:var(--ink); }
   .table-search.on{ border-color:#2c20d0; }
   @media (max-width:720px){ .table-search{ width:100%; } }
+
+  /* ---------- Going live (overview) ---------- */
+  .pub-card{ padding:18px 18px 16px; margin-bottom:14px; }
+  .pub-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .pub-head h2{ font-size:14.5px; font-weight:700; margin:0 0 3px; }
+  .pub-sub{ font-size:11.5px; color:var(--ink-soft); }
+  .pub-sub .risk{ color:var(--red); }
+  .pub-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .pub-nav{ display:flex; align-items:center; gap:2px; }
+  .pub-nav button{ all:unset; cursor:pointer; font-size:13px; color:var(--ink-soft); padding:5px 9px; border-radius:999px; }
+  .pub-nav button:hover{ color:var(--ink); background:var(--line-soft); }
+  .pub-nav .pub-now{ font-size:12px; color:var(--ink); min-width:74px; text-align:center; }
+  .pub-card .view-toggle button{ padding:5px 13px; font-size:12px; }
+
+  .pub-week{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:8px; }
+  .pub-day{ min-height:120px; border-radius:10px; padding:8px 7px; background:var(--line-soft); display:flex; flex-direction:column; gap:6px; transition:background .1s ease; }
+  .pub-day.past{ opacity:.55; }
+  .pub-day.today{ background:var(--white); box-shadow:inset 0 0 0 1px var(--ink); }
+  .pub-day.over{ background:var(--white); box-shadow:inset 0 0 0 1.5px var(--publish); }
+  .pub-day-head{ display:flex; align-items:baseline; justify-content:space-between; font-size:10.5px; color:var(--ink-soft); padding:0 2px 2px; }
+  .pub-day-head b{ font-size:15px; color:var(--ink); }
+  .pub-empty{ font-size:10.5px; color:var(--ink-faint); padding:2px; }
+  .pub-post{
+    background:var(--white); border:1px solid var(--line); border-radius:8px; padding:7px 8px; cursor:grab;
+    border-left:3px solid var(--publish);
+  }
+  .pub-post:hover{ border-color:var(--ink-faint); border-left-color:var(--publish); }
+  .pub-post.dragging{ opacity:.35; }
+  .pub-post.live{ border-left-color:var(--ink); }
+  .pub-post.missed{ border-left-color:var(--red); }
+  .pub-series{ font-size:9.5px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pub-series span{ color:var(--ink-faint); }
+  .pub-title{ font-size:11.5px; line-height:1.3; margin:2px 0 6px; font-weight:500; overflow-wrap:anywhere; }
+  .pub-foot{ display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .pub-state{ font-size:9.5px; color:var(--ink-soft); }
+  .pub-post.ready .pub-state{ color:var(--ink); font-weight:700; }
+  .pub-post.pending .pub-state{ color:var(--red); }
+  .pub-post.missed .pub-state{ color:var(--red); font-weight:700; }
+  .pub-post.live .pub-state{ color:var(--ink); font-weight:700; }
+  .pub-steps{ display:flex; gap:3px; }
+  .pub-step{ width:7px; height:7px; border-radius:50%; box-shadow:inset 0 0 0 1px var(--step); }
+  .pub-step.done{ background:var(--step); }
+
+  .pub-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:4px; max-width:420px; }
+  .pub-tile{
+    aspect-ratio:4/5; background:var(--ink); color:var(--white); padding:10px; display:flex; flex-direction:column;
+    cursor:pointer; position:relative; overflow:hidden;
+  }
+  .pub-tile:not(.live){ background:var(--white); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); outline:1px dashed var(--publish); outline-offset:-5px; }
+  .pub-tile.missed{ outline-color:var(--red); }
+  .pub-tile-top{ display:flex; justify-content:space-between; gap:6px; font-size:9.5px; opacity:.75; }
+  .pub-tile-title{ margin-top:auto; font-size:12px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
+  .pub-tile-state{ font-size:9.5px; margin-top:4px; color:var(--ink-soft); }
+  .pub-tile.pending .pub-tile-state, .pub-tile.missed .pub-tile-state{ color:var(--red); }
+
+  @media (max-width:900px){
+    .pub-week{ grid-template-columns:1fr; }
+    .pub-day{ min-height:0; }
+    .pub-day-head{ justify-content:flex-start; gap:8px; }
+  }
+
+  /* Research & Outreach: status colours (Agreed blue, Filmed green, Reached out yellow) */
+  table.outreach select.status-filmed, table.outreach select.status-reached{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none; border-radius:999px; font-weight:700;
+    padding:5px 26px 5px 12px; width:auto; max-width:100%;
+    background-repeat:no-repeat; background-position:right 9px center; background-size:10px 10px;
+  }
+  table.outreach select.status-filmed{
+    background-color:#00b209; border-color:#00b209; color:#ffffff;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  table.outreach select.status-reached{
+    background-color:#f4c70f; border-color:#f4c70f; color:#000000;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23000000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  table.outreach select.status-filmed:hover, table.outreach select.status-filmed:focus{ background-color:#00b209; border-color:#00b209; }
+  table.outreach select.status-reached:hover, table.outreach select.status-reached:focus{ background-color:#f4c70f; border-color:#f4c70f; }
+  table.outreach select.status-filmed option, table.outreach select.status-reached option{ color:var(--ink); background:var(--white); font-weight:400; }
+
+  /* Research & Outreach: dates still ahead (today or later) stand out like Agreed */
+  table.outreach input[type=date].date-upcoming{
+    background-color:#2c20d0; border-color:#2c20d0; color:#ffffff; font-weight:700; border-radius:999px; padding:5px 10px;
+  }
+  table.outreach input[type=date].date-upcoming:hover, table.outreach input[type=date].date-upcoming:focus{ background-color:#2c20d0; border-color:#2c20d0; }
+  table.outreach input[type=date].date-upcoming::-webkit-calendar-picker-indicator{ filter:invert(1); opacity:.9; }
 </style>
 </head>
 <body>
 <div id="root" style="padding:40px;color:#767676;">Loading planner…</div>
 
 <script>
-const APP_VERSION = '01.11-e';
-const APP_BUILD = 202611011800; // bigger = newer; the page only ever reloads to a bigger build
+const APP_VERSION = '01.11-h';
+const APP_BUILD = 202611012100; // bigger = newer; the page only ever reloads to a bigger build
 const STORAGE_KEY = 'leguideline-planner-v2';
 
 /* ---- stay up to date: if a newer index.html is online, load it (no ?v=… needed) ---- */
@@ -988,8 +1073,20 @@ function safeMerge(base, local, remote, prefer){
 }
 
 /* ---------- local persistence ---------- */
-function loadBase(code){ try{ const r = localStorage.getItem(BASE_PREFIX+code); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
-function storeBase(code, s){ try{ localStorage.setItem(BASE_PREFIX+code, JSON.stringify(s)); }catch(e){} }
+// The "last version this tab agreed on with the cloud" must belong to ONE tab. It used to live in
+// localStorage, shared by every open tab: a second tab then mistook its own old copy for a fresh edit
+// and wrote it back over your newer changes. sessionStorage is per tab (and survives a reload).
+let memBase = { code:null, s:null };
+function loadBase(code){
+  if(memBase.code===code && memBase.s) return memBase.s;
+  try{ const r = sessionStorage.getItem(BASE_PREFIX+code); return r ? JSON.parse(r) : null; }catch(e){ return null; }
+}
+function storeBase(code, s){
+  memBase = { code, s: clone(s) };
+  try{ sessionStorage.setItem(BASE_PREFIX+code, JSON.stringify(s)); }catch(e){}
+}
+try{ Object.keys(localStorage).filter(k=>k.startsWith(BASE_PREFIX)).forEach(k=>localStorage.removeItem(k)); }catch(e){} // old shared copies
+const UNSYNCED_KEY = 'leguideline-unsynced'; // set while this browser has edits the cloud hasn't confirmed
 function cacheLocal(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.error('local save failed', e); }
 }
@@ -1061,7 +1158,10 @@ async function connectSync(opts){
       }
       const base = local ? loadBase(code) : null;
       let merged;
+      let pendingHere = false; try{ pendingHere = !!localStorage.getItem(UNSYNCED_KEY); }catch(e){}
       if(!local) merged = clone(remote);
+      // a fresh tab with nothing unsent: the cloud is the latest version, take it as it is
+      else if(!base && !pendingHere && contentCount(remote)>0) merged = clone(remote);
       else merged = safeMerge(base, local, remote, base ? 'local' : 'remote');
       if(local && !base && remote.recurring){
         // first sync on this device: use the cloud's rituals rather than doubling them up with this device's defaults
@@ -1153,6 +1253,7 @@ async function pushToCloud(){
     state = newState; patchState();
     cacheLocal();
     cloudDirty = changedMeanwhile;
+    if(!cloudDirty){ try{ localStorage.removeItem(UNSYNCED_KEY); }catch(e){} }
     lastSyncedAt = Date.now();
     clearTimeout(retryTimer);
     if(cloudDirty) schedulePush(300);
@@ -1171,6 +1272,7 @@ async function pushToCloud(){
 
 async function save(){
   cacheLocal();
+  try{ localStorage.setItem(UNSYNCED_KEY, String(Date.now())); }catch(e){}
   if(syncCode && syncStatus==='connected'){ cloudDirty = true; schedulePush(); renderSyncFoot(); }
 }
 
@@ -1900,7 +2002,7 @@ function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
   t.assignee = data.assignee||'';
-  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; }
+  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.format = data.format||''; t.platform = data.platform||''; }
   if(data.status) t.status=data.status;
   // moved to another board (another tab, or another video series)
   const moved = data.board && data.board!==taskKey && relocate(taskKey, id, data.board);
@@ -2086,6 +2188,122 @@ function videoPlanCard(){
     </div>`;
 }
 
+/* ---- Going live: what the audience will see, and when (built from video publish dates) ---- */
+const PUB_PLATFORMS = ['Instagram','TikTok','YouTube','Website','Newsletter'];
+const PUB_FORMATS = ['Reel','Carousel','Post','Story','Short','Long video'];
+let pubWeekOffset = 0;
+let pubView = (()=>{ try{ return localStorage.getItem('leguideline-pub-view') || 'week'; }catch(e){ return 'week'; } })();
+function setPubView(v){ pubView = v; try{ localStorage.setItem('leguideline-pub-view', v); }catch(e){} render(); }
+function shiftPubWeek(n){ pubWeekOffset = n===0 ? 0 : pubWeekOffset + n; render(); }
+function isoAdd(iso, n){ const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return ymd(d); }
+function publishItems(){
+  const out = [];
+  VIDEO_SERIES.forEach(([key,label])=>(state.tasks['video-'+key]||[]).forEach(t=>{ if(t.due) out.push({ k:'video-'+key, t, date:t.due, series:label }); }));
+  return out.sort((a,b)=>a.date.localeCompare(b.date) || (a.t.rank||0)-(b.t.rank||0));
+}
+// where a post stands, seen from publish day
+function pubState(e){
+  if(e.t.status==='done') return { cls:'live', label:'Live' };
+  if(e.date < todayStr()) return { cls:'missed', label:'Missed' };
+  const open = videoMilestones(e.t).filter(m=>m.doneKey && m.date && !m.done).map(m=>m.label.toLowerCase());
+  if(!open.length) return { cls:'ready', label:'Ready' };
+  return { cls:'pending', label:'Needs ' + open.join(' + ') };
+}
+function pubSteps(t){
+  return videoMilestones(t).filter(m=>m.doneKey && m.date)
+    .map(m=>`<span class="pub-step step-${m.label.toLowerCase()} ${m.done?'done':''}" title="${m.label} ${m.done?'done':'not done yet'} · ${fmtDate(m.date)}"></span>`).join('');
+}
+function pubPost(e){
+  const st = pubState(e);
+  const kind = [e.t.format, e.t.platform].filter(Boolean).join(' · ');
+  return `<div class="pub-post ${st.cls}" draggable="true" data-pubpost="${e.k}:${e.t.id}" onclick="startEditTask('${e.k}','${e.t.id}')" title="Click to edit · drag to another day to reschedule">
+    <div class="pub-series">${escapeHtml(e.series)}${kind?` <span>· ${escapeHtml(kind)}</span>`:''}</div>
+    <div class="pub-title">${escapeHtml(e.t.title)}</div>
+    <div class="pub-foot"><span class="pub-state">${st.label}</span><span class="pub-steps">${pubSteps(e.t)}</span></div>
+  </div>`;
+}
+function publishPlanCard(){
+  const all = publishItems();
+  const t0 = todayStr();
+  const ws = isoAdd(isoWeekStart(new Date()), pubWeekOffset*7);
+  const we = isoAdd(ws, 6);
+  const weekItems = all.filter(e=>e.date>=ws && e.date<=we);
+  const atRisk = weekItems.filter(e=>['missed','pending'].includes(pubState(e).cls)).length;
+  const emptyDays = [0,1,2,3,4,5,6].filter(i=>{ const d=isoAdd(ws,i); return d>=t0 && !weekItems.some(e=>e.date===d); }).length;
+  const weekName = pubWeekOffset===0 ? 'This week' : pubWeekOffset===1 ? 'Next week' : pubWeekOffset===-1 ? 'Last week' : `${fmtDate(ws)} – ${fmtDate(we)}`;
+  const summary = weekItems.length
+    ? `${weekItems.length} post${weekItems.length===1?'':'s'} going live${atRisk?` · <b class="risk">${atRisk} not ready</b>`:''}${emptyDays?` · ${emptyDays} empty day${emptyDays===1?'':'s'} left`:''}`
+    : 'Nothing scheduled to go live yet';
+
+  let body;
+  if(pubView==='week'){
+    body = `<div class="pub-week">${[0,1,2,3,4,5,6].map(i=>{
+      const d = isoAdd(ws, i);
+      const dt = new Date(d+'T00:00:00');
+      const posts = weekItems.filter(e=>e.date===d);
+      return `<div class="pub-day ${d===t0?'today':''} ${d<t0?'past':''}" data-pubday="${d}">
+        <div class="pub-day-head"><span>${dt.toLocaleDateString(undefined,{weekday:'short'})}</span><b>${dt.getDate()}</b></div>
+        ${posts.length ? posts.map(pubPost).join('') : `<div class="pub-empty">${d<t0?'':'Nothing going live'}</div>`}
+      </div>`;
+    }).join('')}</div>`;
+  } else {
+    // the profile grid as followers will see it: newest first, scheduled posts on top of what's already live
+    const upcoming = all.filter(e=>e.t.status!=='done' && e.date>=t0).reverse();
+    const live = all.filter(e=>e.t.status==='done').reverse().slice(0, Math.max(0, 9 - Math.min(upcoming.length, 9)) || 3);
+    const tiles = upcoming.slice(0, 12).concat(live);
+    body = tiles.length ? `<div class="pub-grid">${tiles.map(e=>{ const st = pubState(e); return `
+      <div class="pub-tile ${st.cls}" data-pubpost="${e.k}:${e.t.id}" onclick="startEditTask('${e.k}','${e.t.id}')">
+        <div class="pub-tile-top"><span>${st.cls==='live'?'Live':fmtDate(e.date)}</span><span>${escapeHtml(e.t.format||e.series)}</span></div>
+        <div class="pub-tile-title">${escapeHtml(e.t.title)}</div>
+        ${st.cls==='live'?'':`<div class="pub-tile-state">${st.label}</div>`}
+      </div>`; }).join('')}</div>`
+      : `<div class="empty-block">Give a video a publish date and it shows up here.</div>`;
+  }
+
+  return `
+  <div class="card pub-card">
+    <div class="pub-head">
+      <div>
+        <h2>Going live</h2>
+        <div class="pub-sub">${pubView==='week' ? summary : 'Your profile as followers will see it: scheduled posts on top, newest first.'}</div>
+      </div>
+      <div class="pub-controls">
+        ${pubView==='week' ? `<div class="pub-nav">
+          <button onclick="shiftPubWeek(-1)" aria-label="Previous week">‹</button>
+          <button class="pub-now" onclick="shiftPubWeek(0)">${weekName}</button>
+          <button onclick="shiftPubWeek(1)" aria-label="Next week">›</button>
+        </div>` : ''}
+        <div class="view-toggle" role="tablist" aria-label="View">
+          <button class="${pubView==='week'?'on':''}" onclick="setPubView('week')">Week</button>
+          <button class="${pubView==='feed'?'on':''}" onclick="setPubView('feed')">Feed</button>
+        </div>
+      </div>
+    </div>
+    ${body}
+  </div>`;
+}
+let pubDrag = null;
+function bindPublishPlan(){
+  document.querySelectorAll('.pub-post[data-pubpost]').forEach(el=>{
+    el.addEventListener('dragstart', ev=>{
+      pubDrag = el.getAttribute('data-pubpost'); el.classList.add('dragging');
+      if(ev.dataTransfer){ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain', pubDrag); }
+    });
+    el.addEventListener('dragend', ()=>{ el.classList.remove('dragging'); pubDrag = null; document.querySelectorAll('.pub-day.over').forEach(x=>x.classList.remove('over')); });
+  });
+  document.querySelectorAll('[data-pubday]').forEach(day=>{
+    day.addEventListener('dragover', ev=>{ if(!pubDrag) return; ev.preventDefault(); day.classList.add('over'); });
+    day.addEventListener('dragleave', ev=>{ if(!day.contains(ev.relatedTarget)) day.classList.remove('over'); });
+    day.addEventListener('drop', ev=>{
+      if(!pubDrag) return; ev.preventDefault();
+      const [k,id] = pubDrag.split(':'); pubDrag = null;
+      const t = findTask(k,id); const d = day.getAttribute('data-pubday');
+      if(t && t.due!==d){ t.due = d; save(); render(); toast('Publishing ' + new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'})); }
+      else render();
+    });
+  });
+}
+
 function overviewHtml(){
   const w = state.completions.weekly.weekStart;
   const wEnd = new Date(w+'T00:00:00'); wEnd.setDate(wEnd.getDate()+6);
@@ -2097,9 +2315,10 @@ function overviewHtml(){
         <h1>Planning Desk</h1>
         <div class="date">${new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</div>
       </div>
-      <div class="stream-tagline">Everything with a date, from every tab. Weeks run Mon–Sun. Each card and column has its own filters.</div>
+      <div class="stream-tagline">What goes live first, then everything with a date from every tab. Weeks run Mon–Sun.</div>
     </div>
     <div class="board-head"><span></span><button class="add-btn" onclick="openDump('')" title="Turn messy notes into tasks">Brain dump</button></div>
+    ${publishPlanCard()}
     <div class="rituals-grid">
       ${ritualCard('daily', 'Today', new Date().toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}), 'daily')}
       ${ritualCard('weekly', 'This week', `${fmtDate(w)} – ${fmtDate(wEnd.toISOString().slice(0,10))}`, 'weekly')}
@@ -2394,8 +2613,9 @@ function videoProdView(){
   return `<div class="series-pills">${pills}</div>` + board;
 }
 
+const OUTREACH_STATUS_CLASS = { 'Agreed':'status-agreed', 'Filmed':'status-filmed', 'Reached out':'status-reached' };
 function outreachCell(r, c){
-  if(c.id==='status') return `<select class="${r.status==='Agreed'?'status-agreed':''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
+  if(c.id==='status') return `<select class="${OUTREACH_STATUS_CLASS[r.status]||''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
       ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
     </select>`;
   if(c.id==='priority') return `<select onchange="updateOutreachField('${r.id}','priority',this.value); render();">
@@ -2408,7 +2628,7 @@ function outreachCell(r, c){
 function outreachView(){
   ensureOutreachColumns();
   const rows = state.outreach;
-  const cols = bankCols('outreach');
+  const cols = visibleCols('outreach');
   const typeCol = cols.find(c=>c.id==='type');
   const typeOpts = (typeCol && typeCol.options && typeCol.options.length) ? typeCol.options : ['Chef','Blogger','Other'];
   const widthOf = id => (OUTREACH_BUILTIN.find(x=>x.id===id)||{}).w || '';
@@ -2597,6 +2817,11 @@ const BANKS = {
     empty:'No accounts yet — add a person or account worth keeping track of.' }
 };
 function bankRows(b){ const B = BANKS[b]; return Array.isArray(state[B.rows]) ? state[B.rows] : (state[B.rows] = []); }
+function visibleCols(b){ return bankCols(b).filter(c=>!c.hidden); }
+function restoreBankCol(id){
+  const c = bankCols(bankColEdit.bank).find(c=>c.id===id); if(!c) return;
+  delete c.hidden; bankColEdit = null; save(); render();
+}
 function bankCols(b){ const B = BANKS[b]; if(!Array.isArray(state[B.cols]) || !state[B.cols].length) state[B.cols] = B.defaults(); return state[B.cols]; }
 
 let focusBankRow = null;
@@ -2653,8 +2878,11 @@ function saveBankCol(){
 function delBankCol(){
   const b = bankColEdit.bank, B = BANKS[b];
   const c = bankCols(b).find(c=>c.id===bankColEdit.id); if(!c) return;
-  if(c.builtin){ alert('This column is used by the planner and can be renamed or moved, but not deleted.'); return; }
-  if(bankCols(b).length<=1){ alert('Keep at least one column.'); return; }
+  if(visibleCols(b).length<=1){ alert('Keep at least one column.'); return; }
+  if(c.builtin){
+    if(!confirm(`Remove the column “${c.title}”? What's in it is kept, and you can bring it back from Add column.`)) return;
+    c.hidden = true; bankColEdit = null; save(); render(); return;
+  }
   if(!confirm(`Delete the column “${c.title}”? Its values are removed from every ${B.one}.`)) return;
   state[B.cols] = bankCols(b).filter(x=>x.id!==c.id);
   bankRows(b).forEach(r=>{ delete r[c.id]; });
@@ -2662,7 +2890,8 @@ function delBankCol(){
 }
 function moveBankCol(dir){
   const cols = bankCols(bankColEdit.bank);
-  const i = cols.findIndex(c=>c.id===bankColEdit.id), j = i+dir;
+  const i = cols.findIndex(c=>c.id===bankColEdit.id);
+  let j = i+dir; while(j>=0 && j<cols.length && cols[j].hidden) j += dir; // step over removed columns
   if(i<0 || j<0 || j>=cols.length) return;
   // keep what's typed in the dialog
   bankColEdit.title = document.getElementById('pc-title').value;
@@ -2678,13 +2907,15 @@ function renderBankColModal(){
   const idx = e.id ? cols.findIndex(c=>c.id===e.id) : -1;
   const col = e.id ? cols.find(c=>c.id===e.id) : null;
   const locked = !!(col && col.builtin);
+  const hiddenCols = e.id ? [] : cols.filter(c=>c.hidden);
   return `
   <div class="modal-overlay" id="pc-overlay" onclick="if(event.target===this) closeBankCol()">
     <div class="modal-box" style="max-width:460px;">
       <h2>${e.id?'Edit column':'New column'}</h2>
+      ${hiddenCols.length?`<div style="margin:-6px 0 16px;"><div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:8px;">Bring back a removed column</div><div style="display:flex; gap:6px; flex-wrap:wrap;">${hiddenCols.map(c=>`<button class="add-btn outline" style="padding:6px 12px;" onclick="restoreBankCol('${c.id}')">＋ ${escapeHtml(c.title)}</button>`).join('')}</div></div>`:''}
       <label>Title</label>
       <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':e.bank==='outreach'?'e.g. Email':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
-      ${locked ? `<input type="hidden" id="pc-type" value="${e.type}"><p style="font-size:12px; color:var(--ink-faint); margin:12px 0 0;">Built-in column: you can rename it${e.type==='select'?', edit its options':''} and move it.</p>` : `<label>Content type</label>
+      ${locked ? `<input type="hidden" id="pc-type" value="${e.type}"><p style="font-size:12px; color:var(--ink-faint); margin:12px 0 0;">Built-in column: you can rename it${e.type==='select'?', edit its options':''}, move it or remove it (its data is kept).</p>` : `<label>Content type</label>
       <select id="pc-type" onchange="bankColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
         ${PLACE_COL_TYPES.map(([v,l])=>`<option value="${v}" ${e.type===v?'selected':''}>${l}</option>`).join('')}
       </select>`}
@@ -2696,7 +2927,7 @@ function renderBankColModal(){
         <div class="col-move">
           ${e.id?`<button class="btn-ghost" onclick="moveBankCol(-1)" ${idx<=0?'disabled style="opacity:.35;"':''}>◂ Move left</button>
           <button class="btn-ghost" onclick="moveBankCol(1)" ${idx>=cols.length-1?'disabled style="opacity:.35;"':''}>Move right ▸</button>
-          ${locked?'':`<button class="btn-ghost" style="color:var(--red);" onclick="delBankCol()">Delete column</button>`}`:''}
+          <button class="btn-ghost" style="color:var(--red);" onclick="delBankCol()">${locked?'Remove column':'Delete column'}</button>`:''}
         </div>
         <div class="col-move">
           <button class="btn-ghost" onclick="closeBankCol()">Cancel</button>
@@ -2709,7 +2940,11 @@ function renderBankColModal(){
 function bankCell(b, r, c){
   const v = r[c.id]===undefined ? '' : String(r[c.id]);
   const ch = `onchange="updateBankField('${b}','${r.id}','${c.id}',this.value)"`;
-  if(c.type==='date') return `<input type="date" value="${/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}" ${ch}>`;
+  if(c.type==='date'){
+    const ok = /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const up = b==='outreach' && ok && v >= todayStr();
+    return `<input type="date" class="${up?'date-upcoming':''}" value="${ok?v:''}" ${ch}>`;
+  }
   if(c.type==='select'){
     const opts = (c.options||[]).slice();
     if(v && !opts.includes(v)) opts.push(v);
@@ -2719,7 +2954,7 @@ function bankCell(b, r, c){
       <option value="__add">＋ Add option…</option>
     </select>`;
   }
-  return `<input type="text" value="${escapeHtml(v)}" ${ch} oninput="updateBankField('${b}','${r.id}','${c.id}',this.value)" placeholder="${escapeHtml(c.title)}">`;
+  return `<input type="text" value="${escapeHtml(v)}" ${ch} oninput="updateBankField('${b}','${r.id}','${c.id}',this.value)" aria-label="${escapeHtml(c.title)}">`;
 }
 
 function bankTh(b, c, extraStyle){
@@ -2748,21 +2983,22 @@ function setTableSearch(b, v){ getTF(b).q = v; applyTableFilter(b); }
 function clearTableFilters(b){ delete tableFilters[b]; render(); }
 function rowPasses(b, r){
   const f = getTF(b);
+  const vis = new Set(visibleCols(b).map(c=>c.id));
   for(const [id, v] of Object.entries(f.cols)){
-    if(!v) continue;
+    if(!v || !vis.has(id)) continue;
     const rv = r[id]===undefined || r[id]===null ? '' : String(r[id]);
     if(v==='__empty' ? rv!=='' : rv!==v) return false;
   }
   if(f.q){
     const q = f.q.toLowerCase().trim();
-    const hay = bankCols(b).map(c=>String(r[c.id]||'')).join(' ').toLowerCase();
+    const hay = visibleCols(b).map(c=>String(r[c.id]||'')).join(' ').toLowerCase();
     if(q && !hay.includes(q)) return false;
   }
   return true;
 }
 function noMatchRow(span){ return `<tr class="no-match" style="display:none"><td colspan="${span}" class="empty-block">Nothing matches these filters.</td></tr>`; }
 function tableFilterBar(b){
-  const f = getTF(b), cols = bankCols(b), rows = bankRows(b);
+  const f = getTF(b), cols = visibleCols(b), rows = bankRows(b);
   if(!rows.length) return '';
   const sel = c=>{
     let opts;
@@ -2810,7 +3046,7 @@ function applyTableFilter(b){
 function bankView(b){
   const B = BANKS[b];
   const rows = bankRows(b);
-  const cols = bankCols(b);
+  const cols = visibleCols(b);
   const body = rows.length ? rows.map(r=>`
     <tr data-bankrow="${r.id}">
       ${cols.map(c=>`<td>${bankCell(b,r,c)}</td>`).join('')}
@@ -2946,6 +3182,10 @@ function renderEditModal(){
         <div><label class="step-label step-film">Film</label><input type="date" id="e-film" value="${t.filmDue||''}"></div>
         <div><label class="step-label step-montage">Montage</label><input type="date" id="e-edit" value="${t.editDue||''}"></div>
         <div><label class="step-label step-publish">Publish</label><input type="date" id="e-due" value="${t.due||''}"></div>
+      </div>
+      <div class="row">
+        <div><label>Format</label><select id="e-format"><option value="">—</option>${PUB_FORMATS.concat(t.format && !PUB_FORMATS.includes(t.format)?[t.format]:[]).map(f=>`<option ${t.format===f?'selected':''}>${escapeHtml(f)}</option>`).join('')}</select></div>
+        <div><label>Platform</label><select id="e-platform"><option value="">—</option>${PUB_PLATFORMS.concat(t.platform && !PUB_PLATFORMS.includes(t.platform)?[t.platform]:[]).map(f=>`<option ${t.platform===f?'selected':''}>${escapeHtml(f)}</option>`).join('')}</select></div>
       </div>`:''}
       <div class="actions">
         <button class="btn-ghost" onclick="cancelEditTask()">Cancel</button>
@@ -3147,7 +3387,10 @@ function startColResize(ev, table, th){
   document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', up);
 }
 
-function markDate(el){ el.classList.toggle('is-empty', !el.value); }
+function markDate(el){
+  el.classList.toggle('is-empty', !el.value);
+  if(el.closest('table[data-filter-bank="outreach"]')) el.classList.toggle('date-upcoming', !!el.value && el.value >= todayStr());
+}
 ['input','change','blur'].forEach(ev=>document.addEventListener(ev, e=>{ if(e.target && e.target.type==='date') markDate(e.target); }, true));
 function render(){
   if(state && autoPromote()) save();
@@ -3176,6 +3419,7 @@ function render(){
   bindEvents();
   applyColumnWidths();
   document.querySelectorAll('input[type=date]').forEach(markDate);
+  bindPublishPlan();
   document.querySelectorAll('table[data-filter-bank]').forEach(t=>applyTableFilter(t.getAttribute('data-filter-bank')));
   if(focusBankRow){
     const first = document.querySelector(`tr[data-bankrow="${focusBankRow}"] input, tr[data-bankrow="${focusBankRow}"] select`);
@@ -3195,7 +3439,9 @@ function render(){
         board: (document.getElementById('e-board')||{}).value,
         assignee: document.getElementById('e-who').value,
         filmDue: (document.getElementById('e-film')||{}).value,
-        editDue: (document.getElementById('e-edit')||{}).value
+        editDue: (document.getElementById('e-edit')||{}).value,
+        format: (document.getElementById('e-format')||{}).value,
+        platform: (document.getElementById('e-platform')||{}).value
       });
     });
   }
