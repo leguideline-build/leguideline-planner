@@ -255,6 +255,45 @@ window.dash = (() => {
 @container lg (max-width: 1300px) {
   .lg-table .opt { display: none; }
 }
+/* planner */
+.lg-actions .lg-pill { margin-left: 0; }
+.lg-budget { background: var(--lg-cell); border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 14px; }
+.lg-budget label { font-size: 11px; color: var(--lg-soft); }
+.lg-budget-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.lg-budget-row .cur { font-size: 22px; font-weight: 700; }
+.lg-budget-row input[type=number] { width: 110px; font: 700 22px Helvetica, Arial, sans-serif; border: none; border-bottom: 1px solid var(--lg-ink); background: transparent; padding: 2px 0; color: var(--lg-ink); }
+.lg-budget-row input[type=number]:focus { outline: none; border-bottom-color: var(--lg-blue); }
+.lg-budget-row input[type=range] { flex: 1; accent-color: var(--lg-blue); }
+.lg-budget small { display: block; font-size: 10.5px; color: var(--lg-faint); margin-top: 4px; }
+.lg-plan td { padding: 6px 8px; }
+.lg-plan input[type=range] { width: 100%; min-width: 120px; accent-color: var(--fc, var(--lg-blue)); vertical-align: middle; }
+.lg-plan .share { display: flex; align-items: center; gap: 8px; }
+.lg-plan .share b { width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.lg-plan tfoot td { font-weight: 700; border-bottom: none; border-top: 1px solid var(--lg-ink); }
+.lg-assume { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.lg-check { display: flex; gap: 9px; align-items: flex-start; background: var(--lg-cell); border-radius: 10px; padding: 10px 12px; font-size: 12px; cursor: pointer; }
+.lg-check small { display: block; color: var(--lg-faint); font-size: 10.5px; margin-top: 3px; line-height: 1.4; }
+.lg-check input { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; margin: 1px 0 0; border: 1.5px solid var(--lg-ink); border-radius: 2px; flex-shrink: 0; position: relative; cursor: pointer; }
+.lg-check input:checked { background: var(--lg-ink); }
+.lg-check input:checked::after { content: ''; position: absolute; left: 3.5px; top: .5px; width: 3.5px; height: 7px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(40deg); }
+.lg-kpis4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.lg-kpi .was { font-size: 10.5px; color: var(--lg-faint); margin-top: 2px; }
+.lg-tag.make { background: var(--lg-blue); border-color: var(--lg-blue); color: #fff; }
+.lg-tag.keep { border-color: var(--lg-ink); }
+.lg-tag.less { border-color: var(--lg-pink); color: var(--lg-pink); }
+.lg-tag.test { border-color: var(--lg-green); color: var(--lg-green); }
+.lg-tag.fresh { background: var(--lg-film); border-color: var(--lg-film); color: #000; }
+.lg-tag.off { border-color: var(--lg-faint); color: var(--lg-faint); }
+.lg-fmtcard { min-width: 0; }
+.lg-fmtcard .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 6px 0 8px; }
+.lg-fmtcard .cost { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lg-fmtcard .from { font-size: 11px; color: var(--lg-faint); }
+.lg-fmtcard p { font-size: 12px; line-height: 1.5; margin: 8px 0 0; color: var(--lg-ink); }
+.lg-fmtcard .meta { font-size: 10.5px; color: var(--lg-faint); margin-top: 6px; }
+.lg-arrow { color: var(--lg-faint); text-align: center; }
+.f-web { --fc: #9b5cff; }
+@container lg (max-width: 980px) { .lg-assume { grid-template-columns: 1fr; } .lg-kpis4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 @container lg (max-width: 980px) {
   .lg-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .lg-pillars { grid-template-columns: 1fr; }
@@ -284,6 +323,8 @@ window.dash = (() => {
     <div class="lg-nav">
       <a class="lg-back" href="./"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> Planning Desk</a>
       <button class="lg-tab active" data-tab="overview" aria-current="page"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1v-9.5"/></svg> Overview</button>
+      <button class="lg-tab" data-tab="planner"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg> Budget planner</button>
+      <button class="lg-tab" data-tab="make"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"/></svg> What to make</button>
       <button class="lg-tab" data-tab="trends"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg> Trends</button>
       <button class="lg-tab" data-tab="instagram"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.8" cy="7.2" r=".6" fill="currentColor"/></svg> Instagram ads <span class="n">$</span></button>
       <button class="lg-tab" data-tab="youtube"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/></svg> YouTube ads <span class="n">€</span></button>
@@ -308,7 +349,7 @@ window.dash = (() => {
       <div class="lg-card" id="card-headline">
         <span class="corner">vs Sep</span>
         <h2>This month</h2>
-        <div class="window">Sep 23 – Oct 23, against Aug 23 – Sep 23</div>
+        <div class="window">Sep 23 – Oct 23, against Aug 23 – Sep 23 · <button class="lg-golink" data-goto="planner">Plan next month’s budget</button> · <button class="lg-golink" data-goto="make">See what to make</button></div>
         <p class="lg-takeaway">Same money, less attention: each Instagram follower we kept cost <b data-draw="num" data-source="ig_costs" data-where="month=Oct" data-field="cost_per_net" data-fmt="usd">—</b>, and YouTube brought <b data-draw="num" data-source="yt_monthly" data-where="month=Oct" data-field="subs" data-fmt="count">—</b> subscribers, even though people watched our interviews for longer than ever.</p>
       </div>
 
@@ -364,6 +405,136 @@ window.dash = (() => {
       </div>
     </section>
 
+
+    <!-- ============ BUDGET PLANNER ============ -->
+    <section class="lg-page" id="planner" hidden>
+      <div data-draw="planner"></div>
+      <div class="lg-top">
+        <div>
+          <h1>Budget planner</h1>
+          <div class="date">Plan next month’s ad budget and see what it should buy</div>
+        </div>
+        <div class="lg-tagline">Drag the sliders to move money between content formats. The forecast uses what each format actually cost in September and October.</div>
+      </div>
+      <div class="lg-actions">
+        <button class="lg-pill" data-preset="october">October mix</button>
+        <button class="lg-pill on" data-preset="recommended">Recommended</button>
+        <button class="lg-pill" data-preset="even">Even split</button>
+      </div>
+
+      <div class="lg-card" id="card-plan-ig">
+        <span class="corner">Instagram · USD</span>
+        <h2>Where next month’s money goes</h2>
+        <div class="window">Set the total, then the weight of each format. Shares always add up to 100%.</div>
+        <div class="lg-budget">
+          <label for="plan-budget">Instagram ad budget</label>
+          <div class="lg-budget-row"><span class="cur">$</span><input id="plan-budget" type="number" min="0" step="10"><input id="plan-budget-range" type="range" min="100" max="1200" step="10" aria-label="Instagram ad budget"></div>
+          <small id="plan-budget-note"></small>
+        </div>
+        <div class="lg-tablewrap">
+          <table class="lg-table lg-plan">
+            <thead><tr>
+              <th><button tabindex="-1">Format</button></th>
+              <th class="r"><button tabindex="-1">October</button></th>
+              <th style="min-width:180px"><button tabindex="-1">Your plan</button></th>
+              <th class="r"><button tabindex="-1">Budget</button></th>
+              <th class="r"><button tabindex="-1">Change</button></th>
+              <th class="r"><button tabindex="-1">Cost / visit</button></th>
+              <th class="r"><button tabindex="-1">Forecast</button></th>
+              <th><button tabindex="-1">Verdict</button></th>
+            </tr></thead>
+            <tbody id="plan-rows"></tbody>
+          </table>
+        </div>
+        <div class="lg-assume">
+          <label class="lg-check"><input type="checkbox" id="plan-fresh" checked> <span>New creatives every month <small>Without them, costs rise as pieces wear out (Hidden gems: +70% in a month).</small></span></label>
+          <div class="lg-input"><label for="plan-follow">Profile visits that follow <b id="plan-follow-v"></b></label><input id="plan-follow" type="range" min="6" max="20" step="0.1"><small>October: <span id="plan-follow-oct"></span>. Better bio and pinned posts raise it.</small></div>
+          <div class="lg-input"><label for="plan-unf">Unfollows per month <b id="plan-unf-v"></b></label><input id="plan-unf" type="range" min="100" max="350" step="5"><small>Has stayed at 270–300. Retention work (series, Stories) lowers it.</small></div>
+        </div>
+      </div>
+
+      <div class="lg-card" id="card-plan-result">
+        <span class="corner">Forecast</span>
+        <h2>What this plan buys, against October</h2>
+        <div class="window">One month at this budget. The outlined cell is the number that matters.</div>
+        <div class="lg-kpis lg-kpis4" id="plan-kpis"></div>
+        <p class="lg-note" id="plan-risk"></p>
+      </div>
+
+      <div class="lg-grid">
+        <div class="lg-card" id="card-plan-mix">
+          <h2>Spend by format: then and planned</h2>
+          <div class="window">Ads Manager’s Sep 1–30 window, October, and your plan.</div>
+          <div class="lg-legend" id="plan-mix-legend"></div>
+          <div class="lg-chart" id="plan-mix" style="min-height:170px"></div>
+        </div>
+        <div class="lg-card" id="card-plan-fc">
+          <h2>Followers kept: history and forecast</h2>
+          <div class="window">Actual Aug–Oct, then three months if you repeat this plan vs. keep October’s mix.</div>
+          <div class="lg-legend"><span><i style="background:var(--lg-blue)"></i>Actual</span><span><i style="background:var(--lg-film)"></i>Keep October mix</span><span><i style="background:var(--lg-pink)"></i>Your plan</span></div>
+          <div class="lg-chart" id="plan-fc"></div>
+          <p class="lg-note" id="plan-fc-note"></p>
+        </div>
+      </div>
+
+      <div class="lg-card" id="card-plan-yt">
+        <span class="corner">YouTube · EUR</span>
+        <h2>YouTube: subscribers or views</h2>
+        <div class="window">September’s setup bought subscribers; October’s bought long views. Split the budget between the two.</div>
+        <div class="lg-inputs">
+          <div class="lg-input"><label for="yt-budget">YouTube budget <b id="yt-budget-v"></b></label><input id="yt-budget" type="range" min="0" max="500" step="5"><small>October: <span id="yt-budget-oct"></span></small></div>
+          <div class="lg-input"><label for="yt-sub">On the subscriber campaign <b id="yt-sub-v"></b></label><input id="yt-sub" type="range" min="0" max="100" step="5"><small>The rest goes to views campaigns (interviews).</small></div>
+        </div>
+        <div class="lg-kpis lg-kpis4" id="yt-kpis"></div>
+      </div>
+
+      <div class="lg-card" id="card-plan-how">
+        <h2>How the forecast works</h2>
+        <div class="window">Simple on purpose, so you can check it.</div>
+        <ol class="lg-list">
+          <li><span class="ix"></span><span><b>Each format’s cost per visit</b> is what it actually cost across Sep 1–30 and October combined. Spending above the most a format has ever had raises its cost, since bigger audiences are less warm.</span></li>
+          <li><span class="ix"></span><span><b>Followers</b> = profile visits × the share that followed in October. <b>Kept</b> = followers minus unfollows, which have stayed flat whatever we spend.</span></li>
+          <li><span class="ix"></span><span><b>YouTube</b> uses September’s costs for the subscriber campaign and October’s for views campaigns.</span></li>
+          <li><span class="ix"></span><span><b>Boosted posts</b> aren’t included; plan them on top. A forecast from three months is a direction, not a promise: check it against November’s report.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ WHAT TO MAKE ============ -->
+    <section class="lg-page" id="make" hidden>
+      <div data-draw="make"></div>
+      <div class="lg-top">
+        <div>
+          <h1>What to make</h1>
+          <div class="date">Every format and every piece, judged on cost per profile visit and its direction</div>
+        </div>
+        <div class="lg-tagline">Make more of what’s cheap and holding. Refresh what’s cheap but wearing out. Make less of what costs twice as much.</div>
+      </div>
+      <div class="lg-card" id="card-make-formats">
+        <h2>By format</h2>
+        <div class="window">Cost per profile visit, Sep 1–30 → October, and what to produce next.</div>
+        <div class="lg-cols" id="make-formats"></div>
+      </div>
+      <div class="lg-card" id="card-make-ads">
+        <h2>Every piece, ranked</h2>
+        <div class="window">Scale: cheap and holding. Refresh: cheap but cost rising fast, make a new version. Revive: paused but was cheap. Cut: over $0.09 a visit.</div>
+        <div class="lg-tablewrap">
+          <table class="lg-table" id="make-table">
+            <thead><tr>
+              <th><button tabindex="-1">Piece</button></th>
+              <th><button tabindex="-1">Format</button></th>
+              <th class="r"><button tabindex="-1">Spent</button></th>
+              <th class="r"><button tabindex="-1">Sep cost</button></th>
+              <th></th>
+              <th class="r"><button tabindex="-1">Oct cost</button></th>
+              <th><button tabindex="-1">Verdict</button></th>
+              <th class="opt"><button tabindex="-1">Why</button></th>
+            </tr></thead>
+            <tbody id="make-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
     <!-- ============ TRENDS ============ -->
     <section class="lg-page" id="trends" hidden>
@@ -850,6 +1021,8 @@ const f = {
   compact: (v) => Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(v),
   pct: (v) => Math.round(v * 100) + '%',
   pctnum: (v) => v + '%',
+  pct1: (v) => (v * 100).toFixed(1) + '%',
+  usd3: (v) => '$' + v.toFixed(3),
   money: (v) => String(v),
   mmss: (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0'),
   signedPct: (v) => (v >= 0 ? '+' : '−') + Math.abs(Math.round(v * 100)) + '%',
@@ -1297,6 +1470,338 @@ dash.draw('roirows', (el) => {
     return tr;
   }));
 });
+/* =================== BUDGET PLANNER =================== */
+FMT_CLASS.Website = 'f-web';
+FMT_COLOR.Website = '#9b5cff';
+const PLAN_FORMATS = ['Talking head', 'Product build', 'Story', 'Places guide', 'Interview', 'Website'];
+const PLAN_REC = { 'Talking head': 35, 'Product build': 25, 'Story': 10, 'Places guide': 10, 'Interview': 5, 'Website': 15 };
+const SCALE_PENALTY = 0.35;   // cost rises with (spend / most ever spent)^0.35 above tested levels
+const FATIGUE = 1.15;         // monthly cost rise without new creatives
+const PLAN = { budget: null, w: null, fresh: true, followRate: null, unfollows: null, ytBudget: null, ytSub: 60 };
+
+dash.calc('fmt_base', {
+  inputs: ['ig_ads_oct'],
+  title: 'Cost basis per format',
+  description: 'Spend and results by format (website ads as their own row), both windows pooled.',
+  fn: (ig_ads_oct) => {
+    const by = {};
+    for (const a of ig_ads_oct) {
+      const k = a.objective === 'Landing page views' ? 'Website' : a.format;
+      const g = by[k] || (by[k] = { format: k, spend: 0, results: 0, spend_prev: 0, results_prev: 0 });
+      g.spend += a.spend; g.results += a.results; g.spend_prev += a.spend_prev || 0; g.results_prev += a.results_prev || 0;
+    }
+    return Object.values(by).map((g) => ({
+      ...g,
+      cpv_now: g.results ? g.spend / g.results : null,
+      cpv_prev: g.results_prev ? g.spend_prev / g.results_prev : null,
+      base: (g.spend + g.spend_prev) / (g.results + g.results_prev),
+      ref: Math.max(g.spend, g.spend_prev),
+    }));
+  },
+});
+
+const fmtVerdict = (b) => {
+  if (b.format === 'Website') return ['Test', 'test'];
+  const c = b.cpv_now, p = b.cpv_prev;
+  if (c == null) return ['Paused', 'off'];
+  if (c <= 0.05 || (c <= 0.07 && (!p || c <= p * 1.1))) return ['Make more', 'make'];
+  if (c <= 0.08) return ['Keep', 'keep'];
+  return ['Make less', 'less'];
+};
+
+const planData = () => {
+  const st = state('fmt_base', 'ig_monthly', 'ig_ads_oct', 'yt_monthly', 'yt_costs');
+  if (!st.data) return null;
+  const [base, igm, ads, ytm, ytc] = st.data;
+  const B = Object.fromEntries(base.map((b) => [b.format, b]));
+  const oct = igm.find((m) => m.month === 'Oct');
+  const pv = ads.filter((a) => a.objective === 'Profile visits');
+  const octVisits = pv.reduce((s, a) => s + a.results, 0);
+  const octSpend = ads.reduce((s, a) => s + a.spend, 0);
+  const octMix = Object.fromEntries(PLAN_FORMATS.map((k) => [k, B[k] ? B[k].spend : 0]));
+  const sepMix = Object.fromEntries(PLAN_FORMATS.map((k) => [k, B[k] ? B[k].spend_prev : 0]));
+  const ytO = ytm.find((m) => m.month === 'Oct'), ytS = ytm.find((m) => m.month === 'Sep');
+  const ytcO = ytc.find((m) => m.month === 'Oct'), ytcS = ytc.find((m) => m.month === 'Sep');
+  return { B, oct, octVisits, octSpend, octMix, sepMix, igm, ytO, ytS, ytcO, ytcS,
+    octFollowRate: oct.gross_follows / octVisits, octKept: oct.net_follows, octUnf: oct.unfollows };
+};
+
+const forecast = (D, budget, weights, monthIdx, fresh) => {
+  const tot = PLAN_FORMATS.reduce((s, k) => s + (weights[k] || 0), 0) || 1;
+  const fat = fresh ? 1 : Math.pow(FATIGUE, monthIdx + 1);
+  const rows = PLAN_FORMATS.map((k) => {
+    const b = D.B[k];
+    const spend = budget * (weights[k] || 0) / tot;
+    const cpv = b.base * Math.pow(Math.max(1, spend / b.ref), SCALE_PENALTY) * fat;
+    return { format: k, share: (weights[k] || 0) / tot, spend, cpv, results: spend > 0 ? spend / cpv : 0 };
+  });
+  const visits = rows.filter((r) => r.format !== 'Website').reduce((s, r) => s + r.results, 0);
+  const lpv = rows.find((r) => r.format === 'Website').results;
+  const follows = visits * PLAN.followRate;
+  const kept = follows - PLAN.unfollows;
+  return { rows, visits, lpv, follows, kept, cpk: kept > 0 ? budget / kept : null };
+};
+
+const kpiCell = (chan, name, value, was, delta, good, now) => {
+  const d = document.createElement('div'); d.className = 'lg-kpi' + (now ? ' now' : '');
+  const h = document.createElement('div'); h.className = 'head';
+  const c = document.createElement('span'); c.className = 'lg-chan'; c.textContent = chan;
+  const b = document.createElement('span'); b.className = 'big'; b.textContent = value;
+  h.append(c, b);
+  const n = document.createElement('div'); n.className = 'name'; n.textContent = name;
+  const w = document.createElement('div'); w.className = 'was'; w.textContent = was;
+  const ft = document.createElement('div'); ft.className = 'foot';
+  if (delta) { const s = document.createElement('span'); s.className = 'delta ' + (good ? 'good' : 'bad'); s.textContent = delta; ft.append(s); }
+  d.append(h, n, w, ft);
+  return d;
+};
+const dPct = (now, was) => (was ? f.signedPct((now - was) / was) : '');
+
+const presetWeights = (D, name) => {
+  if (name === 'october') return Object.fromEntries(PLAN_FORMATS.map((k) => [k, Math.round(D.octMix[k] / D.octSpend * 100)]));
+  if (name === 'even') return Object.fromEntries(PLAN_FORMATS.map((k) => [k, 17]));
+  return { ...PLAN_REC };
+};
+
+let PLAN_EL = null;
+const planMount = (D) => {
+  if (PLAN.budget == null) {
+    PLAN.budget = Math.round(D.octSpend / 10) * 10;
+    PLAN.w = presetWeights(D, 'recommended');
+    PLAN.followRate = Math.round(D.octFollowRate * 1000) / 1000;
+    PLAN.unfollows = D.octUnf;
+    PLAN.ytBudget = Math.round(D.ytO.spend_eur / 5) * 5;
+  }
+  const tb = document.getElementById('plan-rows');
+  tb.replaceChildren(...PLAN_FORMATS.map((k) => {
+    const tr = document.createElement('tr'); tr.dataset.fmt = k;
+    const td = (cls) => { const c = document.createElement('td'); if (cls) c.className = cls; return c; };
+    const c0 = td(); const pill = document.createElement('span'); pill.className = 'lg-fmt ' + (FMT_CLASS[k] || ''); pill.textContent = k === 'Website' ? 'Website (Beta)' : k; c0.append(pill);
+    const c1 = td('r muted oct');
+    const c2 = td(); c2.className = FMT_CLASS[k] || '';
+    const wrap = document.createElement('div'); wrap.className = 'share';
+    const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 100; r.step = 1; r.value = PLAN.w[k]; r.setAttribute('aria-label', k + ' weight');
+    r.addEventListener('input', () => { PLAN.w[k] = Number(r.value); setPresetPills(null); planUpdate(); });
+    const sb = document.createElement('b'); sb.className = 'sv';
+    wrap.append(r, sb); c2.append(wrap);
+    tr.append(c0, c1, c2, td('r amt'), td('r chg'), td('r cpv'), td('r res'), td('verdict'));
+    return tr;
+  }));
+  const bud = document.getElementById('plan-budget'), budR = document.getElementById('plan-budget-range');
+  bud.value = PLAN.budget; budR.value = PLAN.budget;
+  bud.oninput = () => { const v = Number(bud.value); if (v >= 0) { PLAN.budget = v; budR.value = v; planUpdate(); } };
+  budR.oninput = () => { PLAN.budget = Number(budR.value); bud.value = PLAN.budget; planUpdate(); };
+  const fr = document.getElementById('plan-fresh'); fr.checked = PLAN.fresh; fr.onchange = () => { PLAN.fresh = fr.checked; planUpdate(); };
+  const fo = document.getElementById('plan-follow'); fo.value = (PLAN.followRate * 100).toFixed(1); fo.oninput = () => { PLAN.followRate = Number(fo.value) / 100; planUpdate(); };
+  const un = document.getElementById('plan-unf'); un.value = PLAN.unfollows; un.oninput = () => { PLAN.unfollows = Number(un.value); planUpdate(); };
+  const yb = document.getElementById('yt-budget'); yb.value = PLAN.ytBudget; yb.oninput = () => { PLAN.ytBudget = Number(yb.value); planUpdate(); };
+  const ys = document.getElementById('yt-sub'); ys.value = PLAN.ytSub; ys.oninput = () => { PLAN.ytSub = Number(ys.value); planUpdate(); };
+  document.getElementById('plan-follow-oct').textContent = f.pct1(D.octFollowRate);
+  document.getElementById('yt-budget-oct').textContent = f.eur(D.ytO.spend_eur);
+  for (const p of document.querySelectorAll('[data-preset]')) p.onclick = () => {
+    PLAN.w = presetWeights(D, p.dataset.preset); setPresetPills(p.dataset.preset);
+    for (const tr of tb.querySelectorAll('tr')) tr.querySelector('input').value = PLAN.w[tr.dataset.fmt];
+    planUpdate();
+  };
+};
+const setPresetPills = (name) => { for (const p of document.querySelectorAll('[data-preset]')) p.classList.toggle('on', p.dataset.preset === name); };
+
+const planUpdate = () => {
+  const D = planData(); if (!D) return;
+  const F = forecast(D, PLAN.budget, PLAN.w, 0, PLAN.fresh);
+  const octW = presetWeights(D, 'october');
+  const O = forecast(D, D.octSpend, D.octMix, 0, true);
+  // rows
+  for (const tr of document.querySelectorAll('#plan-rows tr')) {
+    const k = tr.dataset.fmt, r = F.rows.find((x) => x.format === k), b = D.B[k];
+    tr.querySelector('.oct').textContent = f.usd(D.octMix[k]) + ' · ' + f.pct(D.octMix[k] / D.octSpend);
+    tr.querySelector('.sv').textContent = f.pct(r.share);
+    tr.querySelector('.amt').textContent = f.usd(r.spend);
+    const ch = r.spend - D.octMix[k], cc = tr.querySelector('.chg');
+    cc.textContent = (ch >= 0 ? '+' : '−') + '$' + Math.abs(ch).toFixed(0); cc.className = 'r chg ' + (Math.abs(ch) < 1 ? 'muted' : ch > 0 ? 'up' : 'down');
+    tr.querySelector('.cpv').textContent = r.spend > 0 ? f.usd3(r.cpv) : '—';
+    tr.querySelector('.res').textContent = r.spend > 0 ? f.count(Math.round(r.results)) + (k === 'Website' ? ' site' : ' visits') : '—';
+    const [vt, vc] = fmtVerdict(b); const vtd = tr.querySelector('.verdict');
+    const tag = document.createElement('span'); tag.className = 'lg-tag ' + vc; tag.textContent = vt; vtd.replaceChildren(tag);
+  }
+  document.getElementById('plan-budget-note').textContent = 'October ad spend: ' + f.usd(D.octSpend) + ' (boosted posts not included). ' + (PLAN.budget > D.octSpend ? f.usd(PLAN.budget - D.octSpend) + ' more than October.' : PLAN.budget < D.octSpend ? f.usd(D.octSpend - PLAN.budget) + ' less than October.' : 'Same as October.');
+  // KPIs
+  const octCpk = D.octSpend / D.octKept;
+  const kp = document.getElementById('plan-kpis');
+  kp.replaceChildren(
+    kpiCell('Forecast', 'Profile visits', f.count(Math.round(F.visits)), 'October: ' + f.count(D.octVisits), dPct(F.visits, D.octVisits), F.visits >= D.octVisits),
+    kpiCell('Forecast', 'New followers', f.count(Math.round(F.follows)), 'October: ' + f.count(D.oct.gross_follows), dPct(F.follows, D.oct.gross_follows), F.follows >= D.oct.gross_follows),
+    kpiCell('Forecast', 'Followers kept', F.kept > 0 ? f.count(Math.round(F.kept)) : 'Losing ' + f.count(Math.round(-F.kept)), 'October: ' + f.count(D.octKept), dPct(F.kept, D.octKept), F.kept >= D.octKept, true),
+    kpiCell('Forecast', 'Ad spend per follower kept', F.cpk ? f.usd(F.cpk) : '—', 'October: ' + f.usd(octCpk), F.cpk ? dPct(F.cpk, octCpk) : '', F.cpk != null && F.cpk <= octCpk),
+  );
+  const stale = forecast(D, PLAN.budget, PLAN.w, 0, false);
+  const breakEven = PLAN.unfollows / PLAN.followRate;
+  document.getElementById('plan-risk').textContent =
+    'You need about ' + f.count(Math.round(breakEven)) + ' profile visits a month just to replace unfollows. ' +
+    (PLAN.fresh ? 'If the creatives aren’t refreshed, kept followers drop to about ' + f.count(Math.max(0, Math.round(stale.kept))) + '. ' : '') +
+    'The website line adds about ' + f.count(Math.round(F.lpv)) + ' landing-page views.';
+  // spend mix chart
+  drawMix(document.getElementById('plan-mix'), D, F);
+  // forecast chart
+  drawFc(document.getElementById('plan-fc'), D, F);
+  // YouTube
+  const sub = PLAN.ytBudget * PLAN.ytSub / 100, view = PLAN.ytBudget - sub;
+  const ySubs = sub / D.ytcS.cost_per_sub + view / D.ytcO.cost_per_sub;
+  const yViews = sub / D.ytcS.cost_per_view30 + view / D.ytcO.cost_per_view30;
+  document.getElementById('yt-budget-v').textContent = f.eur(PLAN.ytBudget).replace('.00', '');
+  document.getElementById('yt-sub-v').textContent = PLAN.ytSub + '%';
+  document.getElementById('plan-follow-v').textContent = f.pct1(PLAN.followRate);
+  document.getElementById('plan-unf-v').textContent = String(PLAN.unfollows);
+  document.getElementById('yt-kpis').replaceChildren(
+    kpiCell('Forecast', 'New subscribers', f.count(Math.round(ySubs)), 'October: ' + f.count(D.ytO.subs), dPct(ySubs, D.ytO.subs), ySubs >= D.ytO.subs, true),
+    kpiCell('Forecast', 'Cost per subscriber', ySubs ? f.eur(PLAN.ytBudget / ySubs) : '—', 'October: ' + f.eur(D.ytcO.cost_per_sub), ySubs ? dPct(PLAN.ytBudget / ySubs, D.ytcO.cost_per_sub) : '', ySubs && PLAN.ytBudget / ySubs <= D.ytcO.cost_per_sub),
+    kpiCell('Forecast', 'Views past 30 seconds', f.count(Math.round(yViews)), 'October: ' + f.count(D.ytO.views_30s), dPct(yViews, D.ytO.views_30s), yViews >= D.ytO.views_30s),
+    kpiCell('Plan', 'Split', f.eur(sub).replace('.00', '') + ' / ' + f.eur(view).replace('.00', ''), 'Subscribers / views', '', true),
+  );
+};
+
+const drawMix = (el, D, F) => {
+  const lg = document.getElementById('plan-mix-legend');
+  lg.replaceChildren(...PLAN_FORMATS.map((k) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = FMT_COLOR[k]; s.append(i, k); return s; }));
+  const bars3 = [
+    { label: 'Sep 1–30', mix: D.sepMix },
+    { label: 'October', mix: D.octMix },
+    { label: 'Your plan', mix: Object.fromEntries(F.rows.map((r) => [r.format, r.spend])) },
+  ];
+  const W = Math.max(280, el.clientWidth), rowH = 46, H = bars3.length * rowH + 4;
+  const svg = svgIn(el, W, H);
+  const lw = measure(svg, bars3.map((b) => b.label)) + 12;
+  const tw = measure(svg, bars3.map((b) => f.usd(PLAN_FORMATS.reduce((s, k) => s + b.mix[k], 0))), 'v') + 10;
+  const max = d3.max(bars3, (b) => PLAN_FORMATS.reduce((s, k) => s + b.mix[k], 0));
+  const x = d3.scaleLinear([0, max], [lw, W - tw]);
+  const tip = tipFor(el);
+  bars3.forEach((b, i) => {
+    const y = i * rowH + 10;
+    svg.append('text').attr('x', 0).attr('y', y + 13).attr('dy', '0.35em').attr('class', i === 2 ? 'v' : '').text(b.label);
+    let acc = 0; const total = PLAN_FORMATS.reduce((s, k) => s + b.mix[k], 0);
+    for (const k of PLAN_FORMATS) {
+      const v = b.mix[k]; if (!v) continue;
+      const x0 = x(acc), x1 = x(acc + v); acc += v;
+      svg.append('rect').attr('x', x0).attr('y', y).attr('width', Math.max(0, x1 - x0 - 1.5)).attr('height', 26).attr('rx', 3).style('fill', FMT_COLOR[k])
+        .on('pointermove', (ev) => tip.show(ev, b.label, [[FMT_COLOR[k], k, f.usd(v) + ' · ' + f.pct(v / total)]]))
+        .on('pointerleave', () => tip.hide());
+      if (x1 - x0 > 34) svg.append('text').attr('x', (x0 + x1) / 2).attr('y', y + 13).attr('dy', '0.35em').attr('text-anchor', 'middle')
+        .style('fill', ['Places guide', 'Story'].includes(k) ? '#000' : '#fff').style('pointer-events', 'none').text(f.pct(v / total));
+    }
+    svg.append('text').attr('class', 'v').attr('x', x(total) + 6).attr('y', y + 13).attr('dy', '0.35em').text(f.usd(total));
+  });
+};
+
+const drawFc = (el, D, F) => {
+  const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+  const rows = months.map((m, i) => {
+    if (i < 3) return { m, actual: D.igm.find((x) => x.month === m).net_follows };
+    const fi = i - 3;
+    return { m, mix: forecast(D, D.octSpend, D.octMix, fi, PLAN.fresh).kept, plan: forecast(D, PLAN.budget, PLAN.w, fi, PLAN.fresh).kept };
+  });
+  const keys = [['actual', 'var(--lg-blue)', 'Actual'], ['mix', 'var(--lg-film)', 'Keep October mix'], ['plan', 'var(--lg-pink)', 'Your plan']];
+  const W = Math.max(280, el.clientWidth), H = 220, m = { t: 18, r: 4, b: 26, l: 4 };
+  const svg = svgIn(el, W, H);
+  const vals = rows.flatMap((r) => keys.map(([k]) => r[k]).filter((v) => v != null));
+  const y = d3.scaleLinear([Math.min(0, d3.min(vals)), d3.max(vals) * 1.15], [H - m.b, m.t]);
+  const x0 = d3.scaleBand(months, [m.l, W - m.r]).paddingInner(0.25).paddingOuter(0.05);
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('class', 'grid').attr('x1', m.l).attr('x2', W - m.r).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
+  svg.append('line').attr('class', 'axis').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0));
+  svg.append('line').attr('x1', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2).attr('x2', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2).attr('y1', m.t - 10).attr('y2', H - m.b)
+    .style('stroke', 'var(--lg-faint)').style('stroke-dasharray', '2 3');
+  svg.append('text').attr('x', (x0('Oct') + x0.bandwidth() + x0('Nov')) / 2 + 6).attr('y', m.t - 4).text('Forecast →');
+  const tip = tipFor(el);
+  rows.forEach((r) => {
+    const ks = keys.filter(([k]) => r[k] != null);
+    const sub = d3.scaleBand(ks.map(([k]) => k), [0, x0.bandwidth()]).padding(0.12);
+    const bw = Math.min(30, sub.bandwidth());
+    for (const [k, c] of ks) {
+      const v = r[k], bx = x0(r.m) + sub(k) + (sub.bandwidth() - bw) / 2;
+      svg.append('rect').attr('x', bx).attr('width', bw).attr('y', Math.min(y(v), y(0))).attr('height', Math.abs(y(v) - y(0))).attr('rx', 3).style('fill', c);
+      if (bw >= 20) svg.append('text').attr('class', 'v').attr('text-anchor', 'middle').attr('x', bx + bw / 2).attr('y', v >= 0 ? y(v) - 5 : y(v) + 12).text(f.count(Math.round(v)));
+    }
+    svg.append('text').attr('text-anchor', 'middle').attr('x', x0(r.m) + x0.bandwidth() / 2).attr('y', H - 8).text(r.m);
+    svg.append('rect').attr('x', x0(r.m)).attr('width', x0.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).style('fill', 'transparent')
+      .on('pointermove', (ev) => tip.show(ev, r.m + (r.actual != null ? ' · actual' : ' · forecast'), ks.map(([k, c, l]) => [c, l, f.count(Math.round(r[k]))])))
+      .on('pointerleave', () => tip.hide());
+  });
+  const sum = (key) => rows.slice(3).reduce((s, r) => s + r[key], 0);
+  document.getElementById('plan-fc-note').textContent = 'Over Nov–Jan: about ' + f.count(Math.round(sum('plan'))) + ' followers kept with your plan, against ' + f.count(Math.round(sum('mix'))) + ' if October’s mix continues.';
+};
+
+dash.draw('planner', (el) => {
+  const D = planData();
+  if (!D) return;
+  if (PLAN_EL !== el) { PLAN_EL = el; planMount(D); }
+  planUpdate();
+});
+
+/* =================== WHAT TO MAKE =================== */
+const ADVICE = {
+  'Talking head': 'Your cheapest attention, yet it got about 5% of October’s budget. Film two new hooks a week: pieces wear out within a month (Hidden gems nearly doubled in cost).',
+  'Product build': 'It got cheaper while spend grew eightfold. Make a weekly prototype diary: what changed on the site, what testers said, what’s next.',
+  'Story': 'Airbnb still works but is creeping up. Find the next story in the same vein: a place plus a personal angle.',
+  'Places guide': 'About twice the cost of a talking head. Keep the topic, change the format: you on camera at the place, not a gallery.',
+  'Interview': 'Expensive as an Instagram ad, but holds people 3+ minutes on YouTube. Put interview money on YouTube; post clips organically.',
+  'Website': 'First test: landing-page views at $0.15. Keep a small always-on line once the waitlist is live.',
+};
+const AD_ORDER = ['Scale', 'Refresh', 'Revive', 'Keep', 'Test', 'Cut', 'Paused', 'No signal'];
+const AD_CLASS = { Scale: 'make', Refresh: 'fresh', Revive: 'fresh', Keep: 'keep', Test: 'test', Cut: 'less', Paused: 'off', 'No signal': 'off' };
+const adVerdict = (a) => {
+  const c = a.results ? a.spend / a.results : null, p = a.results_prev ? a.spend_prev / a.results_prev : null;
+  if (a.objective === 'Landing page views') return ['Test', 'Website ad: judge it on sign-ups once tracking is live'];
+  if (a.spend < 5) {
+    if (p != null && p <= 0.06) return ['Revive', 'Paused, but cost only ' + f.usd3(p) + ' a visit in September: make a new version'];
+    if (p != null) return ['Paused', 'Cost ' + f.usd3(p) + ' a visit when it ran'];
+    return ['No signal', 'Too little spend to judge'];
+  }
+  if (c <= 0.07 && p && c > p * 1.25) return ['Refresh', 'Still cheap, but up ' + f.signedPct((c - p) / p) + ' since September: it’s wearing out'];
+  if (c <= 0.05 || (c <= 0.07 && (!p || c <= p * 1.1))) return ['Scale', !p ? 'Cheap from the start' : c > p * 1.1 ? 'Among the cheapest, though up ' + f.signedPct((c - p) / p) + ' since September: plan its successor' : 'Cheap and holding (' + f.signedPct((c - p) / p) + ' vs September)'];
+  if (c <= 0.07) return ['Keep', 'Cheap, but up ' + f.signedPct((c - p) / p) + ' since September: watch it'];
+  if (c <= 0.09) return ['Keep', 'Middle of the pack'];
+  return ['Cut', 'Over $0.09 a visit, about twice a talking head'];
+};
+
+dash.draw('make', (el) => {
+  const st = state('fmt_base', 'ig_ads_oct');
+  if (!st.data) return;
+  const [base, ads] = st.data;
+  const box = document.getElementById('make-formats');
+  const order = ['Make more', 'Keep', 'Test', 'Make less', 'Paused'];
+  const fmts = base.map((b) => ({ b, v: fmtVerdict(b) })).sort((a, z) => order.indexOf(a.v[0]) - order.indexOf(z.v[0]) || (a.b.cpv_now || 9) - (z.b.cpv_now || 9));
+  box.replaceChildren(...fmts.map(({ b, v }) => {
+    const d = document.createElement('div'); d.className = 'lg-fmtcard';
+    const head = document.createElement('div'); head.className = 'lg-colhead'; head.style.borderBottomColor = FMT_COLOR[b.format];
+    const h3 = document.createElement('h3'); h3.textContent = b.format === 'Website' ? 'Website (Beta)' : b.format;
+    const tag = document.createElement('span'); tag.className = 'lg-tag ' + v[1]; tag.textContent = v[0];
+    head.append(h3, tag);
+    const row = document.createElement('div'); row.className = 'row';
+    const cost = document.createElement('span'); cost.className = 'cost'; cost.textContent = b.cpv_now != null ? f.usd3(b.cpv_now) : '—';
+    const from = document.createElement('span'); from.className = 'from';
+    from.textContent = (b.format === 'Website' ? 'per site visit' : 'per profile visit') + (b.cpv_prev != null ? ' · Sep ' + f.usd3(b.cpv_prev) : ' · new in October');
+    row.append(cost, from);
+    const p = document.createElement('p'); p.textContent = ADVICE[b.format] || '';
+    const meta = document.createElement('div'); meta.className = 'meta';
+    meta.textContent = b.spend_prev ? 'Spent ' + f.usd(b.spend_prev) + ' in Sep 1–30 → ' + f.usd(b.spend) + ' in October' : 'New in October: ' + f.usd(b.spend) + ' spent';
+    d.append(head, row, p, meta);
+    return d;
+  }));
+  const rows = ads.map((a) => ({ a, v: adVerdict(a) }))
+    .sort((x, y) => AD_ORDER.indexOf(x.v[0]) - AD_ORDER.indexOf(y.v[0]) || (y.a.spend + (y.a.spend_prev || 0)) - (x.a.spend + (x.a.spend_prev || 0)));
+  const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; return c; };
+  document.getElementById('make-rows').replaceChildren(...rows.map(({ a, v }) => {
+    const c = a.results ? a.spend / a.results : null, p = a.results_prev ? a.spend_prev / a.results_prev : null;
+    const tr = document.createElement('tr');
+    const fc = document.createElement('td'); const pill = document.createElement('span');
+    const fk = a.objective === 'Landing page views' ? 'Website' : a.format;
+    pill.className = 'lg-fmt ' + (FMT_CLASS[fk] || ''); pill.textContent = fk; fc.append(pill);
+    const vc = document.createElement('td'); const tag = document.createElement('span'); tag.className = 'lg-tag ' + AD_CLASS[v[0]]; tag.textContent = v[0]; vc.append(tag);
+    tr.append(td(a.ad), fc, td(f.usd(a.spend + (a.spend_prev || 0)), 'r'), td(p != null ? f.usd3(p) : '—', 'r muted'), td('→', 'lg-arrow'),
+      td(c != null && a.spend >= 1 ? f.usd3(c) : '—', 'r ' + (c != null && p != null && a.spend >= 1 ? (c > p * 1.1 ? 'down' : c < p * 0.95 ? 'up' : '') : '')), vc, td(v[1], 'opt muted'));
+    return tr;
+  }));
+});
+
 </script>
 
 <script>
