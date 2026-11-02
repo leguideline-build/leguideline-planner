@@ -783,6 +783,16 @@
   .pub-tag.fmt{ border:1px solid var(--ink); color:var(--ink); }
   .pub-tag.plat{ background:var(--line); color:var(--ink); }
   .pub-post.live .pub-tag{ opacity:.5; }
+  /* per-platform publishing: tap a platform tag once it's out there */
+  button.pub-tag.plat{ all:unset; box-sizing:border-box; font-size:9.5px; line-height:1; padding:3px 6px; border-radius:999px; white-space:nowrap;
+    background:var(--line); color:var(--ink); cursor:pointer; box-shadow:inset 0 0 0 1px transparent; }
+  button.pub-tag.plat:hover{ box-shadow:inset 0 0 0 1px var(--ink); }
+  button.pub-tag.plat:focus-visible{ outline:2px solid #2c20d0; outline-offset:1px; }
+  .pub-tag.plat.posted{ background:var(--ink); color:#fff; }
+  .pub-tag.plat.posted::before{ content:'✓ '; }
+  .pub-post.partial{ --st:var(--ink); }
+  .proj-state.s-partial{ box-shadow:inset 3px 0 0 var(--ink); padding-left:7px; }
+  .fmt-chip.post-chip small{ font-weight:400; opacity:.8; margin-left:2px; }
 
   /* tags in the Talks list */
   .pt{ font-size:9.5px; line-height:1; padding:3px 6px; border-radius:999px; white-space:nowrap; }
@@ -2083,7 +2093,8 @@ function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
   t.assignee = data.assignee||'';
-  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.formats = data.formats||[]; delete t.format; t.platforms = data.platforms||[]; delete t.platform; t.projects = data.projects||[]; }
+  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.formats = data.formats||[]; delete t.format; t.platforms = data.platforms||[]; delete t.platform; t.projects = data.projects||[];
+    if(data.posted){ const m = {}; data.posted.forEach(x=>{ if(x.on && t.platforms.includes(x.p)) m[x.p] = x.date || todayStr(); }); t.postedOn = m; } }
   if(data.status) t.status=data.status;
   // moved to another board (another tab, or another video series)
   const moved = data.board && data.board!==taskKey && relocate(taskKey, id, data.board);
@@ -2182,6 +2193,8 @@ function streamTaskKeys(k){
 // Ads dashboard (Instagram + YouTube), hosted on Claude
 const PAID_GROWTH_URL = 'paid-growth.html';
 // Google Ads account (YouTube ads); opens in a new tab, needs a signed-in Google account with access
+// Meta Ads Manager (Instagram ads); opens in a new tab
+const META_ADS_URL = 'https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=10152395389638832&business_id=739250649598266';
 const GOOGLE_ADS_URL = 'https://ads.google.com/aw/overview?ocid=8127701515&__u=7700691325&__c=7810661235&authuser=0';
 function renderNav(){
   let html = `<button class="${view.stream==='overview'?'active':''}" data-nav="overview">
@@ -2207,6 +2220,8 @@ function renderNav(){
     ${icon('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>')} Paid Growth</button></div>`;
   html += `<div class="nav-item"><button data-ext="${GOOGLE_ADS_URL}" title="Opens Google Ads in a new tab">
     ${icon('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/>')} Google Ads <span class="count">↗</span></button></div>`;
+  html += `<div class="nav-item"><button data-ext="${META_ADS_URL}" title="Opens Meta Ads Manager in a new tab">
+    ${icon('<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/>')} Meta Ads <span class="count">↗</span></button></div>`;
   return html;
 }
 
@@ -2352,10 +2367,35 @@ function publishItems(){
   VIDEO_SERIES.forEach(([key,label])=>(state.tasks['video-'+key]||[]).forEach(t=>{ if(t.due) out.push({ k:'video-'+key, t, date:t.due, series:label }); }));
   return out.sort((a,b)=>a.date.localeCompare(b.date) || (a.t.rank||0)-(b.t.rank||0));
 }
+// which platforms a video is already out on: { Instagram:'2026-11-02', … }
+function postedOn(t){ return t.postedOn && typeof t.postedOn==='object' ? t.postedOn : {}; }
+function togglePosted(k, id, p, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  const t = (state.tasks[k]||[]).find(x=>x.id===id); if(!t) return;
+  const m = Object.assign({}, postedOn(t));
+  if(m[p]) delete m[p]; else m[p] = todayStr();
+  t.postedOn = m;
+  save(); render();
+  const left = taskPlatforms(t).filter(x=>!m[x]);
+  toast(m[p] ? (left.length ? `Out on ${p} · ${left.join(', ')} to go` : `Out on ${p} · live everywhere`) : `${p} unmarked`);
+}
 // where a post stands, seen from publish day
 function pubState(e){
-  // Done in Video Prod means the video is finished; it's only Live once its publish day has come
-  if(e.t.status==='done') return e.date <= todayStr() ? { cls:'live', label:'Live' } : { cls:'ready', label:'Ready' };
+  // once you tick platforms, each one counts on its own
+  const pl = taskPlatforms(e.t), pm = postedOn(e.t);
+  const out = pl.filter(p=>pm[p]), left = pl.filter(p=>!pm[p]);
+  if(out.length){
+    if(!left.length) return { cls:'live', label:'Live' };
+    if(e.date < todayStr()) return { cls:'missed', label:'Missed on ' + left.join(', ') };
+    return { cls:'partial', label:'Live on ' + out.join(', ') + ' · ' + left.join(', ') + ' to go' };
+  }
+  // Done in Video Prod means the video is finished. On publish day it waits for you to tick where it went out;
+  // earlier days with nothing ticked are taken as live everywhere (how it worked before)
+  if(e.t.status==='done'){
+    if(e.date > todayStr()) return { cls:'ready', label:'Ready' };
+    if(e.date === todayStr() && pl.length) return { cls:'ready', label:'Ready to post · tap each platform when it’s out' };
+    return { cls:'live', label:'Live' };
+  }
   if(e.date < todayStr()) return { cls:'missed', label:'Missed: not published' };
   const open = videoMilestones(e.t).filter(m=>m.doneKey && m.date && !m.done).map(m=>m.label.toLowerCase());
   if(!open.length) return { cls:'ready', label:'Ready' };
@@ -2369,7 +2409,7 @@ function pubPost(e, withDate){
   const st = pubState(e);
   // what you picked in the Edit dialog, shown in full on every card the same way
   const fm = taskFormats(e.t), pl = taskPlatforms(e.t);
-  const tags = fm.map(f=>`<span class="pub-tag fmt">${escapeHtml(f)}</span>`).join('') + pl.map(f=>`<span class="pub-tag plat">${escapeHtml(f)}</span>`).join('');
+  const tags = fm.map(f=>`<span class="pub-tag fmt">${escapeHtml(f)}</span>`).join('') + platTags(e.k, e.t);
   return `<div class="pub-post ${st.cls}" draggable="true" data-pubpost="${e.k}:${e.t.id}" onclick="startEditTask('${e.k}','${e.t.id}')" title="Click to edit · drag to another day to reschedule">
     <div class="pub-series">${withDate?`<b>${fmtDate(e.date)}</b> · `:''}${escapeHtml(e.series)}</div>
     <div class="pub-title">${escapeHtml(e.t.title)}</div>
@@ -2404,7 +2444,7 @@ function publishPlanCard(){
   const carried = all.filter(e=>e.date < ws && e.date < t0 && pubState(e).cls==='missed');
   const missedBox = carried.length ? `
     <div class="pub-carry">
-      <div class="pub-carry-head"><b>Missed from earlier weeks · ${carried.length}</b><span>Drag one onto a day above to reschedule it, or open it to mark it Done.</span></div>
+      <div class="pub-carry-head"><b>Missed from earlier weeks · ${carried.length}</b><span>Drag one onto a day above to reschedule it, open it to mark it Done, or tap a platform once it’s out there.</span></div>
       <div class="pub-carry-list">${carried.map(e=>pubPost(e, true)).join('')}</div>
     </div>` : '';
 
@@ -2482,10 +2522,19 @@ function removeProject(i, ev){
   save(); render();
 }
 function openContact(name){ tableFilters.outreach = { q:name, cols:{} }; view = { stream:'content', subarea:'outreach' }; render(); }
-function pubTags(t){
+// platform tags you can tap to mark where the video is already out
+function platTags(k, t){
+  const pm = postedOn(t);
+  return taskPlatforms(t).map(p=>{
+    const on = !!pm[p], ps = escapeHtml(p).replace(/'/g, '&#39;');
+    const tip = on ? `Out on ${p} since ${fmtDate(pm[p])} · tap to undo` : `Tap when it’s out on ${p}`;
+    return `<button type="button" class="pub-tag plat ${on?'posted':''}" title="${escapeHtml(tip)}" aria-pressed="${on}" onclick="togglePosted('${k}','${t.id}','${ps}',event)" ondragstart="event.stopPropagation()">${escapeHtml(p)}</button>`;
+  }).join('');
+}
+function pubTags(t, k){
   const f = taskFormats(t), p = taskPlatforms(t);
   if(!f.length && !p.length) return '';
-  return `<div class="pub-tags">${f.map(x=>`<span class="pub-tag fmt">${escapeHtml(x)}</span>`).join('')}${p.map(x=>`<span class="pub-tag plat">${escapeHtml(x)}</span>`).join('')}</div>`;
+  return `<div class="pub-tags">${f.map(x=>`<span class="pub-tag fmt">${escapeHtml(x)}</span>`).join('')}${k ? platTags(k, t) : p.map(x=>`<span class="pub-tag plat">${escapeHtml(x)}</span>`).join('')}</div>`;
 }
 function projectCard(){
   const list = projectList();
@@ -2508,7 +2557,7 @@ function projectCard(){
       const st = t.due ? pubState({ k, t, date:t.due, series }) : { cls:'nodate', label: t.status==='done' ? 'Done · no publish date' : 'No publish date yet' };
       return `<div class="proj-row" onclick="startEditTask('${k}','${t.id}')">
         <div class="proj-main"><div class="proj-title">${escapeHtml(t.title)}</div>
-          <div class="proj-meta">${escapeHtml(series)}${t.due?` · publish ${fmtDate(t.due)}`:''}</div>${pubTags(t)}</div>
+          <div class="proj-meta">${escapeHtml(series)}${t.due?` · publish ${fmtDate(t.due)}`:''}</div>${pubTags(t, k)}</div>
         <span class="proj-state s-${st.cls}">${st.label}</span></div>`;
     });
     const tRows = it.tasks.map(({k,t})=>`<div class="proj-row" onclick="startEditTask('${k}','${t.id}')">
@@ -3421,7 +3470,9 @@ function renderEditModal(){
       <label>Format <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
       ${pickChips('format', t)}
       <label>Platform <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
-      ${pickChips('platform', t)}`:''}
+      ${pickChips('platform', t)}
+      ${taskPlatforms(t).length?`<label>Already out on <span style="text-transform:none; letter-spacing:0;">· tick each platform once it’s posted</span></label>
+      <div class="fmt-chips" id="e-posted">${taskPlatforms(t).map(p=>{ const d = postedOn(t)[p]; return `<button type="button" class="fmt-chip post-chip ${d?'on':''}" data-fmt="${escapeHtml(p)}" data-date="${d||''}" onclick="this.classList.toggle('on')">${escapeHtml(p)}${d?`<small>${fmtDate(d)}</small>`:''}</button>`; }).join('')}</div>`:''}`:''}
       <div class="actions">
         <button class="btn-ghost goto-btn" onclick="goToTask('${taskKey}','${id}')" title="Open the tab this task lives on">Show in ${escapeHtml(goToLabel(taskKey))} ›</button>
         <button class="btn-ghost" onclick="cancelEditTask()">Cancel</button>
@@ -3679,7 +3730,8 @@ function render(){
         editDue: (document.getElementById('e-edit')||{}).value,
         formats: pickedChips('format'),
         platforms: pickedChips('platform'),
-        projects: pickedChips('project')
+        projects: pickedChips('project'),
+        posted: document.getElementById('e-posted') ? [...document.querySelectorAll('#e-posted .fmt-chip')].map(c=>({ p:c.dataset.fmt, on:c.classList.contains('on'), date:c.dataset.date })) : null
       });
     });
   }
