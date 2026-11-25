@@ -850,14 +850,35 @@
   }
 
   /* status blocks: a quiet heading, like the board columns */
-  tr.ro-group td{ padding:0 !important; border-bottom:1px solid var(--line); }
-  tr.ro-group button{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; padding:16px 10px 8px; }
-  tr.ro-group .ro-gname{ font-size:10.5px; color:var(--ink-soft); font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
-  tr.ro-group button:hover .ro-gname{ color:var(--ink); }
+  /* status blocks: each one a clear band with its colour on the left, with space between blocks */
+  tr.ro-gap td{ height:22px; padding:0 !important; border:0 !important; background:transparent !important; }
+  tr.ro-group td{ padding:0 !important; background:var(--line-soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:inset 3px 0 0 var(--gc); }
+  tr.ro-group button{ all:unset; cursor:pointer; display:flex; align-items:center; gap:9px; width:100%; box-sizing:border-box; padding:11px 14px; }
+  tr.ro-group .ro-gname{ font-size:13px; color:var(--ink); font-weight:700; }
   tr.ro-group button:focus-visible{ outline:2px solid #2c20d0; outline-offset:-2px; }
-  tr.ro-group .n{ font-size:10.5px; color:var(--ink-faint); }
-  tr.ro-group .chev{ width:5px; height:5px; border-right:1.3px solid var(--ink-faint); border-bottom:1.3px solid var(--ink-faint); transform:rotate(45deg); margin:-3px 1px 0 2px; transition:transform .15s ease; }
+  tr.ro-group .n{ font-size:12px; color:var(--ink-soft); background:var(--white); border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
+  tr.ro-group .chev{ width:6px; height:6px; border-right:1.5px solid var(--ink-soft); border-bottom:1.5px solid var(--ink-soft); transform:rotate(45deg); margin:-3px 2px 0 1px; transition:transform .15s ease; }
   tr.ro-group.closed .chev{ transform:rotate(-45deg); margin-top:0; }
+  table.outreach.ro.grouped td{ padding-top:9px; padding-bottom:9px; }
+  table.outreach.ro.grouped tbody tr[data-bankrow] td:first-child{ padding-left:16px; }
+
+  /* column menu: sort, filter, edit */
+  table.outreach.ro th.th-active .pcol-head{ color:#2c20d0; }
+  table.outreach.ro th .arr{ font-size:8px; margin-left:4px; }
+  .th-funnel{ display:inline-flex; margin-left:4px; }
+  .th-funnel svg{ width:11px; height:11px; }
+  .col-menu{
+    position:fixed; z-index:1500; min-width:200px; max-width:260px; background:var(--white); border:1px solid var(--line);
+    border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.12); padding:8px; font-size:12px;
+  }
+  .cm-label{ font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; padding:8px 8px 4px; }
+  .cm-list{ max-height:240px; overflow:auto; }
+  .cm-opt{ all:unset; cursor:pointer; display:block; width:100%; box-sizing:border-box; padding:6px 8px; border-radius:6px; color:var(--ink); }
+  .cm-opt:hover, .cm-opt:focus-visible{ background:var(--line-soft); }
+  .cm-opt.on{ background:#2c20d0; color:#ffffff; font-weight:700; }
+  .cm-opt.cm-faint{ color:var(--ink-soft); }
+  .cm-sep{ height:1px; background:var(--line); margin:6px 0; }
+  .col-menu .cm-text{ width:100%; margin:2px 0 4px; }
 
   /* name, with place / project underneath */
   .ro-contact{ display:flex; flex-direction:column; min-width:0; }
@@ -3127,7 +3148,8 @@ function outreachCell(r, c){
         ${list.map(o=>`<option value="${escapeHtml(o)}" ${r.status===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}
         <option value="__edit">Edit statuses…</option>
       </select></span>
-      ${linked.length ? `<button class="ro-linked" onclick="openFilmedTasks('${r.id}')" title="Open these tasks">${linked.filter(x=>x.done).length} of ${linked.length} tasks done</button>` : ''}`;
+      ${linked.length ? `<button class="ro-linked" onclick="openFilmedTasks('${r.id}')" title="Open these tasks">${linked.filter(x=>x.done).length} of ${linked.length} tasks done</button>`
+        : r.status==='Filmed' ? `<button class="ro-linked" onclick="createFilmedTasks('${r.id}'); render();" title="Add Main teaser, Additional teasers, Full video and Check the route card">＋ Add video tasks</button>` : ''}`;
   }
   if(c.id==='priority'){
     const p = r.priority || 'med';
@@ -3207,6 +3229,85 @@ function openFilmedTasks(id){
   goToTask(next.k, next.t.id);
 }
 
+/* ---- Research & Outreach: click a column title to sort or filter by it ---- */
+let roSort = (()=>{ try{ return JSON.parse(localStorage.getItem('leguideline-outreach-sort')||'null'); }catch(e){ return null; } })();
+function setRoSort(col, dir){
+  roSort = dir ? { col, dir } : null;
+  try{ localStorage.setItem('leguideline-outreach-sort', JSON.stringify(roSort)); }catch(e){}
+  closeColMenu(); render();
+}
+function roSortVal(r, c){
+  const v = r[c.id];
+  if(c.type==='priority') return { high:0, med:1, low:2 }[v||'med'];
+  if(c.type==='status'){ const i = outreachStatuses().indexOf(v); return i<0 ? 99 : i; }
+  return String(v||'').toLowerCase();
+}
+function roSortRows(rows){
+  if(!roSort) return rows;
+  const c = bankCols('outreach').find(x=>x.id===roSort.col); if(!c) return rows;
+  return rows.slice().sort((a,b)=>{
+    const x = roSortVal(a,c), y = roSortVal(b,c);
+    const ex = x==='', ey = y==='';
+    if(ex || ey) return ex===ey ? 0 : ex ? 1 : -1; // empty cells always last
+    return (x<y ? -1 : x>y ? 1 : 0) * roSort.dir;
+  });
+}
+const FUNNEL_ICON = '<path d="M4 5h16l-6 7.5V19l-4-2v-4.5z" stroke-linejoin="round"/>';
+function outreachTh(c, extraStyle){
+  const f = getTF('outreach');
+  const filtered = !!f.cols[c.id];
+  const sorted = roSort && roSort.col===c.id;
+  return `<th data-col="${c.id}" data-colkey="outreach:${c.id}" draggable="true" ${extraStyle?`style="${extraStyle}"`:''} class="${filtered||sorted?'th-active':''}">
+    <button class="pcol-head" onclick="openColMenu('${c.id}', this, event)" title="Sort, filter or edit · drag to move">${icon(COLTYPE_ICON[c.type]||COLTYPE_ICON.text)}${escapeHtml(c.title)}${sorted?`<span class="arr">${roSort.dir>0?'▲':'▼'}</span>`:''}${filtered?`<span class="th-funnel">${icon(FUNNEL_ICON)}</span>`:''}</button>
+  </th>`;
+}
+function closeColMenu(){ document.querySelectorAll('.col-menu').forEach(m=>m.remove()); }
+function openColMenu(colId, btn, ev){
+  if(ev) ev.stopPropagation();
+  const was = document.querySelector(`.col-menu[data-col="${colId}"]`);
+  closeColMenu();
+  if(was) return; // second click closes it
+  const b = 'outreach';
+  const c = bankCols(b).find(x=>x.id===colId); if(!c) return;
+  const f = getTF(b), v = f.cols[colId] || '';
+  const [up, down] = c.type==='date' ? ['Oldest first','Newest first'] : c.type==='priority' ? ['High first','Low first'] : c.type==='status' ? ['Status order','Reverse status order'] : ['A to Z','Z to A'];
+  const sd = roSort && roSort.col===colId ? roSort.dir : 0;
+  const m = document.createElement('div');
+  m.className = 'col-menu'; m.dataset.col = colId;
+  m.setAttribute('role', 'menu');
+  const opts = c.type==='text' ? [] : [['', 'All'], ...filterOptions(b, c), ['__empty', 'Empty']];
+  m.innerHTML = `
+    <div class="cm-label">Sort</div>
+    <button class="cm-opt ${sd===1?'on':''}" data-sort="1">${up}</button>
+    <button class="cm-opt ${sd===-1?'on':''}" data-sort="-1">${down}</button>
+    ${sd?`<button class="cm-opt cm-faint" data-sort="0">No sorting</button>`:''}
+    <div class="cm-label">Filter</div>
+    ${c.type==='text'
+      ? `<input type="search" class="tf-text cm-text ${v?'on':''}" placeholder="Contains…" value="${escapeHtml(v)}" aria-label="Filter ${escapeHtml(c.title)}">`
+      : `<div class="cm-list">${opts.map(([o,l],i)=>`<button class="cm-opt ${v===o?'on':''}" data-f="${i}">${escapeHtml(l)}</button>`).join('')}</div>`}
+    <div class="cm-sep"></div>
+    <button class="cm-opt" data-edit="1">Edit column…</button>`;
+  document.body.appendChild(m);
+  const r = btn.getBoundingClientRect();
+  m.style.top = Math.min(r.bottom + 6, window.innerHeight - m.offsetHeight - 10) + 'px';
+  m.style.left = Math.max(10, Math.min(r.left, window.innerWidth - m.offsetWidth - 10)) + 'px';
+  m.querySelectorAll('[data-sort]').forEach(el=>el.onclick = ()=>setRoSort(colId, parseInt(el.dataset.sort,10)));
+  m.querySelectorAll('[data-f]').forEach(el=>el.onclick = ()=>{ f.cols[colId] = opts[+el.dataset.f][0]; closeColMenu(); render(); });
+  const txt = m.querySelector('.cm-text');
+  if(txt){
+    txt.oninput = ()=>{ f.cols[colId] = txt.value; txt.classList.toggle('on', !!txt.value); applyTableFilter(b); };
+    txt.onkeydown = e=>{ if(e.key==='Enter'){ closeColMenu(); render(); } };
+    setTimeout(()=>txt.focus(), 20);
+  }
+  m.querySelector('[data-edit]').onclick = ()=>{ closeColMenu(); openBankCol(b, colId); };
+}
+document.addEventListener('mousedown', e=>{
+  const m = document.querySelector('.col-menu');
+  if(m && !m.contains(e.target) && !e.target.closest('.pcol-head')){ const typed = m.querySelector('.cm-text'); closeColMenu(); if(typed) render(); }
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && document.querySelector('.col-menu')){ closeColMenu(); render(); } });
+window.addEventListener('scroll', ()=>closeColMenu(), true);
+
 /* ---- Research & Outreach: one table, either in status blocks or as one list ---- */
 let outreachMode = (()=>{ try{ return localStorage.getItem('leguideline-outreach-view') || 'group'; }catch(e){ return 'group'; } })();
 function setOutreachMode(m){ outreachMode = m; try{ localStorage.setItem('leguideline-outreach-view', m); }catch(e){} render(); }
@@ -3215,7 +3316,7 @@ function toggleGroup(g){ if(closedGroups.has(g)) closedGroups.delete(g); else cl
 function groupKey(st){ return 'g-' + (String(st||'none').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'none'); }
 function outreachView(){
   ensureOutreachColumns();
-  const rows = state.outreach;
+  const rows = roSortRows(state.outreach);
   const cols = visibleCols('outreach');
   const span = cols.length + 1;
   const typeCol = bankCols('outreach').find(c=>c.id==='type');
@@ -3234,9 +3335,11 @@ function outreachView(){
     const known = order.map(st=>[st, rows.filter(r=>r.status===st)]);
     const others = rows.filter(r=>!order.includes(r.status));
     const extra = [...new Set(others.map(r=>r.status||''))].map(st=>[st, others.filter(r=>(r.status||'')===st)]);
-    body = known.concat(extra).filter(([,list])=>list.length).map(([st, list])=>{
+    const edge = { 'Agreed':'#2c20d0', 'Filmed':'#00b209', 'Reached out':'#f4c70f' };
+    body = known.concat(extra).filter(([,list])=>list.length).map(([st, list], gi)=>{
       const g = groupKey(st), closed = closedGroups.has(g);
-      return `<tr class="ro-group ${closed?'closed':''}" data-grouphead="${g}"><td colspan="${span}">
+      return (gi ? `<tr class="ro-gap" aria-hidden="true"><td colspan="${span}"></td></tr>` : '') +
+        `<tr class="ro-group ${closed?'closed':''}" data-grouphead="${g}" style="--gc:${edge[st]||'#c9c9c9'}"><td colspan="${span}">
           <button onclick="toggleGroup('${g}')" aria-expanded="${!closed}"><span class="chev"></span><span class="ro-gname">${escapeHtml(st||'No status')}</span><span class="n">${list.length}</span></button>
         </td></tr>` + list.map(r=>rowHtml(r, closed)).join('');
     }).join('') + noMatchRow(span);
@@ -3254,7 +3357,7 @@ function outreachView(){
         <h1>Research & Outreach</h1>
         <div class="date">${rows.length} contact${rows.length===1?'':'s'}</div>
       </div>
-      <div class="stream-tagline">Chefs and bloggers by outreach status. Click a column title to rename it, edit its options or remove it; drag it to move it.</div>
+      <div class="stream-tagline">Chefs and bloggers by outreach status. Click a column title to sort or filter by it, or to edit the column; drag it to move it.</div>
     </div>
     <div class="board-head">
       ${seg}
@@ -3285,9 +3388,9 @@ function outreachView(){
       </div>
     </div>
     ${tableFilterBar('outreach', { search:'Search' })}
-    <div class="table-scroll"><table class="outreach ro" data-resize-id="outreach-v2" data-filter-bank="outreach">
+    <div class="table-scroll"><table class="outreach ro ${outreachMode==='group'?'grouped':''}" data-resize-id="outreach-v2" data-filter-bank="outreach">
       <thead><tr>
-        ${cols.map(c=>bankTh('outreach', c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:34px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column" aria-label="Add column">＋</button></th>
+        ${cols.map(c=>outreachTh(c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:34px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column" aria-label="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
@@ -3676,6 +3779,14 @@ function rowPasses(b, r){
 }
 function noMatchRow(span){ return `<tr class="no-match" style="display:none"><td colspan="${span}" class="empty-block">Nothing matches these filters.</td></tr>`; }
 // opts: { search:'placeholder', right:'html at the far right', cls:'extra class' }
+function filterOptions(b, c){
+  if(c.type==='status') return outreachStatuses().map(x=>[x,x]);
+  if(c.type==='priority') return [['high','High'],['med','Med'],['low','Low']];
+  if(c.type==='date') return DATE_BUCKETS;
+  const set = (c.options||[]).slice();
+  bankRows(b).forEach(r=>{ const x = r[c.id]; if(x && !set.includes(x)) set.push(x); });
+  return set.map(x=>[x,x]);
+}
 function tableFilterBar(b, opts){
   opts = opts || {};
   const f = getTF(b), rows = bankRows(b);
@@ -3689,15 +3800,7 @@ function tableFilterBar(b, opts){
     if(c.type==='text'){
       inner = `<input type="search" class="tf-text ${v?'on':''}" data-tf="${b}:${c.id}" placeholder="${t} contains…" value="${escapeHtml(v)}" oninput="setTableFilterLive('${b}','${c.id}',this.value); this.classList.toggle('on',!!this.value)" aria-label="Filter by ${t}">`;
     } else {
-      let o;
-      if(c.type==='status') o = outreachStatuses().map(x=>[x,x]);
-      else if(c.type==='priority') o = [['high','High'],['med','Med'],['low','Low']];
-      else if(c.type==='date') o = DATE_BUCKETS;
-      else {
-        const set = (c.options||[]).slice();
-        rows.forEach(r=>{ const x = r[c.id]; if(x && !set.includes(x)) set.push(x); });
-        o = set.map(x=>[x,x]);
-      }
+      const o = filterOptions(b, c);
       inner = `<select class="${v?'on':''}" data-tf="${b}:${c.id}" onchange="setTableFilter('${b}','${c.id}',this.value)" aria-label="Filter by ${t}">
         <option value="">${t}: all</option>
         ${o.map(([x,l])=>`<option value="${escapeHtml(x)}" ${v===x?'selected':''}>${escapeHtml(l)}</option>`).join('')}
@@ -3733,6 +3836,7 @@ function applyTableFilter(b){
   table.querySelectorAll('tbody tr[data-grouphead]').forEach(tr=>{
     const n = perGroup[tr.getAttribute('data-grouphead')] || 0;
     tr.style.display = n ? '' : 'none';
+    const gap = tr.previousElementSibling; if(gap && gap.classList.contains('ro-gap')) gap.style.display = n ? '' : 'none';
     const el = tr.querySelector('.n'); if(el) el.textContent = n;
   });
   const nm = table.querySelector('tr.no-match'); if(nm) nm.style.display = (total && !shown) ? '' : 'none';
