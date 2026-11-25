@@ -828,6 +828,127 @@
   .proj-state.c-agreed{ background:#2c20d0; color:#fff; padding:2px 8px; border-radius:999px; }
   .proj-state.c-filmed{ background:#00b209; color:#fff; padding:2px 8px; border-radius:999px; }
   .proj-state.c-reached{ background:#f4c70f; color:#000; padding:2px 8px; border-radius:999px; }
+
+  /* ==================== Research & Outreach: contact list ==================== */
+  .ro-bar{ gap:10px; margin:0 0 16px; }
+  .ro-bar .table-search{
+    flex:1 1 280px; width:auto; height:38px; border-radius:10px; font-size:13px; padding:0 14px 0 36px;
+    background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E") no-repeat 13px center / 15px 15px;
+  }
+  .ro-bar select, .ro-bar .tf-text{ height:38px; line-height:36px; border-radius:10px; font-size:12.5px; color:var(--ink); padding:0 32px 0 14px; background-position:right 12px center; }
+  .ro-bar .tf-text{ padding:0 14px; width:170px; }
+  .ro-bar .table-count{ font-size:11.5px; color:var(--ink-soft); }
+  .tf{ position:relative; display:inline-flex; }
+  .tf-x{
+    all:unset; cursor:pointer; position:absolute; top:-6px; right:-6px; width:17px; height:17px; border-radius:50%;
+    background:var(--ink); color:var(--white); font-size:11px; line-height:17px; text-align:center; opacity:0; transition:opacity .12s ease;
+  }
+  .tf:hover .tf-x, .tf:focus-within .tf-x, .tf-x:focus-visible{ opacity:1; }
+  .tf-text{ border:1px solid var(--line); border-radius:999px; background:var(--white); font-family:inherit; font-size:11.5px; color:var(--ink); height:28px; padding:0 12px; width:150px; box-sizing:border-box; }
+  .tf-text:focus{ outline:none; border-color:var(--ink); }
+  .tf-text.on{ border-color:#2c20d0; box-shadow:inset 0 0 0 1px #2c20d0; }
+  .filter-bar select.tf-add{ border-style:dashed; color:var(--ink-soft); }
+  .filter-bar select.tf-add:hover{ border-color:var(--ink); color:var(--ink); }
+
+  .ro-seg{ display:inline-flex; margin-left:auto; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--white); }
+  .ro-seg button{ all:unset; cursor:pointer; height:36px; padding:0 18px; display:inline-flex; align-items:center; font-size:12.5px; color:var(--ink-soft); }
+  .ro-seg button:hover{ color:var(--ink); }
+  .ro-seg button.on{ background:var(--ink); color:var(--white); font-weight:700; }
+  .ro-seg button:focus-visible{ outline:2px solid #2c20d0; outline-offset:-3px; }
+
+  .ro-auto{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); }
+  .ro-auto select{ border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-family:inherit; font-size:12px; color:var(--ink); background:var(--white); cursor:pointer; }
+  .ro-auto select:focus{ outline:none; border-color:var(--ink); }
+
+  .ro-frame{ border:1px solid var(--line); border-radius:14px; background:var(--white); }
+  table.outreach.ro{ min-width:980px; }
+  table.outreach.ro th{ background:#fafafa; padding:15px 14px; font-size:10.5px; letter-spacing:.09em; color:#9a9a9a; border-bottom:1px solid var(--line); }
+  table.outreach.ro th .pcol-head{ letter-spacing:inherit; }
+  table.outreach.ro td{ padding:11px 14px; border-bottom:1px solid var(--line); }
+  table.outreach.ro tbody tr[data-bankrow]:hover td{ background:#fcfcfc; }
+  table.outreach.ro tbody tr:last-child td{ border-bottom:none; }
+  table.outreach.ro .del-cell{ text-align:center; }
+  table.outreach.ro .del-row{ opacity:0; }
+  table.outreach.ro tr:hover .del-row, table.outreach.ro .del-row:focus-visible{ opacity:1; }
+
+  tr.ro-group td{ background:#fafafa !important; padding:0 !important; border-bottom:1px solid var(--line); border-top:1px solid var(--line); }
+  tr.ro-group button{ all:unset; cursor:pointer; display:flex; align-items:center; gap:9px; width:100%; box-sizing:border-box; padding:12px 14px 12px 18px; font-size:13px; font-weight:700; letter-spacing:.01em; color:var(--ink); }
+  tr.ro-group button:focus-visible{ outline:2px solid #2c20d0; outline-offset:-2px; }
+  tr.ro-group .n{ font-weight:400; color:var(--ink-faint); }
+  tr.ro-group .chev{ width:6px; height:6px; border-right:1.5px solid var(--ink-soft); border-bottom:1.5px solid var(--ink-soft); transform:rotate(45deg); margin:-3px 3px 0 0; transition:transform .15s ease; }
+  tr.ro-group.closed .chev{ transform:rotate(-45deg); margin-top:0; }
+
+  /* name on top, place / project underneath */
+  .ro-contact{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+  table.outreach.ro .ro-name{ font-size:14px; font-weight:700; padding:2px 5px; }
+  .ro-venue{ display:flex; align-items:center; gap:3px; color:var(--ink-soft); padding-left:5px; cursor:text; }
+  .ro-venue svg{ width:13px; height:13px; flex-shrink:0; color:var(--ink-faint); }
+  table.outreach.ro .ro-venue input{ font-size:12.5px; color:var(--ink-soft); padding:2px 4px; }
+
+  .ro-ig{ display:flex; align-items:center; }
+  .ro-ig .at{ font-size:12.5px; color:var(--ink-faint); padding-left:5px; }
+  table.outreach.ro .ro-ig input{ font-size:12.5px; padding:4px 3px; min-width:0; }
+  .ro-ig a{ display:inline-flex; padding:4px; color:var(--ink-faint); border-radius:4px; }
+  .ro-ig a:hover{ color:var(--ink); }
+  .ro-ig a svg{ width:13px; height:13px; }
+
+  .ro-chip{ display:inline-flex; max-width:100%; }
+  table.outreach.ro .ro-chip select{ appearance:none; -webkit-appearance:none; -moz-appearance:none; background:#f2f2f1; border:0; border-radius:7px; padding:6px 11px; width:auto; field-sizing:content; max-width:100%; font-size:12.5px; cursor:pointer; }
+  table.outreach.ro .ro-chip select:focus{ background:#f2f2f1; outline:1.5px solid var(--ink); outline-offset:1px; }
+
+  .ro-pill{ position:relative; display:inline-flex; max-width:100%; }
+  table.outreach.ro .ro-pill select{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none; border:0; border-radius:999px; cursor:pointer;
+    background:var(--pill-bg); color:var(--pill-fg); font-weight:700; font-size:12.5px; padding:7px 32px 7px 15px; width:auto; field-sizing:content; max-width:100%;
+  }
+  table.outreach.ro .ro-pill select:hover{ background:var(--pill-bg); filter:brightness(.97); }
+  table.outreach.ro .ro-pill select:focus{ background:var(--pill-bg); outline:2px solid var(--pill-fg); outline-offset:2px; }
+  table.outreach.ro .ro-pill select option{ color:var(--ink); background:var(--white); font-weight:400; }
+  .ro-pill::after{ content:''; position:absolute; right:14px; top:50%; width:5px; height:5px; border-right:1.6px solid var(--pill-fg); border-bottom:1.6px solid var(--pill-fg); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
+  .ro-linked{ all:unset; cursor:pointer; display:block; margin:6px 0 0 6px; font-size:11px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
+  .ro-linked:hover{ color:var(--ink); }
+
+  .ro-prio{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
+  .ro-prio .bars{ width:14px; height:12px; flex-shrink:0; }
+  .ro-prio .bars rect{ fill:#e3e3e3; }
+  .ro-prio.p-high .bars rect.on{ fill:var(--red); }
+  .ro-prio.p-med .bars rect.on{ fill:#e0a100; }
+  .ro-prio.p-low .bars rect.on{ fill:#9a9a9a; }
+  table.outreach.ro .ro-prio select{ appearance:none; -webkit-appearance:none; -moz-appearance:none; width:auto; field-sizing:content; padding:4px 3px; font-size:13px; cursor:pointer; }
+
+  /* dates: 17 Sep, and how long ago underneath; the picker opens on click */
+  .ro-date{ position:relative; display:flex; flex-direction:column; justify-content:center; min-height:36px; padding:2px 6px; border-radius:6px; line-height:1.3; }
+  .ro-date:hover{ background:var(--line-soft); }
+  .ro-date:focus-within{ box-shadow:0 0 0 1.5px var(--ink); }
+  .ro-date-main{ font-size:13px; }
+  .ro-date.empty .ro-date-main{ color:var(--ink-faint); }
+  .ro-date-rel{ font-size:11.5px; color:var(--ink-faint); }
+  .ro-date.ahead .ro-date-rel, .ro-date.today .ro-date-rel{ color:#2c20d0; }
+  .ro-date.today .ro-date-rel{ font-weight:700; }
+  .ro-date.overdue .ro-date-rel{ color:var(--red); }
+  table.outreach.ro .ro-date input[type=date]{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; padding:0; border:0; margin:0; }
+  .ro-date-x{ all:unset; position:absolute; right:2px; top:50%; transform:translateY(-50%); z-index:1; cursor:pointer; color:var(--ink-faint); font-size:15px; line-height:1; padding:3px 6px; opacity:0; }
+  .ro-date:hover .ro-date-x, .ro-date-x:focus-visible{ opacity:1; }
+  .ro-date-x:hover{ color:var(--red); }
+  table.outreach.ro input::placeholder{ color:#c4c4c4; }
+
+  @media (max-width:720px){
+    .ro-seg{ margin-left:0; }
+    .ro-bar .table-search{ flex-basis:100%; }
+    .board-head .ro-auto{ font-size:11.5px; }
+  }
+
+  /* Overview: tick a row to close it on its own tab */
+  .due-check{
+    appearance:none; -webkit-appearance:none; width:15px; height:15px; margin:0; flex-shrink:0; position:relative; cursor:pointer;
+    border:1.5px solid #c8c8c8; border-radius:4px; background:var(--white);
+  }
+  .due-check:hover{ border-color:var(--ink); }
+  .due-check:checked{ background:var(--ink); border-color:var(--ink); }
+  .due-check:checked::after{ content:''; position:absolute; left:4px; top:1px; width:4px; height:7px; border:solid var(--white); border-width:0 1.5px 1.5px 0; transform:rotate(40deg); }
+  .due-check:focus-visible{ outline:2px solid #2c20d0; outline-offset:2px; }
+  .toast.undo{ pointer-events:auto; display:flex; align-items:center; gap:14px; }
+  .toast.undo button{ all:unset; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
 </style>
 </head>
 <body>
@@ -960,7 +1081,18 @@ function toggleMilestone(taskKey, id, doneKey){
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function isoWeekStart(d){ const dt=new Date(d); const day=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-day); return dt.toISOString().slice(0,10); }
 function monthStr(){ return new Date().toISOString().slice(0,7); }
-function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// 17 Sep (adds the year when it isn't this year)
+function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return ''; return d.getDate()+' '+MON3[d.getMonth()]+(d.getFullYear()!==new Date().getFullYear()?' '+d.getFullYear():''); }
+// 2 mo ago, in 3 d, today
+function relDate(iso){
+  const days = Math.round((new Date(iso+'T00:00:00') - new Date(todayStr()+'T00:00:00'))/86400000);
+  if(isNaN(days)) return '';
+  if(days===0) return 'today'; if(days===-1) return 'yesterday'; if(days===1) return 'tomorrow';
+  const a = Math.abs(days);
+  const txt = a<7 ? a+' d' : a<30 ? Math.floor(a/7)+' wk' : a<365 ? Math.floor(a/30)+' mo' : Math.floor(a/365)+' yr';
+  return days<0 ? txt+' ago' : 'in '+txt;
+}
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function icon(inner, extra){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ${extra||''}>${inner}</svg>`; }
@@ -1552,28 +1684,100 @@ function collectDueItems(period){
       if(tk.startsWith('video-')){
         // one line per film / montage / publish date
         videoMilestones(task).forEach(m=>{
-          if(!m.done && inPeriod(m.date)) items.push({ title:task.title, meta:meta.label, step:m.label, due:m.date, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'' });
+          if(!m.done && inPeriod(m.date)) items.push({ title:task.title, meta:meta.label, step:m.label, due:m.date, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'', ref:[tk, task.id, m.label] });
         });
       } else if(inPeriod(task.due)){
-        items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'' });
+        items.push({ title:task.title, meta:meta.label, due:task.due, stream:meta.stream, subarea:sub, priority:task.priority, who:task.assignee||'', ref:[tk, task.id, ''] });
       }
     });
   });
 
   state.outreach.forEach(r=>{
-    if(r.status!=='Agreed' && r.status!=='Declined' && inPeriod(r.followUp)){
-      items.push({ title:(r.name||'Untitled contact') + (r.venue?' · '+r.venue:'') + ' — follow up', meta:'Research & Outreach', due:r.followUp, stream:'content', subarea:'outreach', priority:r.priority, who:'' });
+    if(!['Agreed','Declined','Filmed'].includes(r.status) && inPeriod(r.followUp)){
+      items.push({ title:(r.name||'Untitled contact') + (r.venue?' · '+r.venue:'') + ' — follow up', meta:'Research & Outreach', due:r.followUp, stream:'content', subarea:'outreach', priority:r.priority, who:'', ref:['outreach', r.id, ''] });
     }
   });
 
   state.ideas.forEach(i=>{
     if(!i.done && inPeriod(i.due)){
-      items.push({ title:i.title, meta:'Bank of Ideas', due:i.due, stream:'content', subarea:'ideas', priority:i.priority, who:i.assignee||'' });
+      items.push({ title:i.title, meta:'Bank of Ideas', due:i.due, stream:'content', subarea:'ideas', priority:i.priority, who:i.assignee||'', ref:['ideas', i.id, ''] });
     }
   });
 
   items.sort((a,b)=> (a.due||'').localeCompare(b.due||''));
   return items;
+}
+
+/* ---- tick an Overview row: it closes the same item on its own tab ---- */
+function dueCheck(d){
+  if(!d.ref) return '';
+  const [k, id, step] = d.ref;
+  const what = step==='Film' ? 'filming' : step==='Montage' ? 'montage' : step==='Publish' ? 'publishing' : k==='outreach' ? 'the follow-up' : 'this';
+  return `<input type="checkbox" class="due-check" title="Mark ${what} as done" aria-label="Mark ${escapeHtml(what)} done: ${escapeHtml(d.title)}" onclick="closeDueItem('${k}','${id}','${step}', event)">`;
+}
+function closeDueItem(k, id, step, ev){
+  if(ev) ev.stopPropagation();
+  const before = clone(state);
+  let msg = '';
+  if(k==='outreach'){
+    const r = state.outreach.find(x=>x.id===id); if(!r) return;
+    r.lastContact = todayStr(); r.followUp = '';
+    msg = `Followed up with ${r.name||'contact'} · last contact set to today`;
+  } else if(k==='ideas'){
+    const i = state.ideas.find(x=>x.id===id); if(!i) return;
+    i.status = 'done'; i.done = true; msg = 'Done · ' + i.title;
+  } else {
+    const t = findTask(k, id); if(!t) return;
+    if(step==='Film'){ t.filmDone = true; msg = 'Filmed · ' + t.title; }
+    else if(step==='Montage'){ t.editDone = true; msg = 'Montage done · ' + t.title; }
+    else { t.status = 'done'; msg = (step==='Publish' ? 'Published · ' : 'Done · ') + t.title; }
+  }
+  save(); render();
+  toastUndo(msg, before);
+}
+// toast with an Undo button that puts everything back as it was
+function toastUndo(msg, before){
+  document.querySelectorAll('.toast.undo').forEach(x=>x.remove());
+  const el = document.createElement('div'); el.className = 'toast undo';
+  const span = document.createElement('span'); span.textContent = msg; el.appendChild(span);
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Undo';
+  b.onclick = ()=>{ state = before; save(); render(); el.remove(); };
+  el.appendChild(b); document.body.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),10);
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),300); }, 6000);
+}
+
+/* ---- a video closes everywhere at once: Done in Video Prod <-> out on every platform in Going live ---- */
+function linkVideoClosure(){
+  let changed = false;
+  const t0 = todayStr();
+  const allOut = t=>{ const pl = taskPlatforms(t), pm = postedOn(t); return pl.length>0 && pl.every(p=>pm[p]); };
+  VIDEO_SERIES.forEach(([key])=>(state.tasks['video-'+key]||[]).forEach(t=>{
+    const seen = t.linkSeen;
+    if(seen && typeof seen==='object'){
+      const done = t.status==='done', out = allOut(t);
+      if(done && !seen.done){
+        // closed in Video Prod or on the Overview: its steps are done, and if publish day has come it is out everywhere
+        if(t.filmDue) t.filmDone = true;
+        if(t.editDue) t.editDone = true;
+        const pl = taskPlatforms(t);
+        if(pl.length && !out && (!t.due || t.due<=t0)){ const m = Object.assign({}, postedOn(t)); pl.forEach(p=>{ if(!m[p]) m[p] = t0; }); t.postedOn = m; }
+        changed = true;
+      } else if(out && !seen.out && !done){
+        // ticked out on the last platform in Going live: the video is done in Video Prod too
+        t.status = 'done';
+        if(t.filmDue) t.filmDone = true;
+        if(t.editDue) t.editDone = true;
+        changed = true;
+      } else if(!out && seen.out && done){
+        // a platform was unticked: open the video again
+        t.status = 'thisweek'; changed = true;
+      }
+    }
+    const now = { done:t.status==='done', out:allOut(t) };
+    if(!seen || seen.done!==now.done || seen.out!==now.out){ t.linkSeen = now; changed = true; }
+  }));
+  return changed;
 }
 
 /* ---- overview filters: each card (Today / This week / This month) and each Video Prod column has its own ---- */
@@ -2093,7 +2297,7 @@ function updateTask(taskKey,id,data){
   const t=state.tasks[taskKey].find(t=>t.id===id); if(!t) return;
   t.title=data.title; t.notes=data.notes||''; t.due=data.due||''; t.priority=data.priority||'med';
   t.assignee = data.assignee||'';
-  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.formats = data.formats||[]; delete t.format; t.platforms = data.platforms||[]; delete t.platform; t.projects = data.projects||[];
+  if(taskKey.startsWith('video-')){ t.filmDue = data.filmDue||''; t.editDue = data.editDue||''; t.platforms = data.platforms||[]; delete t.platform; t.projects = data.projects||[];
     if(data.posted){ const m = {}; data.posted.forEach(x=>{ if(x.on && t.platforms.includes(x.p)) m[x.p] = x.date || todayStr(); }); t.postedOn = m; } }
   if(data.status) t.status=data.status;
   // moved to another board (another tab, or another video series)
@@ -2132,7 +2336,9 @@ function cancelEditTask(){ editingTask = null; render(); }
 /* ---- outreach ---- */
 function addOutreachRow(data){
   delete tableFilters.outreach;
-  state.outreach.push({ id:uid(), name:data.name, venue:data.venue||'', type:data.type, status:data.status||'Researching', priority:data.priority||'med', lastContact:'', followUp:'', notes:'' });
+  const r = { id:uid(), name:data.name, venue:data.venue||'', instagram:igHandle(data.instagram), type:data.type, status:data.status||outreachStatuses()[0]||'Researching', priority:data.priority||'med', lastContact:'', followUp:'', notes:'' };
+  state.outreach.push(r);
+  if(r.status==='Filmed') createFilmedTasks(r.id);
   save(); render();
 }
 function updateOutreachField(id, field, value){
@@ -2250,6 +2456,7 @@ function ritualCard(period,title,windowLabel,cornerTag){
   const due = dueAll.filter(it=>passesOverview(it, period));
   const dueRows = due.length ? due.map(d=>`
     <div class="due-row" data-navitem="${d.stream}:${d.subarea||''}">
+      ${dueCheck(d)}
       <div class="due-row-main">
         <div class="due-row-title">${escapeHtml(d.title)}</div>
         <div class="due-row-meta">${d.priority?`<span class="tag ${d.priority}">${d.priority}</span>`:''}${d.step?`<span class="step-tag step-${d.step.toLowerCase()}">${d.step}</span>`:''}<span>${escapeHtml(d.meta)}${d.who?' · '+escapeHtml(d.who):''}</span></div>
@@ -2278,7 +2485,7 @@ function videoPlanCard(){
       if(v.status==='done') return;
       videoMilestones(v).forEach(m=>{
         if(!m.date || m.done) return;
-        const it = { title:v.title, due:m.date, priority:v.priority, who:v.assignee||'', series:label, seriesKey:key, stream:'content', subarea:'video:'+key };
+        const it = { title:v.title, due:m.date, priority:v.priority, who:v.assignee||'', series:label, seriesKey:key, stream:'content', subarea:'video:'+key, ref:['video-'+key, v.id, m.label] };
         lists[m.label].push(it);
       });
     });
@@ -2287,6 +2494,7 @@ function videoPlanCard(){
   const rows = list => list.length ? list.map(v=>{
     const overdue = v.due<t;
     return `<div class="due-row" data-navitem="content:video:${v.seriesKey}">
+      ${dueCheck(v)}
       <div class="due-row-main">
         <div class="due-row-title">${escapeHtml(v.title)}</div>
         <div class="due-row-meta"><span class="tag ${v.priority}">${v.priority}</span><span>${v.series}${v.who?' · '+escapeHtml(v.who):''}</span></div>
@@ -2377,7 +2585,7 @@ function togglePosted(k, id, p, ev){
   t.postedOn = m;
   save(); render();
   const left = taskPlatforms(t).filter(x=>!m[x]);
-  toast(m[p] ? (left.length ? `Out on ${p} · ${left.join(', ')} to go` : `Out on ${p} · live everywhere`) : `${p} unmarked`);
+  toast(m[p] ? (left.length ? `Out on ${p} · ${left.join(', ')} to go` : `Out on ${p} · live everywhere · marked Done in Video Prod`) : `${p} unmarked`);
 }
 // where a post stands, seen from publish day
 function pubState(e){
@@ -2409,7 +2617,7 @@ function pubPost(e, withDate){
   const st = pubState(e);
   // what you picked in the Edit dialog, shown in full on every card the same way
   const fm = taskFormats(e.t), pl = taskPlatforms(e.t);
-  const tags = fm.map(f=>`<span class="pub-tag fmt">${escapeHtml(f)}</span>`).join('') + platTags(e.k, e.t);
+  const tags = platTags(e.k, e.t);
   return `<div class="pub-post ${st.cls}" draggable="true" data-pubpost="${e.k}:${e.t.id}" onclick="startEditTask('${e.k}','${e.t.id}')" title="Click to edit · drag to another day to reschedule">
     <div class="pub-series">${withDate?`<b>${fmtDate(e.date)}</b> · `:''}${escapeHtml(e.series)}</div>
     <div class="pub-title">${escapeHtml(e.t.title)}</div>
@@ -2532,9 +2740,9 @@ function platTags(k, t){
   }).join('');
 }
 function pubTags(t, k){
-  const f = taskFormats(t), p = taskPlatforms(t);
-  if(!f.length && !p.length) return '';
-  return `<div class="pub-tags">${f.map(x=>`<span class="pub-tag fmt">${escapeHtml(x)}</span>`).join('')}${k ? platTags(k, t) : p.map(x=>`<span class="pub-tag plat">${escapeHtml(x)}</span>`).join('')}</div>`;
+  const p = taskPlatforms(t);
+  if(!p.length) return '';
+  return `<div class="pub-tags">${k ? platTags(k, t) : p.map(x=>`<span class="pub-tag plat">${escapeHtml(x)}</span>`).join('')}</div>`;
 }
 function projectCard(){
   const list = projectList();
@@ -2898,30 +3106,182 @@ function videoProdView(){
 }
 
 const OUTREACH_STATUS_CLASS = { 'Agreed':'status-agreed', 'Filmed':'status-filmed', 'Reached out':'status-reached' };
-function outreachCell(r, c){
-  if(c.id==='status') return `<select class="${OUTREACH_STATUS_CLASS[r.status]||''}" onchange="updateOutreachField('${r.id}','status',this.value); render();">
-      ${OUTREACH_STATUS.map(o=>`<option value="${o}" ${r.status===o?'selected':''}>${o}</option>`).join('')}
-    </select>`;
-  if(c.id==='priority') return `<select onchange="updateOutreachField('${r.id}','priority',this.value); render();">
-      <option value="high" ${r.priority==='high'?'selected':''}>High</option>
-      <option value="med" ${r.priority==='med'?'selected':''}>Med</option>
-      <option value="low" ${r.priority==='low'?'selected':''}>Low</option>
-    </select>`;
-  return bankCell('outreach', r, c);
+// soft pill colours per status; statuses you add get one from the spare set
+const STATUS_TINT = {
+  'Researching':['#efefed','#555555'], 'Reached out':['#fcf0bd','#7d5b00'], 'Waiting reply':['#fde5cc','#9a4c00'],
+  'Follow up':['#fde0dc','#b3261e'], 'Agreed':['#e4e2ff','#2c20d0'], 'Filmed':['#d8f3d9','#0b7414'], 'Declined':['#f2f2f2','#8f8f8f']
+};
+const SPARE_TINTS = [['#dff0fa','#0f5f8c'],['#f2e2f9','#76289a'],['#dcf3ee','#14705c'],['#f5eadf','#76461c']];
+function statusTint(st){
+  if(STATUS_TINT[st]) return STATUS_TINT[st];
+  const i = Math.max(0, outreachStatuses().indexOf(st));
+  return SPARE_TINTS[i % SPARE_TINTS.length];
 }
+const PIN_ICON = '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>';
+const EXT_ICON = '<path d="M14 5h5v5M19 5l-8 8M17 14v4a1 1 0 01-1 1H6a1 1 0 01-1-1V8a1 1 0 011-1h4"/>';
+function igHandle(v){
+  v = String(v||'').trim();
+  const m = v.match(/instagram\.com\/([^/?#\s]+)/i); if(m) v = m[1];
+  return v.replace(/^@+/,'').trim();
+}
+function setIgHandle(id, colId, el){ const h = igHandle(el.value); el.value = h; updateOutreachField(id, colId, h); render(); }
+function prioBars(p){
+  const n = { high:3, med:2, low:1 }[p] || 2;
+  return `<svg class="bars" viewBox="0 0 14 12" aria-hidden="true">${[0,1,2].map(i=>`<rect x="${i*5}" y="${8-i*4}" width="3.4" height="${4+i*4}" rx="1" class="${i<n?'on':''}"/>`).join('')}</svg>`;
+}
+function roDateCell(r, c){
+  const raw = r[c.id]||'';
+  const v = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+  const t0 = todayStr();
+  const closed = ['Agreed','Declined','Filmed'].includes(r.status);
+  const cls = !v ? 'empty' : (c.id==='followUp' && !closed && v<t0) ? 'overdue' : v===t0 ? 'today' : v>t0 ? 'ahead' : '';
+  const t = escapeHtml(c.title);
+  return `<div class="ro-date ${cls}">
+    <div class="ro-date-main">${v ? fmtDate(v) : '—'}</div>${v ? `<div class="ro-date-rel">${relDate(v)}</div>` : ''}
+    <input type="date" value="${v}" aria-label="${t}" onclick="try{this.showPicker()}catch(e){}" onchange="updateBankField('outreach','${r.id}','${c.id}',this.value); render();">
+    ${v ? `<button class="ro-date-x" title="Clear date" aria-label="Clear ${t}" onclick="updateBankField('outreach','${r.id}','${c.id}',''); render();">×</button>` : ''}
+  </div>`;
+}
+function outreachCell(r, c){
+  if(c.id==='name'){
+    return `<div class="ro-contact">
+      <input type="text" class="ro-name" value="${escapeHtml(r.name||'')}" placeholder="Name" aria-label="Name" oninput="updateOutreachField('${r.id}','name',this.value)">
+      <label class="ro-venue">${icon(PIN_ICON)}<input type="text" value="${escapeHtml(r.venue||'')}" placeholder="Place, project" aria-label="Place or project" oninput="updateOutreachField('${r.id}','venue',this.value)"></label>
+    </div>`;
+  }
+  if(c.kind==='instagram'){
+    const h = igHandle(r[c.id]);
+    return `<div class="ro-ig"><span class="at">@</span><input type="text" value="${escapeHtml(h)}" placeholder="handle" aria-label="Instagram handle" onchange="setIgHandle('${r.id}','${c.id}',this)">${h ? `<a href="https://www.instagram.com/${encodeURIComponent(h)}/" target="_blank" rel="noopener" title="Open @${escapeHtml(h)} on Instagram" aria-label="Open on Instagram">${icon(EXT_ICON)}</a>` : ''}</div>`;
+  }
+  if(c.id==='status'){
+    const list = outreachStatuses().slice();
+    if(r.status && !list.includes(r.status)) list.push(r.status);
+    const [bg, fg] = statusTint(r.status);
+    const linked = filmedTasks(r);
+    return `<span class="ro-pill" style="--pill-bg:${bg}; --pill-fg:${fg};"><select onchange="outreachStatusChange('${r.id}',this)" aria-label="Status">
+        ${list.map(o=>`<option value="${escapeHtml(o)}" ${r.status===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}
+        <option value="__edit">Edit statuses…</option>
+      </select></span>
+      ${linked.length ? `<button class="ro-linked" onclick="openFilmedTasks('${r.id}')" title="Open these tasks">${linked.filter(x=>x.done).length} of ${linked.length} tasks done</button>` : ''}`;
+  }
+  if(c.id==='priority'){
+    const p = r.priority || 'med';
+    return `<label class="ro-prio p-${p}">${prioBars(p)}<select onchange="updateOutreachField('${r.id}','priority',this.value); render();" aria-label="Priority">
+      <option value="high" ${p==='high'?'selected':''}>High</option>
+      <option value="med" ${p==='med'?'selected':''}>Med</option>
+      <option value="low" ${p==='low'?'selected':''}>Low</option>
+    </select></label>`;
+  }
+  if(c.type==='date') return roDateCell(r, c);
+  if(c.type==='select') return `<span class="ro-chip">${bankCell('outreach', r, c)}</span>`;
+  const v = r[c.id]===undefined ? '' : String(r[c.id]);
+  return `<input type="text" value="${escapeHtml(v)}" placeholder="${c.id==='notes'?'Add a note…':''}" oninput="updateBankField('outreach','${r.id}','${c.id}',this.value)" aria-label="${escapeHtml(c.title)}">`;
+}
+function outreachStatusChange(id, el){
+  const r = state.outreach.find(x=>x.id===id); if(!r) return;
+  if(el.value==='__edit'){ el.value = r.status; openBankCol('outreach','status'); return; }
+  const wasFilmed = r.status==='Filmed';
+  const before = clone(state);
+  updateOutreachField(id, 'status', el.value);
+  if(el.value==='Filmed') createFilmedTasks(id);
+  else if(wasFilmed){
+    const n = removeFilmedTasks(id);
+    save(); render();
+    if(n) toastUndo(`Not filmed: removed its ${n} task${n===1?'':'s'} from Video Prod and Maintenance`, before);
+    return;
+  }
+  render();
+}
+// takes out the tasks that Filmed added for this contact
+function removeFilmedTasks(id){
+  const r = state.outreach.find(x=>x.id===id); if(!r) return 0;
+  let n = 0;
+  (r.filmedTasks||[]).forEach(([k,tid])=>{
+    const list = state.tasks[k]||[];
+    if(list.some(t=>t.id===tid)){ state.tasks[k] = list.filter(t=>t.id!==tid); n++; }
+  });
+  delete r.filmedTasks;
+  // the talk Filmed added goes too, unless something else is tagged with it now
+  const pn = r.filmedProject;
+  if(pn && !Object.values(state.tasks).some(a=>(a||[]).some(t=>taskChips(t,'project').includes(pn)))) state.pubProjects = projectList().filter(x=>x!==pn);
+  delete r.filmedProject;
+  return n;
+}
+
+/* ---- Filmed: a contact marked Filmed gets its own tasks (main teaser, additional teasers, full video, route card) ---- */
+const FILMED_TASKS = [['video','Main teaser'],['video','Additional teasers'],['video','Full video'],['maintenance','Check the route card']];
+function filmedSeries(){ return 'talk'; }
+function filmedTasks(r){
+  return (r.filmedTasks||[]).map(([k,id])=>{ const t = findTask(k,id); return t ? { k, t, done:t.status==='done' } : null; }).filter(Boolean);
+}
+function createFilmedTasks(id){
+  const r = state.outreach.find(x=>x.id===id); if(!r) return;
+  const name = (r.name||'').trim() || 'Untitled contact';
+  if(filmedTasks(r).length){ toast(`${name} already has its Filmed tasks`); return; }
+  const series = filmedSeries(), vk = 'video-'+series, t0 = todayStr();
+  if(r.name && r.name.trim() && !projectList().includes(name)){ projectList().push(name); r.filmedProject = name; } // shows up in Talks & projects
+  r.filmedTasks = FILMED_TASKS.map(([kind, label])=>{
+    const k = kind==='video' ? vk : 'maintenance';
+    if(!state.tasks[k]) state.tasks[k] = [];
+    const t = { id:uid(), title:`${label} · ${name}`, notes:`From Research & Outreach${r.venue?' ('+r.venue+')':''}. Filmed ${fmtDate(t0)}.`,
+      due:'', priority:r.priority||'med', status:'backlog', rank:nextRank(k), assignee:'', contactId:r.id };
+    if(kind==='video'){ t.filmDue = t0; t.filmDone = true; t.editDue = ''; t.projects = r.name && r.name.trim() ? [name] : []; }
+    state.tasks[k].push(t);
+    return [k, t.id];
+  });
+  save();
+  const sl = (VIDEO_SERIES.find(([k])=>k===series)||[])[1];
+  toast(`Added 3 videos to Video Prod › ${sl} and a route card check to Maintenance`);
+}
+function openFilmedTasks(id){
+  const r = state.outreach.find(x=>x.id===id); if(!r) return;
+  const list = filmedTasks(r);
+  const next = list.find(x=>!x.done) || list[0];
+  if(!next) return;
+  if(next.k.startsWith('video-')) videoSeries = 'all';
+  goToTask(next.k, next.t.id);
+}
+
+/* ---- Research & Outreach: one table, either in status blocks or as one list ---- */
+let outreachMode = (()=>{ try{ return localStorage.getItem('leguideline-outreach-view') || 'group'; }catch(e){ return 'group'; } })();
+function setOutreachMode(m){ outreachMode = m; try{ localStorage.setItem('leguideline-outreach-view', m); }catch(e){} render(); }
+let closedGroups = new Set();
+function toggleGroup(g){ if(closedGroups.has(g)) closedGroups.delete(g); else closedGroups.add(g); render(); }
+function groupKey(st){ return 'g-' + (String(st||'none').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'none'); }
 function outreachView(){
   ensureOutreachColumns();
   const rows = state.outreach;
   const cols = visibleCols('outreach');
-  const typeCol = cols.find(c=>c.id==='type');
+  const span = cols.length + 1;
+  const typeCol = bankCols('outreach').find(c=>c.id==='type');
   const typeOpts = (typeCol && typeCol.options && typeCol.options.length) ? typeCol.options : ['Chef','Blogger','Other'];
   const widthOf = id => (OUTREACH_BUILTIN.find(x=>x.id===id)||{}).w || '';
-  const body = rows.length ? rows.map(r=>`
-    <tr data-bankrow="${r.id}">
+  const rowHtml = (r, closed)=>`
+    <tr data-bankrow="${r.id}" data-group="${groupKey(r.status)}" class="${closed?'in-closed':''}">
       ${cols.map(c=>`<td>${outreachCell(r, c)}</td>`).join('')}
-      <td><button class="del-row" data-deloutreach="${r.id}">✕</button></td>
-    </tr>
-  `).join('') + noMatchRow(cols.length+1) : `<tr><td colspan="${cols.length+1}" class="empty-block">No contacts yet — add the first chef or blogger.</td></tr>`;
+      <td class="del-cell"><button class="del-row" data-deloutreach="${r.id}" title="Delete contact" aria-label="Delete ${escapeHtml(r.name||'contact')}">✕</button></td>
+    </tr>`;
+  let body;
+  if(!rows.length){
+    body = `<tr><td colspan="${span}" class="empty-block">No contacts yet. Add the first chef or blogger.</td></tr>`;
+  } else if(outreachMode==='group'){
+    const order = outreachStatuses();
+    const known = order.map(st=>[st, rows.filter(r=>r.status===st)]);
+    const others = rows.filter(r=>!order.includes(r.status));
+    const extra = [...new Set(others.map(r=>r.status||''))].map(st=>[st, others.filter(r=>(r.status||'')===st)]);
+    body = known.concat(extra).filter(([,list])=>list.length).map(([st, list])=>{
+      const g = groupKey(st), closed = closedGroups.has(g);
+      return `<tr class="ro-group ${closed?'closed':''}" data-grouphead="${g}"><td colspan="${span}">
+          <button onclick="toggleGroup('${g}')" aria-expanded="${!closed}"><span class="chev"></span>${escapeHtml(st||'No status')}<span class="n">${list.length}</span></button>
+        </td></tr>` + list.map(r=>rowHtml(r, closed)).join('');
+    }).join('') + noMatchRow(span);
+  } else {
+    body = rows.map(r=>rowHtml(r, false)).join('') + noMatchRow(span);
+  }
+  const seg = `<div class="ro-seg" role="tablist" aria-label="View">
+      <button class="${outreachMode==='group'?'on':''}" role="tab" aria-selected="${outreachMode==='group'}" onclick="setOutreachMode('group')">By status</button>
+      <button class="${outreachMode==='list'?'on':''}" role="tab" aria-selected="${outreachMode==='list'}" onclick="setOutreachMode('list')">List</button>
+    </div>`;
 
   return `
     <div class="topbar">
@@ -2929,7 +3289,7 @@ function outreachView(){
         <h1>Research & Outreach</h1>
         <div class="date">${rows.length} contact${rows.length===1?'':'s'}</div>
       </div>
-      <div class="stream-tagline">Landscape research, outreach status and follow-up dates for chefs and bloggers. Click a column title to edit it, drag it to move it.</div>
+      <div class="stream-tagline">Chefs and bloggers by outreach status. Click a column title to rename it, edit its options or remove it; drag it to move it.</div>
     </div>
     <div class="board-head">
       <span></span>
@@ -2940,14 +3300,15 @@ function outreachView(){
     <div class="add-panel ${outreachFormOpen?'open':''}">
       <div class="row">
         <input type="text" id="f-oname" placeholder="Name" />
-        <input type="text" id="f-ovenue" placeholder="Venue" />
-        <select id="f-otype">
+        <input type="text" id="f-ovenue" placeholder="Place, project" />
+        <input type="text" id="f-oig" placeholder="@instagram" />
+        <select id="f-otype" aria-label="Type">
           ${typeOpts.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
         </select>
-        <select id="f-ostatus">
-          ${OUTREACH_STATUS.map(o=>`<option value="${o}">${o}</option>`).join('')}
+        <select id="f-ostatus" aria-label="Status">
+          ${outreachStatuses().map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
         </select>
-        <select id="f-opriority">
+        <select id="f-opriority" aria-label="Priority">
           <option value="high">High priority</option>
           <option value="med" selected>Medium priority</option>
           <option value="low">Low priority</option>
@@ -2958,10 +3319,10 @@ function outreachView(){
         <button class="btn-solid" data-outreachsubmit="1">Add contact</button>
       </div>
     </div>
-    ${tableFilterBar('outreach')}
-    <div class="table-scroll"><table class="outreach" data-resize-id="outreach" data-filter-bank="outreach">
+    ${tableFilterBar('outreach', { search:'Search name, venue, notes', right:seg, cls:'ro-bar' }) || `<div class="filter-bar ro-bar">${seg}</div>`}
+    <div class="table-scroll ro-frame"><table class="outreach ro" data-resize-id="outreach-v2" data-filter-bank="outreach">
       <thead><tr>
-        ${cols.map(c=>bankTh('outreach', c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:28px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column">＋</button></th>
+        ${cols.map(c=>bankTh('outreach', c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:34px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column" aria-label="Add column">＋</button></th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
@@ -3073,11 +3434,12 @@ function defaultAccountColumns(){
   ];
 }
 const OUTREACH_BUILTIN = [
-  { id:'name', title:'Name', type:'text', builtin:true, w:'13%' },
-  { id:'venue', title:'Venue', type:'text', builtin:true, w:'12%' },
+  { id:'name', title:'Contact', type:'text', builtin:true, w:'21%' },
+  { id:'venue', title:'Place, project', type:'text', builtin:true, merged:true }, // shown under the name
+  { id:'instagram', title:'Instagram', type:'text', builtin:true, kind:'instagram', w:'12%' },
   { id:'type', title:'Type', type:'select', builtin:true, options:['Chef','Blogger','Other'], w:'8%' },
-  { id:'status', title:'Status', type:'status', builtin:true, w:'11%' },
-  { id:'priority', title:'Priority', type:'priority', builtin:true, w:'7%' },
+  { id:'status', title:'Status', type:'status', builtin:true, options:OUTREACH_STATUS.slice(), w:'13%' },
+  { id:'priority', title:'Priority', type:'priority', builtin:true, w:'8%' },
   { id:'lastContact', title:'Last contact', type:'date', builtin:true, w:'10%' },
   { id:'followUp', title:'Follow up', type:'date', builtin:true, w:'10%' },
   { id:'notes', title:'Notes', type:'text', builtin:true }
@@ -3086,9 +3448,28 @@ function defaultOutreachColumns(){ return OUTREACH_BUILTIN.map(c=>{ const x = Ob
 // make sure every built-in column is in the list (older planners only stored the extra ones)
 function ensureOutreachColumns(){
   if(!Array.isArray(state.outreachColumns)) state.outreachColumns = [];
-  const have = new Set(state.outreachColumns.map(c=>c.id));
-  const missing = defaultOutreachColumns().filter(c=>!have.has(c.id));
-  if(missing.length) state.outreachColumns = missing.concat(state.outreachColumns);
+  const cols = state.outreachColumns;
+  // an Instagram column you made yourself becomes the handle column (no duplicate)
+  const ownInsta = cols.find(c=>c.id!=='instagram' && /insta/i.test(c.title||''));
+  if(ownInsta && ownInsta.kind!=='instagram') ownInsta.kind = 'instagram';
+  const defs = defaultOutreachColumns();
+  defs.forEach((d,i)=>{
+    if(cols.some(c=>c.id===d.id) || (d.id==='instagram' && ownInsta)) return;
+    let at = 0; // right after the built-in column that comes before it
+    for(let j=i-1;j>=0;j--){ const k = cols.findIndex(c=>c.id===defs[j].id); if(k>=0){ at = k+1; break; } }
+    cols.splice(at, 0, d);
+  });
+  const st = cols.find(c=>c.id==='status');
+  if(st && !(Array.isArray(st.options) && st.options.length)) st.options = OUTREACH_STATUS.slice();
+  const nm = cols.find(c=>c.id==='name');
+  if(nm && !nm.contactTitle){ if(nm.title==='Name') nm.title = 'Contact'; nm.contactTitle = true; }
+  const vn = cols.find(c=>c.id==='venue');
+  if(vn && !vn.merged){ vn.merged = true; delete vn.hidden; }
+}
+// the statuses, in the order of the blocks (edit them from the Status column title)
+function outreachStatuses(){
+  const st = (state.outreachColumns||[]).find(c=>c.id==='status');
+  return (st && Array.isArray(st.options) && st.options.length) ? st.options : OUTREACH_STATUS;
 }
 const BANKS = {
   places: { rows:'places', cols:'placeColumns', defaults:()=>defaultPlaceColumns(), title:'Bank of Places', one:'place', many:'places', add:'Add place',
@@ -3100,7 +3481,7 @@ const BANKS = {
     empty:'No accounts yet — add a person or account worth keeping track of.' }
 };
 function bankRows(b){ const B = BANKS[b]; return Array.isArray(state[B.rows]) ? state[B.rows] : (state[B.rows] = []); }
-function visibleCols(b){ return bankCols(b).filter(c=>!c.hidden); }
+function visibleCols(b){ return bankCols(b).filter(c=>!c.hidden && !c.merged); }
 function restoreBankCol(id){
   const c = bankCols(bankColEdit.bank).find(c=>c.id===id); if(!c) return;
   delete c.hidden; bankColEdit = null; save(); render();
@@ -3135,7 +3516,7 @@ function bankSelectChange(b, rowId, colId, el){
 }
 function openBankCol(b, id){
   const c = id ? bankCols(b).find(c=>c.id===id) : null;
-  bankColEdit = c ? { bank:b, id:c.id, title:c.title, type:c.type, options:(c.options||[]).join('\n') }
+  bankColEdit = c ? { bank:b, id:c.id, title:c.title, type:c.type, options:(c.type==='status' ? outreachStatuses() : (c.options||[])).join('\n') }
                   : { bank:b, id:null, title:'', type:'text', options:'' };
   render();
   setTimeout(()=>{ const i=document.getElementById('pc-title'); if(i){ i.focus(); i.select(); } },30);
@@ -3149,7 +3530,9 @@ function saveBankCol(){
   const options = [...new Set(document.getElementById('pc-options').value.split('\n').map(x=>x.trim()).filter(Boolean))];
   if(bankColEdit.id){
     const c = bankCols(b).find(c=>c.id===bankColEdit.id);
-    if(c && c.builtin){ c.title = title; if(c.type==='select') c.options = options; }
+    const hasOpts = t => t==='select' || t==='status';
+    if(c && hasOpts(c.type) && options.length) renameOptionValues(b, c, c.type==='status' ? outreachStatuses().slice() : (c.options||[]).slice(), options);
+    if(c && c.builtin){ c.title = title; if(hasOpts(c.type) && options.length) c.options = options; }
     else if(c){ c.title = title; c.type = type; if(type==='select') c.options = options; else delete c.options; }
   } else {
     const c = { id:'c_'+uid(), title, type };
@@ -3157,6 +3540,15 @@ function saveBankCol(){
     bankCols(b).push(c);
   }
   bankColEdit = null; save(); render();
+}
+// an option renamed in place (same position, old name gone) is renamed on every row too
+function renameOptionValues(b, c, before, after){
+  if(before.length!==after.length) return;
+  before.forEach((old,i)=>{
+    const now = after[i];
+    if(old===now || after.includes(old)) return;
+    bankRows(b).forEach(r=>{ if(r[c.id]===old) r[c.id] = now; });
+  });
 }
 function delBankCol(){
   const b = bankColEdit.bank, B = BANKS[b];
@@ -3190,7 +3582,7 @@ function renderBankColModal(){
   const idx = e.id ? cols.findIndex(c=>c.id===e.id) : -1;
   const col = e.id ? cols.find(c=>c.id===e.id) : null;
   const locked = !!(col && col.builtin);
-  const hiddenCols = e.id ? [] : cols.filter(c=>c.hidden);
+  const hiddenCols = e.id ? [] : cols.filter(c=>c.hidden && !c.merged);
   return `
   <div class="modal-overlay" id="pc-overlay" onclick="if(event.target===this) closeBankCol()">
     <div class="modal-box" style="max-width:460px;">
@@ -3198,11 +3590,11 @@ function renderBankColModal(){
       ${hiddenCols.length?`<div style="margin:-6px 0 16px;"><div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:8px;">Bring back a removed column</div><div style="display:flex; gap:6px; flex-wrap:wrap;">${hiddenCols.map(c=>`<button class="add-btn outline" style="padding:6px 12px;" onclick="restoreBankCol('${c.id}')">＋ ${escapeHtml(c.title)}</button>`).join('')}</div></div>`:''}
       <label>Title</label>
       <input type="text" id="pc-title" value="${escapeHtml(e.title)}" placeholder="${e.bank==='accounts'?'e.g. Followers':e.bank==='outreach'?'e.g. Email':'e.g. City'}" onkeydown="if(event.key==='Enter'){saveBankCol();}">
-      ${locked ? `<input type="hidden" id="pc-type" value="${e.type}"><p style="font-size:12px; color:var(--ink-faint); margin:12px 0 0;">Built-in column: you can rename it${e.type==='select'?', edit its options':''}, move it or remove it (its data is kept).</p>` : `<label>Content type</label>
+      ${locked ? `<input type="hidden" id="pc-type" value="${e.type}"><p style="font-size:12px; color:var(--ink-faint); margin:12px 0 0;">Built-in column: you can rename it${e.type==='select'||e.type==='status'?', edit its options':''}, move it or remove it (its data is kept).${e.type==='status'?' The order here is the order of the status blocks. Renaming an option renames it on every contact. Filmed adds the video tasks; Agreed, Filmed and Declined stop follow-up reminders.':''}</p>` : `<label>Content type</label>
       <select id="pc-type" onchange="bankColEdit.type=this.value; document.getElementById('pc-opt-wrap').style.display = this.value==='select' ? 'block' : 'none';">
         ${PLACE_COL_TYPES.map(([v,l])=>`<option value="${v}" ${e.type===v?'selected':''}>${l}</option>`).join('')}
       </select>`}
-      <div id="pc-opt-wrap" style="display:${e.type==='select'?'block':'none'};">
+      <div id="pc-opt-wrap" style="display:${e.type==='select'||e.type==='status'?'block':'none'};">
         <label>Dropdown options, one per line</label>
         <textarea id="pc-options" style="min-height:130px;" placeholder="${e.bank==='accounts'?'Instagram&#10;TikTok&#10;YouTube':'Lisbon&#10;Porto&#10;London'}">${escapeHtml(e.options)}</textarea>
       </div>
@@ -3264,65 +3656,126 @@ function tfActive(b){ const f = getTF(b); return !!(f.q || Object.values(f.cols)
 function setTableFilter(b, colId, v){ getTF(b).cols[colId] = v; render(); }
 function setTableSearch(b, v){ getTF(b).q = v; applyTableFilter(b); }
 function clearTableFilters(b){ delete tableFilters[b]; render(); }
+const DATE_BUCKETS = [['past','In the past'],['today','Today'],['next7','Next 7 days'],['last30','Last 30 days'],['month','This month'],['set','Has a date']];
+function dateBucketOk(v, key){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v||'')) return false;
+  const t = todayStr();
+  switch(key){
+    case 'past': return v<t;
+    case 'today': return v===t;
+    case 'next7': return v>=t && v<=isoAdd(t,7);
+    case 'last30': return v<=t && v>=isoAdd(t,-30);
+    case 'month': return v.slice(0,7)===t.slice(0,7);
+    default: return true;
+  }
+}
+// columns you can filter on (the place/project column under the name included)
+function filterableCols(b){ return bankCols(b).filter(c=>!c.hidden); }
+// which filters sit in the bar; yours to add and remove, kept across devices
+function filterColIds(b){
+  const saved = state.tableFilterCols && state.tableFilterCols[b];
+  if(Array.isArray(saved)) return saved;
+  return visibleCols(b).filter(c=>['select','status','priority'].includes(c.type)).map(c=>c.id);
+}
+function addTableFilterCol(b, id){
+  state.tableFilterCols = state.tableFilterCols || {};
+  const ids = filterColIds(b).slice(); if(!ids.includes(id)) ids.push(id);
+  state.tableFilterCols[b] = ids; save(); render();
+  setTimeout(()=>{ const el = document.querySelector(`[data-tf="${b}:${id}"]`); if(el) el.focus(); }, 30);
+}
+function removeTableFilterCol(b, id){
+  state.tableFilterCols = state.tableFilterCols || {};
+  state.tableFilterCols[b] = filterColIds(b).filter(x=>x!==id);
+  delete getTF(b).cols[id];
+  save(); render();
+}
+function setTableFilterLive(b, colId, v){ getTF(b).cols[colId] = v; applyTableFilter(b); }
 function rowPasses(b, r){
   const f = getTF(b);
-  const vis = new Set(visibleCols(b).map(c=>c.id));
+  const cols = filterableCols(b);
   for(const [id, v] of Object.entries(f.cols)){
-    if(!v || !vis.has(id)) continue;
+    const col = cols.find(c=>c.id===id);
+    if(!v || !col) continue;
     const rv = r[id]===undefined || r[id]===null ? '' : String(r[id]);
-    if(v==='__empty' ? rv!=='' : rv!==v) return false;
+    if(v==='__empty'){ if(rv!=='') return false; continue; }
+    if(col.type==='date'){ if(!dateBucketOk(rv, v)) return false; continue; }
+    if(col.type==='text'){ if(!rv.toLowerCase().includes(v.toLowerCase().trim())) return false; continue; }
+    if(rv!==v) return false;
   }
   if(f.q){
     const q = f.q.toLowerCase().trim();
-    const hay = visibleCols(b).map(c=>String(r[c.id]||'')).join(' ').toLowerCase();
+    const hay = cols.map(c=>String(r[c.id]||'')).join(' ').toLowerCase();
     if(q && !hay.includes(q)) return false;
   }
   return true;
 }
 function noMatchRow(span){ return `<tr class="no-match" style="display:none"><td colspan="${span}" class="empty-block">Nothing matches these filters.</td></tr>`; }
-function tableFilterBar(b){
-  const f = getTF(b), cols = visibleCols(b), rows = bankRows(b);
+// opts: { search:'placeholder', right:'html at the far right', cls:'extra class' }
+function tableFilterBar(b, opts){
+  opts = opts || {};
+  const f = getTF(b), rows = bankRows(b);
   if(!rows.length) return '';
-  const sel = c=>{
-    let opts;
-    if(c.type==='status') opts = OUTREACH_STATUS.map(o=>[o,o]);
-    else if(c.type==='priority') opts = [['high','High'],['med','Med'],['low','Low']];
-    else {
-      const set = (c.options||[]).slice();
-      rows.forEach(r=>{ const v = r[c.id]; if(v && !set.includes(v)) set.push(v); });
-      opts = set.map(o=>[o,o]);
-    }
+  const all = filterableCols(b);
+  const ids = filterColIds(b).filter(id=>all.some(c=>c.id===id));
+  const ctl = c=>{
     const v = f.cols[c.id] || '';
-    return `<select class="${v?'on':''}" onchange="setTableFilter('${b}','${c.id}',this.value)" aria-label="Filter by ${escapeHtml(c.title)}">
-      <option value="">${escapeHtml(c.title)}: all</option>
-      ${opts.map(([o,l])=>`<option value="${escapeHtml(o)}" ${v===o?'selected':''}>${escapeHtml(l)}</option>`).join('')}
-      <option value="__empty" ${v==='__empty'?'selected':''}>No ${escapeHtml(c.title.toLowerCase())}</option>
-    </select>`;
+    const t = escapeHtml(c.title);
+    let inner;
+    if(c.type==='text'){
+      inner = `<input type="search" class="tf-text ${v?'on':''}" data-tf="${b}:${c.id}" placeholder="${t} contains…" value="${escapeHtml(v)}" oninput="setTableFilterLive('${b}','${c.id}',this.value); this.classList.toggle('on',!!this.value)" aria-label="Filter by ${t}">`;
+    } else {
+      let o;
+      if(c.type==='status') o = outreachStatuses().map(x=>[x,x]);
+      else if(c.type==='priority') o = [['high','High'],['med','Med'],['low','Low']];
+      else if(c.type==='date') o = DATE_BUCKETS;
+      else {
+        const set = (c.options||[]).slice();
+        rows.forEach(r=>{ const x = r[c.id]; if(x && !set.includes(x)) set.push(x); });
+        o = set.map(x=>[x,x]);
+      }
+      inner = `<select class="${v?'on':''}" data-tf="${b}:${c.id}" onchange="setTableFilter('${b}','${c.id}',this.value)" aria-label="Filter by ${t}">
+        <option value="">${t}: all</option>
+        ${o.map(([x,l])=>`<option value="${escapeHtml(x)}" ${v===x?'selected':''}>${escapeHtml(l)}</option>`).join('')}
+        <option value="__empty" ${v==='__empty'?'selected':''}>No ${escapeHtml(c.title.toLowerCase())}</option>
+      </select>`;
+    }
+    return `<span class="tf">${inner}<button class="tf-x" onclick="removeTableFilterCol('${b}','${c.id}')" title="Remove this filter" aria-label="Remove the ${t} filter">×</button></span>`;
   };
-  const filterable = cols.filter(c=>c.type==='select' || c.type==='status' || c.type==='priority');
-  return `<div class="filter-bar table-filters">
-    <input type="search" class="table-search ${f.q?'on':''}" placeholder="Search" value="${escapeHtml(f.q)}" oninput="setTableSearch('${b}',this.value)" aria-label="Search">
-    ${filterable.map(sel).join('')}
+  const addable = all.filter(c=>!ids.includes(c.id));
+  const addSel = addable.length ? `<select class="tf-add" onchange="if(this.value) addTableFilterCol('${b}',this.value)" aria-label="Add a filter">
+      <option value="">＋ Filter</option>${addable.map(c=>`<option value="${c.id}">${escapeHtml(c.title)}</option>`).join('')}</select>` : '';
+  return `<div class="filter-bar table-filters ${opts.cls||''}">
+    <input type="search" class="table-search ${f.q?'on':''}" data-search="${b}" placeholder="${escapeHtml(opts.search||'Search')}" value="${escapeHtml(f.q)}" oninput="setTableSearch('${b}',this.value)" aria-label="Search">
+    ${ids.map(id=>ctl(all.find(c=>c.id===id))).join('')}
+    ${addSel}
     <button class="clear" id="tclear-${b}" onclick="clearTableFilters('${b}')" style="${tfActive(b)?'':'display:none'}">Clear filters</button>
     <span class="table-count" id="tcount-${b}"></span>
+    ${opts.right||''}
   </div>`;
 }
 function applyTableFilter(b){
   const table = document.querySelector(`table[data-filter-bank="${b}"]`); if(!table) return;
   const byId = new Map(bankRows(b).map(r=>[r.id, r]));
   let shown = 0, total = 0;
+  const perGroup = {};
   table.querySelectorAll('tbody tr[data-bankrow]').forEach(tr=>{
     const r = byId.get(tr.getAttribute('data-bankrow')); total++;
     const ok = !r || rowPasses(b, r);
-    tr.style.display = ok ? '' : 'none';
-    if(ok) shown++;
+    // rows in a folded status block stay folded
+    tr.style.display = ok && !tr.classList.contains('in-closed') ? '' : 'none';
+    if(ok){ shown++; const g = tr.getAttribute('data-group'); if(g) perGroup[g] = (perGroup[g]||0)+1; }
+  });
+  table.querySelectorAll('tbody tr[data-grouphead]').forEach(tr=>{
+    const n = perGroup[tr.getAttribute('data-grouphead')] || 0;
+    tr.style.display = n ? '' : 'none';
+    const el = tr.querySelector('.n'); if(el) el.textContent = n;
   });
   const nm = table.querySelector('tr.no-match'); if(nm) nm.style.display = (total && !shown) ? '' : 'none';
   const B = BANKS[b];
   const cnt = document.getElementById('tcount-'+b);
   if(cnt) cnt.textContent = shown===total ? '' : `${shown} of ${total} ${B.many}`;
   const clr = document.getElementById('tclear-'+b); if(clr) clr.style.display = tfActive(b) ? '' : 'none';
-  const srch = table.closest('.main') && document.querySelector(`.table-search[oninput*="'${b}'"]`);
+  const srch = document.querySelector(`.table-search[data-search="${b}"]`);
   if(srch) srch.classList.toggle('on', !!getTF(b).q);
 }
 
@@ -3467,8 +3920,6 @@ function renderEditModal(){
       </div>
       <label>Talk / project <span style="text-transform:none; letter-spacing:0;">· groups it on the Overview</span></label>
       ${pickChips('project', t)}
-      <label>Format <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
-      ${pickChips('format', t)}
       <label>Platform <span style="text-transform:none; letter-spacing:0;">· pick one or more</span></label>
       ${pickChips('platform', t)}
       ${taskPlatforms(t).length?`<label>Already out on <span style="text-transform:none; letter-spacing:0;">· tick each platform once it’s posted</span></label>
@@ -3681,7 +4132,7 @@ function markDate(el){
 }
 ['input','change','blur'].forEach(ev=>document.addEventListener(ev, e=>{ if(e.target && e.target.type==='date') markDate(e.target); }, true));
 function render(){
-  if(state && autoPromote()) save();
+  if(state){ const a = autoPromote(), b = linkVideoClosure(); if(a || b) save(); }
   document.body.classList.remove('task-dragging');
   const root = document.getElementById('root');
   root.style.padding = '0'; root.style.color = '';
@@ -3728,7 +4179,6 @@ function render(){
         assignee: document.getElementById('e-who').value,
         filmDue: (document.getElementById('e-film')||{}).value,
         editDue: (document.getElementById('e-edit')||{}).value,
-        formats: pickedChips('format'),
         platforms: pickedChips('platform'),
         projects: pickedChips('project'),
         posted: document.getElementById('e-posted') ? [...document.querySelectorAll('#e-posted .fmt-chip')].map(c=>({ p:c.dataset.fmt, on:c.classList.contains('on'), date:c.dataset.date })) : null
@@ -3939,7 +4389,7 @@ function bindEvents(){
     el.addEventListener('click', ()=>{
       const name = document.getElementById('f-oname').value;
       if(!name.trim()) return;
-      addOutreachRow({ name, venue: document.getElementById('f-ovenue').value, type: document.getElementById('f-otype').value, status: document.getElementById('f-ostatus').value, priority: document.getElementById('f-opriority').value });
+      addOutreachRow({ name, venue: document.getElementById('f-ovenue').value, instagram: document.getElementById('f-oig').value, type: document.getElementById('f-otype').value, status: document.getElementById('f-ostatus').value, priority: document.getElementById('f-opriority').value });
       outreachFormOpen=false;
     });
   });
