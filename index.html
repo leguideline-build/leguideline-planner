@@ -829,114 +829,79 @@
   .proj-state.c-filmed{ background:#00b209; color:#fff; padding:2px 8px; border-radius:999px; }
   .proj-state.c-reached{ background:#f4c70f; color:#000; padding:2px 8px; border-radius:999px; }
 
-  /* ==================== Research & Outreach: contact list ==================== */
-  .ro-bar{ gap:10px; margin:0 0 16px; }
-  .ro-bar .table-search{
-    flex:1 1 280px; width:auto; height:38px; border-radius:10px; font-size:13px; padding:0 14px 0 36px;
-    background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.2-4.2'/%3E%3C/svg%3E") no-repeat 13px center / 15px 15px;
-  }
-  .ro-bar select, .ro-bar .tf-text{ height:38px; line-height:36px; border-radius:10px; font-size:12.5px; color:var(--ink); padding:0 32px 0 14px; background-position:right 12px center; }
-  .ro-bar .tf-text{ padding:0 14px; width:170px; }
-  .ro-bar .table-count{ font-size:11.5px; color:var(--ink-soft); }
+  /* ==================== Research & Outreach: same look as the other tables ==================== */
   .tf{ position:relative; display:inline-flex; }
   .tf-x{
-    all:unset; cursor:pointer; position:absolute; top:-6px; right:-6px; width:17px; height:17px; border-radius:50%;
-    background:var(--ink); color:var(--white); font-size:11px; line-height:17px; text-align:center; opacity:0; transition:opacity .12s ease;
+    all:unset; cursor:pointer; position:absolute; top:-5px; right:-5px; width:15px; height:15px; border-radius:50%;
+    background:var(--ink); color:var(--white); font-size:10px; line-height:15px; text-align:center; opacity:0; transition:opacity .12s ease;
   }
   .tf:hover .tf-x, .tf:focus-within .tf-x, .tf-x:focus-visible{ opacity:1; }
   .tf-text{ border:1px solid var(--line); border-radius:999px; background:var(--white); font-family:inherit; font-size:11.5px; color:var(--ink); height:28px; padding:0 12px; width:150px; box-sizing:border-box; }
   .tf-text:focus{ outline:none; border-color:var(--ink); }
-  .tf-text.on{ border-color:#2c20d0; box-shadow:inset 0 0 0 1px #2c20d0; }
-  .filter-bar select.tf-add{ border-style:dashed; color:var(--ink-soft); }
-  .filter-bar select.tf-add:hover{ border-color:var(--ink); color:var(--ink); }
+  .tf-text.on{ border-color:#2c20d0; }
+  .filter-bar select.tf-add{ border-style:dashed; }
 
-  .ro-seg{ display:inline-flex; margin-left:auto; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--white); }
-  .ro-seg button{ all:unset; cursor:pointer; height:36px; padding:0 18px; display:inline-flex; align-items:center; font-size:12.5px; color:var(--ink-soft); }
-  .ro-seg button:hover{ color:var(--ink); }
-  .ro-seg button.on{ background:var(--ink); color:var(--white); font-weight:700; }
-  .ro-seg button:focus-visible{ outline:2px solid #2c20d0; outline-offset:-3px; }
-
-  .ro-auto{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); }
-  .ro-auto select{ border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-family:inherit; font-size:12px; color:var(--ink); background:var(--white); cursor:pointer; }
-  .ro-auto select:focus{ outline:none; border-color:var(--ink); }
-
-  .ro-frame{ border:1px solid var(--line); border-radius:14px; background:var(--white); }
   table.outreach.ro{ min-width:980px; }
-  table.outreach.ro th{ background:#fafafa; padding:15px 14px; font-size:10.5px; letter-spacing:.09em; color:#9a9a9a; border-bottom:1px solid var(--line); }
-  table.outreach.ro th .pcol-head{ letter-spacing:inherit; }
-  table.outreach.ro td{ padding:11px 14px; border-bottom:1px solid var(--line); }
-  table.outreach.ro tbody tr[data-bankrow]:hover td{ background:#fcfcfc; }
-  table.outreach.ro tbody tr:last-child td{ border-bottom:none; }
+  table.outreach.ro td{ padding:6px 10px; }
   table.outreach.ro .del-cell{ text-align:center; }
-  table.outreach.ro .del-row{ opacity:0; }
-  table.outreach.ro tr:hover .del-row, table.outreach.ro .del-row:focus-visible{ opacity:1; }
+  table.outreach.ro select{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none; width:auto; max-width:100%; field-sizing:content; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23767676' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 8px center; background-size:10px 10px; padding-right:24px;
+  }
 
-  tr.ro-group td{ background:#fafafa !important; padding:0 !important; border-bottom:1px solid var(--line); border-top:1px solid var(--line); }
-  tr.ro-group button{ all:unset; cursor:pointer; display:flex; align-items:center; gap:9px; width:100%; box-sizing:border-box; padding:12px 14px 12px 18px; font-size:13px; font-weight:700; letter-spacing:.01em; color:var(--ink); }
+  /* status blocks: a quiet heading, like the board columns */
+  tr.ro-group td{ padding:0 !important; border-bottom:1px solid var(--line); }
+  tr.ro-group button{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; padding:16px 10px 8px; }
+  tr.ro-group .ro-gname{ font-size:10.5px; color:var(--ink-soft); font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  tr.ro-group button:hover .ro-gname{ color:var(--ink); }
   tr.ro-group button:focus-visible{ outline:2px solid #2c20d0; outline-offset:-2px; }
-  tr.ro-group .n{ font-weight:400; color:var(--ink-faint); }
-  tr.ro-group .chev{ width:6px; height:6px; border-right:1.5px solid var(--ink-soft); border-bottom:1.5px solid var(--ink-soft); transform:rotate(45deg); margin:-3px 3px 0 0; transition:transform .15s ease; }
+  tr.ro-group .n{ font-size:10.5px; color:var(--ink-faint); }
+  tr.ro-group .chev{ width:5px; height:5px; border-right:1.3px solid var(--ink-faint); border-bottom:1.3px solid var(--ink-faint); transform:rotate(45deg); margin:-3px 1px 0 2px; transition:transform .15s ease; }
   tr.ro-group.closed .chev{ transform:rotate(-45deg); margin-top:0; }
 
-  /* name on top, place / project underneath */
-  .ro-contact{ display:flex; flex-direction:column; gap:1px; min-width:0; }
-  table.outreach.ro .ro-name{ font-size:14px; font-weight:700; padding:2px 5px; }
-  .ro-venue{ display:flex; align-items:center; gap:3px; color:var(--ink-soft); padding-left:5px; cursor:text; }
-  .ro-venue svg{ width:13px; height:13px; flex-shrink:0; color:var(--ink-faint); }
-  table.outreach.ro .ro-venue input{ font-size:12.5px; color:var(--ink-soft); padding:2px 4px; }
+  /* name, with place / project underneath */
+  .ro-contact{ display:flex; flex-direction:column; min-width:0; }
+  table.outreach.ro .ro-name{ font-weight:700; padding:3px 6px 1px; }
+  .ro-venue{ display:flex; align-items:center; gap:2px; padding-left:6px; cursor:text; }
+  .ro-venue svg{ width:11px; height:11px; flex-shrink:0; color:var(--ink-faint); }
+  table.outreach.ro .ro-venue input{ font-size:11px; color:var(--ink-soft); padding:1px 4px; }
 
   .ro-ig{ display:flex; align-items:center; }
-  .ro-ig .at{ font-size:12.5px; color:var(--ink-faint); padding-left:5px; }
-  table.outreach.ro .ro-ig input{ font-size:12.5px; padding:4px 3px; min-width:0; }
-  .ro-ig a{ display:inline-flex; padding:4px; color:var(--ink-faint); border-radius:4px; }
+  .ro-ig .at{ font-size:12px; color:var(--ink-faint); padding-left:6px; }
+  table.outreach.ro .ro-ig input{ padding-left:2px; min-width:0; }
+  .ro-ig a{ display:inline-flex; padding:3px; color:var(--ink-faint); }
   .ro-ig a:hover{ color:var(--ink); }
-  .ro-ig a svg{ width:13px; height:13px; }
+  .ro-ig a svg{ width:12px; height:12px; }
 
-  .ro-chip{ display:inline-flex; max-width:100%; }
-  table.outreach.ro .ro-chip select{ appearance:none; -webkit-appearance:none; -moz-appearance:none; background:#f2f2f1; border:0; border-radius:7px; padding:6px 11px; width:auto; field-sizing:content; max-width:100%; font-size:12.5px; cursor:pointer; }
-  table.outreach.ro .ro-chip select:focus{ background:#f2f2f1; outline:1.5px solid var(--ink); outline-offset:1px; }
-
-  .ro-pill{ position:relative; display:inline-flex; max-width:100%; }
+  /* status: the planner's pills (Agreed blue, Filmed green, Reached out yellow, the rest outlined) */
   table.outreach.ro .ro-pill select{
-    appearance:none; -webkit-appearance:none; -moz-appearance:none; border:0; border-radius:999px; cursor:pointer;
-    background:var(--pill-bg); color:var(--pill-fg); font-weight:700; font-size:12.5px; padding:7px 32px 7px 15px; width:auto; field-sizing:content; max-width:100%;
+    border:1px solid var(--line); border-radius:999px; background-color:var(--white); color:var(--ink);
+    font-size:11.5px; padding:4px 24px 4px 11px; background-position:right 8px center;
   }
-  table.outreach.ro .ro-pill select:hover{ background:var(--pill-bg); filter:brightness(.97); }
-  table.outreach.ro .ro-pill select:focus{ background:var(--pill-bg); outline:2px solid var(--pill-fg); outline-offset:2px; }
+  table.outreach.ro .ro-pill select:focus{ outline:none; border-color:var(--ink); }
   table.outreach.ro .ro-pill select option{ color:var(--ink); background:var(--white); font-weight:400; }
-  .ro-pill::after{ content:''; position:absolute; right:14px; top:50%; width:5px; height:5px; border-right:1.6px solid var(--pill-fg); border-bottom:1.6px solid var(--pill-fg); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
-  .ro-linked{ all:unset; cursor:pointer; display:block; margin:6px 0 0 6px; font-size:11px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
+  table.outreach.ro .ro-pill.st-agreed select{ background-color:#2c20d0; border-color:#2c20d0; color:#ffffff; font-weight:700; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  table.outreach.ro .ro-pill.st-filmed select{ background-color:#00b209; border-color:#00b209; color:#ffffff; font-weight:700; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  table.outreach.ro .ro-pill.st-reached select{ background-color:#f4c70f; border-color:#f4c70f; color:#000000; font-weight:700; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23000000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  table.outreach.ro .ro-pill.st-declined select{ color:var(--ink-faint); }
+  .ro-linked{ all:unset; cursor:pointer; display:block; margin:4px 0 0 6px; font-size:10.5px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
   .ro-linked:hover{ color:var(--ink); }
 
-  .ro-prio{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
-  .ro-prio .bars{ width:14px; height:12px; flex-shrink:0; }
-  .ro-prio .bars rect{ fill:#e3e3e3; }
-  .ro-prio.p-high .bars rect.on{ fill:var(--red); }
-  .ro-prio.p-med .bars rect.on{ fill:#e0a100; }
-  .ro-prio.p-low .bars rect.on{ fill:#9a9a9a; }
-  table.outreach.ro .ro-prio select{ appearance:none; -webkit-appearance:none; -moz-appearance:none; width:auto; field-sizing:content; padding:4px 3px; font-size:13px; cursor:pointer; }
-
   /* dates: 17 Sep, and how long ago underneath; the picker opens on click */
-  .ro-date{ position:relative; display:flex; flex-direction:column; justify-content:center; min-height:36px; padding:2px 6px; border-radius:6px; line-height:1.3; }
-  .ro-date:hover{ background:var(--line-soft); }
-  .ro-date:focus-within{ box-shadow:0 0 0 1.5px var(--ink); }
-  .ro-date-main{ font-size:13px; }
+  .ro-date{ position:relative; display:flex; flex-direction:column; justify-content:center; min-height:30px; padding:2px 6px; border-radius:4px; line-height:1.3; border:1px solid transparent; }
+  .ro-date:hover{ border-color:var(--line); }
+  .ro-date:focus-within{ border-color:var(--ink); }
+  .ro-date-main{ font-size:12px; }
   .ro-date.empty .ro-date-main{ color:var(--ink-faint); }
-  .ro-date-rel{ font-size:11.5px; color:var(--ink-faint); }
+  .ro-date-rel{ font-size:10.5px; color:var(--ink-faint); }
   .ro-date.ahead .ro-date-rel, .ro-date.today .ro-date-rel{ color:#2c20d0; }
   .ro-date.today .ro-date-rel{ font-weight:700; }
-  .ro-date.overdue .ro-date-rel{ color:var(--red); }
+  .ro-date.overdue .ro-date-rel{ color:var(--red); font-weight:700; }
   table.outreach.ro .ro-date input[type=date]{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; padding:0; border:0; margin:0; }
-  .ro-date-x{ all:unset; position:absolute; right:2px; top:50%; transform:translateY(-50%); z-index:1; cursor:pointer; color:var(--ink-faint); font-size:15px; line-height:1; padding:3px 6px; opacity:0; }
+  .ro-date-x{ all:unset; position:absolute; right:2px; top:50%; transform:translateY(-50%); z-index:1; cursor:pointer; color:var(--ink-faint); font-size:13px; line-height:1; padding:3px 5px; opacity:0; }
   .ro-date:hover .ro-date-x, .ro-date-x:focus-visible{ opacity:1; }
   .ro-date-x:hover{ color:var(--red); }
-  table.outreach.ro input::placeholder{ color:#c4c4c4; }
-
-  @media (max-width:720px){
-    .ro-seg{ margin-left:0; }
-    .ro-bar .table-search{ flex-basis:100%; }
-    .board-head .ro-auto{ font-size:11.5px; }
-  }
+  table.outreach.ro input::placeholder{ color:var(--ink-faint); }
 
   /* Overview: tick a row to close it on its own tab */
   .due-check{
@@ -3156,9 +3121,9 @@ function outreachCell(r, c){
   if(c.id==='status'){
     const list = outreachStatuses().slice();
     if(r.status && !list.includes(r.status)) list.push(r.status);
-    const [bg, fg] = statusTint(r.status);
+    const stCls = { 'Agreed':'st-agreed', 'Filmed':'st-filmed', 'Reached out':'st-reached', 'Declined':'st-declined' }[r.status] || '';
     const linked = filmedTasks(r);
-    return `<span class="ro-pill" style="--pill-bg:${bg}; --pill-fg:${fg};"><select onchange="outreachStatusChange('${r.id}',this)" aria-label="Status">
+    return `<span class="ro-pill ${stCls}"><select onchange="outreachStatusChange('${r.id}',this)" aria-label="Status">
         ${list.map(o=>`<option value="${escapeHtml(o)}" ${r.status===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}
         <option value="__edit">Edit statuses…</option>
       </select></span>
@@ -3166,14 +3131,14 @@ function outreachCell(r, c){
   }
   if(c.id==='priority'){
     const p = r.priority || 'med';
-    return `<label class="ro-prio p-${p}">${prioBars(p)}<select onchange="updateOutreachField('${r.id}','priority',this.value); render();" aria-label="Priority">
+    return `<select onchange="updateOutreachField('${r.id}','priority',this.value); render();" aria-label="Priority">
       <option value="high" ${p==='high'?'selected':''}>High</option>
       <option value="med" ${p==='med'?'selected':''}>Med</option>
       <option value="low" ${p==='low'?'selected':''}>Low</option>
-    </select></label>`;
+    </select>`;
   }
   if(c.type==='date') return roDateCell(r, c);
-  if(c.type==='select') return `<span class="ro-chip">${bankCell('outreach', r, c)}</span>`;
+  if(c.type==='select') return bankCell('outreach', r, c);
   const v = r[c.id]===undefined ? '' : String(r[c.id]);
   return `<input type="text" value="${escapeHtml(v)}" placeholder="${c.id==='notes'?'Add a note…':''}" oninput="updateBankField('outreach','${r.id}','${c.id}',this.value)" aria-label="${escapeHtml(c.title)}">`;
 }
@@ -3272,15 +3237,15 @@ function outreachView(){
     body = known.concat(extra).filter(([,list])=>list.length).map(([st, list])=>{
       const g = groupKey(st), closed = closedGroups.has(g);
       return `<tr class="ro-group ${closed?'closed':''}" data-grouphead="${g}"><td colspan="${span}">
-          <button onclick="toggleGroup('${g}')" aria-expanded="${!closed}"><span class="chev"></span>${escapeHtml(st||'No status')}<span class="n">${list.length}</span></button>
+          <button onclick="toggleGroup('${g}')" aria-expanded="${!closed}"><span class="chev"></span><span class="ro-gname">${escapeHtml(st||'No status')}</span><span class="n">${list.length}</span></button>
         </td></tr>` + list.map(r=>rowHtml(r, closed)).join('');
     }).join('') + noMatchRow(span);
   } else {
     body = rows.map(r=>rowHtml(r, false)).join('') + noMatchRow(span);
   }
-  const seg = `<div class="ro-seg" role="tablist" aria-label="View">
-      <button class="${outreachMode==='group'?'on':''}" role="tab" aria-selected="${outreachMode==='group'}" onclick="setOutreachMode('group')">By status</button>
-      <button class="${outreachMode==='list'?'on':''}" role="tab" aria-selected="${outreachMode==='list'}" onclick="setOutreachMode('list')">List</button>
+  const seg = `<div class="view-toggle" role="tablist" aria-label="View">
+      <button class="${outreachMode==='group'?'on':''}" role="tab" aria-selected="${outreachMode==='group'}" onclick="setOutreachMode('group')">${icon(BOARD_ICON)}By status</button>
+      <button class="${outreachMode==='list'?'on':''}" role="tab" aria-selected="${outreachMode==='list'}" onclick="setOutreachMode('list')">${icon(TABLE_ICON)}List</button>
     </div>`;
 
   return `
@@ -3292,7 +3257,7 @@ function outreachView(){
       <div class="stream-tagline">Chefs and bloggers by outreach status. Click a column title to rename it, edit its options or remove it; drag it to move it.</div>
     </div>
     <div class="board-head">
-      <span></span>
+      ${seg}
       <div class="board-actions">
         <button class="add-btn" data-outreachtoggle="1">Add contact</button>
       </div>
@@ -3319,8 +3284,8 @@ function outreachView(){
         <button class="btn-solid" data-outreachsubmit="1">Add contact</button>
       </div>
     </div>
-    ${tableFilterBar('outreach', { search:'Search name, venue, notes', right:seg, cls:'ro-bar' }) || `<div class="filter-bar ro-bar">${seg}</div>`}
-    <div class="table-scroll ro-frame"><table class="outreach ro" data-resize-id="outreach-v2" data-filter-bank="outreach">
+    ${tableFilterBar('outreach', { search:'Search' })}
+    <div class="table-scroll"><table class="outreach ro" data-resize-id="outreach-v2" data-filter-bank="outreach">
       <thead><tr>
         ${cols.map(c=>bankTh('outreach', c, widthOf(c.id) ? 'width:'+widthOf(c.id) : '')).join('')}<th data-col="del" data-noresize="1" style="width:34px"><button class="pcol-add" onclick="openBankCol('outreach',null)" title="Add column" aria-label="Add column">＋</button></th>
       </tr></thead>
